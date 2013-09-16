@@ -1,4 +1,4 @@
-scripts
+Scripts
 =======
 
 All kind of scripts
