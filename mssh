@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+
+# ~/mydir/uk00probst00 ls -l -> ssh uk00probst00 ls -l
+# why exec?
+
+remote="${0##*/}"
+remote="${remote#?}"
+
+pws get "$remote" 0
+
+exec ssh "$remote" "$@"

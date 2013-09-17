@@ -1,0 +1,208 @@
+#! /usr/bin/env bash
+
+mkrepos() {
+   local base="$HOME"/github
+   mkdir -p "$base"
+
+   if cd "$base" && [[ ! -d bash ]]; then
+      if git clone git@github.com:kurkale6ka/bash.git; then
+         cd bash && git submodule init && git submodule update
+      fi
+      echo
+   fi
+   if cd "$base" && [[ ! -d config ]]; then
+      git clone git@github.com:kurkale6ka/config.git
+      echo
+   fi
+   if cd "$base" && [[ ! -d help ]]; then
+      git clone git@github.com:kurkale6ka/help.git
+      echo
+   fi
+   if cd "$base" && [[ ! -d scripts ]]; then
+      git clone git@github.com:kurkale6ka/scripts.git
+      echo
+   fi
+   if cd "$base" && [[ ! -d vim ]]; then
+      if git clone git@github.com:kurkale6ka/vim.git; then
+         cd vim && git submodule init && git submodule update
+      fi
+   fi
+
+   # tags generation
+   cd "$base" &&
+   ctags -R --langmap=vim:+.vimrc,sh:+.bashrc.bash_profile                       \
+   --exclude=*~ --exclude=.*~ --exclude=bundle --exclude=colors --exclude=keymap \
+   --exclude=pathogen.vim                                                        \
+   "$base"/bash/scripts                                                          \
+   "$base"/bash/.bashrc                                                          \
+   "$base"/vim                                                                   \
+   "$base"/vim/bundle/blanklines                                                 \
+   "$base"/vim/bundle/blockinsert                                                \
+   "$base"/vim/bundle/pairs                                                      \
+   "$base"/vim/bundle/sequence                                                   \
+   "$base"/vim/bundle/swap                                                       \
+   "$base"/vim/bundle/vsearch                                                    \
+   "$base"/rc
+   # "$base"/vim/bundle/desertEx
+   # "$base"/vim/bundle/pgn
+}
+
+updaterepos() {
+   local base="$HOME"/github
+
+   if cd "$base"/bash; then
+      if git pull git@github.com:kurkale6ka/bash.git master; then
+         git submodule update
+      fi
+      echo
+   fi
+
+   if cd "$base"/config; then
+      git pull git@github.com:kurkale6ka/config.git master
+      echo
+   fi
+
+   if cd "$base"/help; then
+      git pull git@github.com:kurkale6ka/help.git master
+      echo
+   fi
+
+   if cd "$base"/scripts; then
+      git pull git@github.com:kurkale6ka/scripts.git master
+      echo
+   fi
+
+   if cd "$base"/vim; then
+      if git pull git@github.com:kurkale6ka/vim.git master; then
+         git submodule update
+      fi
+   fi
+}
+
+cprepos() {
+   cd "$HOME"/github || exit 1
+   wget --no-check-certificate                             \
+      https://github.com/kurkale6ka/bash/tarball/master    \
+      https://github.com/kurkale6ka/config/tarball/master  \
+      https://github.com/kurkale6ka/help/tarball/master    \
+      https://github.com/kurkale6ka/scripts/tarball/master
+
+   if wget --no-check-certificate \
+      https://github.com/kurkale6ka/vim/tarball/master
+   then
+      wget --no-check-certificate                                     \
+         https://github.com/kurkale6ka/vim-blanklines/tarball/master  \
+         https://github.com/kurkale6ka/vim-blockinsert/tarball/master \
+         https://github.com/kurkale6ka/vim-quotes/tarball/master      \
+         https://github.com/kurkale6ka/vim-sequence/tarball/master    \
+         https://github.com/kurkale6ka/vim-swap/tarball/master        \
+         https://github.com/godlygeek/csapprox/tarball/master         \
+         https://github.com/godlygeek/tabular/tarball/master          \
+         https://github.com/tpope/vim-pathogen/tarball/master         \
+         https://github.com/tpope/vim-abolish/tarball/master          \
+         https://github.com/tpope/vim-endwise/tarball/master          \
+         https://github.com/tpope/vim-unimpaired/tarball/master       \
+         https://github.com/tpope/vim-surround/tarball/master         \
+         https://github.com/tpope/vim-repeat/tarball/master           \
+         https://github.com/tpope/vim-ragtag/tarball/master           \
+         https://github.com/tpope/vim-flatfoot/tarball/master         \
+         https://github.com/scrooloose/nerdcommenter/tarball/master   \
+         https://github.com/vim-scripts/MarkLines/tarball/master      \
+         https://github.com/vim-scripts/bufkill.vim/tarball/master    \
+         https://github.com/rodjek/vim-puppet/tarball/master          \
+         https://github.com/vim-scripts/UltiSnips/tarball/master
+   fi
+   local repo
+   for repo in master*; do
+      # Use tar with -C <dir> ...?
+      tar zxvf "$repo" && command rm "$repo"
+   done
+}
+
+ rcdirs=(bash config help scripts vim)
+    rcs=(.dir_colors .gitignore .my.cnf .{curl,input,irb,screen,top}rc)
+ vimrcs=(.{,g}vimrc)
+bashrcs=(.profile .bash_{profile,login,logout} .bashrc .logout)
+ bashxs=(colors em mkconfig madd-host mssh)
+
+mklinks() {
+   # Same as in ${parameter#word to remove} or ${parameter%word to remove},
+   # # <=> \< and % <=> \>, so ${rcdir/#/$HOME/github/} means replace the
+   # beginning of rcdir with $HOME/github/
+   local rcdir
+   for rcdir in "${rcdirs[@]}"
+   do ln -sT "${rcdir/#/$HOME/github/}" "${rcdir/#/$HOME/}"
+   done
+
+   ln -sT "$HOME"/github/vim "$HOME"/.vim
+
+   if mkdir -p $HOME/github/vim/autoload; then
+      ln -s "$HOME"/github/vim/bundle/pathogen/autoload/pathogen.vim \
+            "$HOME"/github/vim/autoload
+   fi
+
+   ln -s "${rcs[@]/#/$HOME/github/config/dotfiles/}" \
+      "${vimrcs[@]/#/$HOME/github/vim/}"             \
+     "${bashrcs[@]/#/$HOME/github/bash/}"            \
+     "$HOME"/github/bash/scripts/cd/.cdmarks.skel "$HOME"
+
+   mkdir -p "$HOME"/bin
+   if [[ -d $HOME/bin ]]; then
+      ln -s "${bashxs[@]/#/$HOME/github/bash/scripts/}" \
+            "$HOME"/github/vim/scripts/vc "$HOME"/bin
+   fi
+}
+
+rmlinks() {
+   command \
+      rm "$HOME"/{.cdmarks.skel,.vim,github/vim/autoload/pathogen.vim,bin/vc} \
+          "${rcdirs[@]/#/$HOME/}"                                             \
+             "${rcs[@]/#/$HOME/}"                                             \
+          "${vimrcs[@]/#/$HOME/}"                                             \
+         "${bashrcs[@]/#/$HOME/}"                                             \
+          "${bashxs[@]/#/$HOME/bin/}"
+}
+
+mkenv() {
+   mkrepos; mklinks
+
+   # Put in @sets ?
+   emerge bind-tools     \
+          evince         \
+          figlet         \
+          gcalctool      \
+          # dev-vcs/git -gtk
+          git            \
+          gnupg          \
+          moreutils      \
+          ntp            \
+          # sys-process/parallel \ ?
+          sudo           \
+          tcpdump        \
+          vixie-cron     \
+          wgetpaste      \
+          x11-misc/xclip
+   # rc-update add ntpd vixie-cron default
+
+   # visudo
+   # Defaults:mitko timestamp_timeout=50 # min before asking for password again
+
+   mkdir -p "$HOME"/backups
+   # crontab -u "$USER" "$HOME"/rc/crontab/crontab.backups
+}
+
+ options=('Update repositories' 'Create repositories' 'Copy repositories')
+options+=('Make links'          'Remove links'        'Machine setup')
+
+select choice in "${options[@]}"
+do
+   case "$choice" in
+      "${options[0]}") updaterepos;      break;;
+      "${options[1]}") mkrepos; mklinks; break;;
+      "${options[2]}") cprepos;          break;;
+      "${options[3]}") mklinks;          break;;
+      "${options[4]}") rmlinks;          break;;
+      "${options[5]}") mkenv;            break;;
+                    *) echo '*** Wrong choice ***' >&2
+   esac
+done
