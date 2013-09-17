@@ -1,4 +1,7 @@
-Scripts
-=======
+Scripts for:
+------------
 
-All kind of scripts
+* CentOS virt-install
+* figlet
+* subtotals
+* ...
