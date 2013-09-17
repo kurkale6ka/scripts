@@ -1,32 +1,22 @@
 #! /usr/bin/env bash
 
+shopt -s extglob
+
 mkrepos() {
    local base="$HOME"/github
    mkdir -p "$base"
 
-   if cd "$base" && [[ ! -d bash ]]; then
-      if git clone git@github.com:kurkale6ka/bash.git; then
-         cd bash && git submodule init && git submodule update
+   for repo in bash config help scripts vim; do
+      if cd "$base" && [[ ! -d $repo ]]; then
+         if git clone git@github.com:kurkale6ka/"$repo".git; then
+            if [[ $repo == @(bash|vim) ]]
+            then cd "$repo" && git submodule init && git submodule update
+            fi
+            # No newline for the last one
+            [[ ! $repo == vim ]] && echo
+         fi
       fi
-      echo
-   fi
-   if cd "$base" && [[ ! -d config ]]; then
-      git clone git@github.com:kurkale6ka/config.git
-      echo
-   fi
-   if cd "$base" && [[ ! -d help ]]; then
-      git clone git@github.com:kurkale6ka/help.git
-      echo
-   fi
-   if cd "$base" && [[ ! -d scripts ]]; then
-      git clone git@github.com:kurkale6ka/scripts.git
-      echo
-   fi
-   if cd "$base" && [[ ! -d vim ]]; then
-      if git clone git@github.com:kurkale6ka/vim.git; then
-         cd vim && git submodule init && git submodule update
-      fi
-   fi
+   done
 
    # tags generation
    cd "$base" &&
@@ -35,6 +25,7 @@ mkrepos() {
    --exclude=pathogen.vim                                                        \
    "$base"/bash/scripts                                                          \
    "$base"/bash/.bashrc                                                          \
+   "$base"/scripts                                                               \
    "$base"/vim                                                                   \
    "$base"/vim/bundle/blanklines                                                 \
    "$base"/vim/bundle/blockinsert                                                \
@@ -42,41 +33,22 @@ mkrepos() {
    "$base"/vim/bundle/sequence                                                   \
    "$base"/vim/bundle/swap                                                       \
    "$base"/vim/bundle/vsearch                                                    \
-   "$base"/rc
-   # "$base"/vim/bundle/desertEx
+   # "$base"/vim/bundle/desertEx                                                 \
    # "$base"/vim/bundle/pgn
 }
 
 updaterepos() {
-   local base="$HOME"/github
-
-   if cd "$base"/bash; then
-      if git pull git@github.com:kurkale6ka/bash.git master; then
-         git submodule update
+   for repo in bash config help scripts vim; do
+      if cd "$HOME/github/$repo"; then
+         if git pull git@github.com:kurkale6ka/"$repo".git master; then
+            if [[ $repo == @(bash|vim) ]]
+            then git submodule update
+            fi
+            # No newline for the last one
+            [[ ! $repo == vim ]] && echo
+         fi
       fi
-      echo
-   fi
-
-   if cd "$base"/config; then
-      git pull git@github.com:kurkale6ka/config.git master
-      echo
-   fi
-
-   if cd "$base"/help; then
-      git pull git@github.com:kurkale6ka/help.git master
-      echo
-   fi
-
-   if cd "$base"/scripts; then
-      git pull git@github.com:kurkale6ka/scripts.git master
-      echo
-   fi
-
-   if cd "$base"/vim; then
-      if git pull git@github.com:kurkale6ka/vim.git master; then
-         git submodule update
-      fi
-   fi
+   done
 }
 
 cprepos() {
@@ -123,7 +95,7 @@ cprepos() {
     rcs=(.dir_colors .gitignore .my.cnf .{curl,input,irb,screen,top}rc)
  vimrcs=(.{,g}vimrc)
 bashrcs=(.profile .bash_{profile,login,logout} .bashrc .logout)
- bashxs=(colors em mkconfig madd-host mssh)
+ bashxs=(terminal_colors em mkconfig host_to_sshconfig.bash mssh)
 
 mklinks() {
    # Same as in ${parameter#word to remove} or ${parameter%word to remove},
@@ -148,7 +120,7 @@ mklinks() {
 
    mkdir -p "$HOME"/bin
    if [[ -d $HOME/bin ]]; then
-      ln -s "${bashxs[@]/#/$HOME/github/bash/scripts/}" \
+      ln -s "${bashxs[@]/#/$HOME/github/scripts/}" \
             "$HOME"/github/vim/scripts/vc "$HOME"/bin
    fi
 }
