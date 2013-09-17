@@ -53,8 +53,15 @@ updaterepos() {
 
 cprepos() {
    cd "$HOME"/github || exit 1
+
+   if wget --no-check-certificate \
+      https://github.com/kurkale6ka/bash/tarball/master
+   then
+      wget --no-check-certificate \
+         https://github.com/kurkale6ka/bash-cd/tarball/master
+   fi
+
    wget --no-check-certificate                             \
-      https://github.com/kurkale6ka/bash/tarball/master    \
       https://github.com/kurkale6ka/config/tarball/master  \
       https://github.com/kurkale6ka/help/tarball/master    \
       https://github.com/kurkale6ka/scripts/tarball/master
@@ -84,7 +91,6 @@ cprepos() {
          https://github.com/rodjek/vim-puppet/tarball/master          \
          https://github.com/vim-scripts/UltiSnips/tarball/master
    fi
-   local repo
    for repo in master*; do
       # Use tar with -C <dir> ...?
       tar zxvf "$repo" && command rm "$repo"
@@ -98,30 +104,31 @@ bashrcs=(.profile .bash_{profile,login,logout} .bashrc .logout)
  bashxs=(terminal_colors.bash em mkconfig host_to_sshconfig.bash mssh)
 
 mklinks() {
+   local base="$HOME"/github
+
    # Same as in ${parameter#word to remove} or ${parameter%word to remove},
-   # # <=> \< and % <=> \>, so ${rcdir/#/$HOME/github/} means replace the
-   # beginning of rcdir with $HOME/github/
-   local rcdir
+   # # <=> \< and % <=> \>, so ${rcdir/#/$base/} means replace the
+   # beginning of rcdir with $base/
    for rcdir in "${rcdirs[@]}"
-   do ln -sT "${rcdir/#/$HOME/github/}" "${rcdir/#/$HOME/}"
+   do ln -sT "${rcdir/#/$base/}" "${rcdir/#/$HOME/}"
    done
 
-   ln -sT "$HOME"/github/vim "$HOME"/.vim
+   ln -sT "$base"/vim "$HOME"/.vim
 
-   if mkdir -p $HOME/github/vim/autoload; then
-      ln -s "$HOME"/github/vim/bundle/pathogen/autoload/pathogen.vim \
-            "$HOME"/github/vim/autoload
+   if mkdir -p "$base"/vim/autoload; then
+      ln -s "$base"/vim/bundle/pathogen/autoload/pathogen.vim \
+            "$base"/vim/autoload
    fi
 
-   ln -s "${rcs[@]/#/$HOME/github/config/dotfiles/}" \
-      "${vimrcs[@]/#/$HOME/github/vim/}"             \
-     "${bashrcs[@]/#/$HOME/github/bash/}"            \
-     "$HOME"/github/bash/scripts/cd/.cdmarks.skel "$HOME"
+   ln -s "${rcs[@]/#/$base/config/dotfiles/}" \
+      "${vimrcs[@]/#/$base/vim/}"             \
+     "${bashrcs[@]/#/$base/bash/}"            \
+     "$base"/bash/scripts/cd/.cdmarks.skel "$HOME"
 
    mkdir -p "$HOME"/bin
    if [[ -d $HOME/bin ]]; then
-      ln -s "${bashxs[@]/#/$HOME/github/scripts/}" \
-            "$HOME"/github/vim/scripts/vc "$HOME"/bin
+      ln -s "${bashxs[@]/#/$base/scripts/}" \
+            "$base"/vim/scripts/vc "$HOME"/bin
    fi
 }
 
