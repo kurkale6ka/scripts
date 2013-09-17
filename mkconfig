@@ -95,7 +95,7 @@ cprepos() {
     rcs=(.dir_colors .gitignore .my.cnf .{curl,input,irb,screen,top}rc)
  vimrcs=(.{,g}vimrc)
 bashrcs=(.profile .bash_{profile,login,logout} .bashrc .logout)
- bashxs=(terminal_colors em mkconfig host_to_sshconfig.bash mssh)
+ bashxs=(terminal_colors.bash em mkconfig host_to_sshconfig.bash mssh)
 
 mklinks() {
    # Same as in ${parameter#word to remove} or ${parameter%word to remove},
