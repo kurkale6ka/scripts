@@ -42,7 +42,7 @@ updaterepos() {
       if cd "$HOME/github/$repo"; then
          if git pull git@github.com:kurkale6ka/"$repo".git master; then
             if [[ $repo == @(bash|vim) ]]
-            then git submodule update
+            then git submodule sync && git submodule update
             fi
             # No newline for the last one
             [[ ! $repo == vim ]] && echo
