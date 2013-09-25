@@ -115,10 +115,8 @@ mklinks() {
 
    ln -sT "$base"/vim "$HOME"/.vim
 
-   if mkdir -p "$base"/vim/autoload; then
-      ln -s "$base"/vim/bundle/pathogen/autoload/pathogen.vim \
-            "$base"/vim/autoload
-   fi
+   ln -s "$base"/vim/bundle/pathogen/autoload/pathogen.vim \
+      "$base"/vim/autoload
 
    ln -s "${rcs[@]/#/$base/config/dotfiles/}" \
       "${vimrcs[@]/#/$base/vim/}"             \
