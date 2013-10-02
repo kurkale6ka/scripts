@@ -115,9 +115,6 @@ mklinks() {
 
    ln -sT "$base"/vim "$HOME"/.vim
 
-   ln -s "$base"/vim/bundle/pathogen/autoload/pathogen.vim \
-      "$base"/vim/autoload
-
    ln -s "${rcs[@]/#/$base/config/dotfiles/}" \
       "${vimrcs[@]/#/$base/vim/}"             \
      "${bashrcs[@]/#/$base/bash/}"            \
@@ -132,11 +129,11 @@ mklinks() {
 
 rmlinks() {
    command \
-      rm "$HOME"/{.cdmarks.skel,.vim,github/vim/autoload/pathogen.vim,bin/vc} \
-          "${rcdirs[@]/#/$HOME/}"                                             \
-             "${rcs[@]/#/$HOME/}"                                             \
-          "${vimrcs[@]/#/$HOME/}"                                             \
-         "${bashrcs[@]/#/$HOME/}"                                             \
+      rm "$HOME"/{.cdmarks.skel,.vim,bin/vc} \
+          "${rcdirs[@]/#/$HOME/}"            \
+             "${rcs[@]/#/$HOME/}"            \
+          "${vimrcs[@]/#/$HOME/}"            \
+         "${bashrcs[@]/#/$HOME/}"            \
           "${bashxs[@]/#/$HOME/bin/}"
 }
 
