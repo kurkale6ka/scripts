@@ -4,7 +4,7 @@
 
 (($# == 1)) || { echo 'Usage: vinstall <vm>' >&2; exit 1; }
 
-images=/var/lib/libvirt/images/
+images=/var/lib/libvirt/images
 name="$1"
 
 image="$images/$name".img
