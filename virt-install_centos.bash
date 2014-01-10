@@ -4,14 +4,16 @@
 
 (($# == 1)) || { echo 'Usage: vinstall <vm>' >&2; exit 1; }
 
+images=/var/lib/libvirt/images/
 name="$1"
-image=/var/lib/libvirt/images/"$name".img
+
+image="$images/$name".img
 size=7 # in Gigabytes
 # The location must be the root directory of an install tree
 mirror=http://mirror.as29550.net/mirror.centos.org/5/os/x86_64/
 # mirror=http://mirror.as29550.net/mirror.centos.org/6.4/os/x86_64/
 
-ksdir=/var/lib/libvirt/images
+ksdir="$images"
 ks=centos.ks
 
 # http://fedoraproject.org/wiki/Anaconda/Kickstart
