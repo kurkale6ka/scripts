@@ -9,9 +9,10 @@ name="$1"
 
 image="$images/$name".img
 size=7 # in Gigabytes
+# Mirrors found at: http://isoredirect.centos.org/centos/6/isos/x86_64/
 # The location must be the root directory of an install tree
-mirror=http://mirror.as29550.net/mirror.centos.org/5/os/x86_64/
-# mirror=http://mirror.as29550.net/mirror.centos.org/6.4/os/x86_64/
+# Note the URL must specify the major version only: 6 Vs 6.4!
+mirror=http://mirror.as29550.net/mirror.centos.org/6/os/x86_64/
 
 ksdir="$images"
 ks=centos.ks
