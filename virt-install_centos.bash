@@ -9,6 +9,7 @@ name="$1"
 
 image="$images/$name".img
 size=7 # in Gigabytes
+
 # Mirrors found at: http://isoredirect.centos.org/centos/6/isos/x86_64/
 # The location must be the root directory of an install tree
 # Note the URL must specify the major version only: 6 Vs 6.4!
@@ -38,28 +39,30 @@ autopart
 %packages
 @core
 vim-enhanced
+%end
 # %end (unavailable in centos 5)
 EOF
 fi
 
-qemu-img create "$image" "$size"G
-chown qemu.qemu "$image"
-
-virt-install                                                 \
---connect=qemu:///system                                     \
---initrd-inject="$ksdir"/"$ks"                               \
---extra-args="ks=file:$ks console=tty0 console=ttyS0,115200" \
---name "$name"                                               \
---ram 1024                                                   \
---vcpus=4                                                    \
---os-type=linux                                              \
---os-variant=rhel6                                           \
---accelerate                                                 \
---hvm                                                        \
---location="$mirror"                                         \
---network bridge=br0                                         \
---graphics none                                              \
---disk path="$image",size="$size"
+# I used to use the qemu group (Vs kvm)
+if qemu-img create "$image" "$size"G && chown mitko:kvm "$image" "$ksdir"/"$ks"
+then
+   virt-install                                                    \
+      --initrd-inject="$ksdir"/"$ks"                               \
+      --extra-args="ks=file:$ks console=tty0 console=ttyS0,115200" \
+      --location="$mirror"                                         \
+      --connect=qemu:///system                                     \
+      --name "$name"                                               \
+      --ram 1024                                                   \
+      --vcpus=4                                                    \
+      --os-type=linux                                              \
+      --os-variant=rhel6                                           \
+      --accelerate                                                 \
+      --hvm                                                        \
+      --network bridge=virbr0                                      \
+      --graphics none                                              \
+      --disk path="$image",size="$size"
+fi
 
 # Note:
 #    if using --graphics vnc, you can monitor the progress of your install with
