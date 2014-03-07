@@ -1,6 +1,7 @@
 language: bash
+before_install: sudo apt-get update
+install:
+  - sudo apt-get install figlet
 script:
    - bash figlet_test_all.bash
    - bash terminal_colors.bash
-before_install:
-  - sudo apt-get install figlet
