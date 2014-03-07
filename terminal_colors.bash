@@ -81,8 +81,6 @@ do
    else
       unset bg
    fi
-cat << EXAMPLE
-$lc: $fg${bg}Lorem ipsum dolor ${u}sit amet, consectetur$r$fg$bg$b
-adipisicing elit, ${u}sed do eiusmod!$r
-EXAMPLE
+   echo "$lc: $fg${bg}Lorem ipsum dolor ${u}sit amet, consectetur$r$fg$bg$b"\
+        "adipisicing elit, ${u}sed do eiusmod!$r"
 done
