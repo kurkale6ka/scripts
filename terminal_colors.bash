@@ -34,8 +34,9 @@ b="$(tput bold)"
 u="$(tput smul)" # underline
 r="$(tput sgr0)" # reset
 
-if [[ $1 == -* ]]; then
-cat << 'WORD'
+if [[ $1 == -* ]]
+then
+cat << 'HELP'
 Usage: colors RC RC ... RC (row column)
        colors 21 35 64
 
@@ -50,17 +51,17 @@ Ex:
             .                     Second row (green foreground), sixth column (cyan background)
                                   Normal, Normal underlined, Bold, Bold underlined
 4- 4- 4- 4- | 40 40 40 40 | ... | 46 46 46 46 | 47 47 47 47
-WORD
+HELP
 exit 0
 fi
 
-for ((i = 0; i < 8; i++)); do
-
+for ((i = 0; i < 8; i++))
+do
    fg="$(tput setaf "$i")"
    echo -n "$fg$i- $u$i-$r $fg$b$i- $u$i-$r "
 
-   for ((j = 0; j < 8; j++)); do
-
+   for ((j = 0; j < 8; j++))
+   do
       bg="$(tput setab "$j")"
       echo -n "$fg$bg$i$j $u$i$j$r$fg$bg$b $i$j $u$i$j$r$bg $r"
    done
@@ -68,15 +69,20 @@ for ((i = 0; i < 8; i++)); do
 done
 
 echo
-set -- "${1:-0-}" "${2:-77}" "${@:3}"
+set -- "${1:-0-}" "${2:-35}" "${@:3}"
 
 # lc - line, column
-for lc in "$@"; do
-              fg="$(tput setaf "${lc%?}")"
+for lc in "$@"
+do
+   fg="$(tput setaf "${lc%?}")"
    if [[ $lc != *- ]]
-   then       bg="$(tput setab "${lc#?}")"
-   else unset bg
+   then
+      bg="$(tput setab "${lc#?}")"
+   else
+      unset bg
    fi
-   echo "$lc: $fg${bg}Lorem ipsum dolor ${u}sit amet, consectetur$r$fg$bg$b"\
-        "adipisicing elit, ${u}sed do eiusmod!$r"
+cat << EXAMPLE
+$lc: $fg${bg}Lorem ipsum dolor ${u}sit amet, consectetur$r$fg$bg$b
+adipisicing elit, ${u}sed do eiusmod!$r
+EXAMPLE
 done
