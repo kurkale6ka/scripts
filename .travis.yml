@@ -2,12 +2,12 @@ language: bash
 script:
    - bash figlet_test_all.bash
    - bash host_to_sshconfig.bash
-   - bash initramfs_init.bash
+   # - bash initramfs_init.bash
    - bash inputrc_upload.bash
-   - bash iurl.bash
+   # - bash iurl.bash
    - bash mkmod_puppet.bash
    - bash subtotals.awk.bash
    - bash terminal_colors.bash
-   - bash virt-install_centos.bash
+   # - bash virt-install_centos.bash
    # - perl nics.pl
    # - perl subtotals.pl
