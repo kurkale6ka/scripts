@@ -6,5 +6,5 @@ Scripts for:
 * emerge
 * figlet
 * subtotals
-* terminal colors
+* terminal colors [![Build Status](https://travis-ci.org/kurkale6ka/scripts.png?branch=master)]
 * ...
