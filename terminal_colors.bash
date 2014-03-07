@@ -30,9 +30,9 @@
 #      CyanBG=$(tput setab 6)
 #   LightCyan=$(printf %s "$Bold"; tput setaf 6)
 
-b=$(tput bold)
-u=$(tput smul) # underline
-r=$(tput sgr0) # reset
+b="$(tput bold)"
+u="$(tput smul)" # underline
+r="$(tput sgr0)" # reset
 
 if [[ $1 == -* ]]; then
 cat << 'WORD'
@@ -56,12 +56,12 @@ fi
 
 for ((i = 0; i < 8; i++)); do
 
-   fg=$(tput setaf "$i")
+   fg="$(tput setaf "$i")"
    echo -n "$fg$i- $u$i-$r $fg$b$i- $u$i-$r "
 
    for ((j = 0; j < 8; j++)); do
 
-      bg=$(tput setab "$j")
+      bg="$(tput setab "$j")"
       echo -n "$fg$bg$i$j $u$i$j$r$fg$bg$b $i$j $u$i$j$r$bg $r"
    done
    echo
@@ -72,9 +72,9 @@ set -- "${1:-0-}" "${2:-77}" "${@:3}"
 
 # lc - line, column
 for lc in "$@"; do
-              fg=$(tput setaf "${lc%?}")
+              fg="$(tput setaf "${lc%?}")"
    if [[ $lc != *- ]]
-   then       bg=$(tput setab "${lc#?}")
+   then       bg="$(tput setab "${lc#?}")"
    else unset bg
    fi
    echo "$lc: $fg${bg}Lorem ipsum dolor ${u}sit amet, consectetur$r$fg$bg$b"\
