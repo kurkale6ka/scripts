@@ -15,6 +15,18 @@ size=7 # in Gigabytes
 # Note the URL must specify the major version only: 6 Vs 6.4!
 mirror=http://mirror.as29550.net/mirror.centos.org/6/os/x86_64/
 
+# cat << 'BRIDGE' > /etc/netctl/bridge
+# Description="Example Bridge connection"
+# Interface=virbr0
+# Connection=bridge
+# BindsToInterfaces=(eth0)
+# IP=dhcp
+# ## Ignore (R)STP and immediately activate the bridge
+# #SkipForwardingDelay=yes
+# BRIDGE
+
+# netctl start|status|stop bridge
+
 # # http://fedoraproject.org/wiki/Anaconda/Kickstart
 # wgetpaste -r << 'KS'
 # install
@@ -54,7 +66,7 @@ then
       --accelerate                                       \
       --hvm                                              \
       --network bridge=virbr0                            \
-      --graphics none                                    \
+      --graphics vnc                                     \
       --disk path="$image",size="$size"
 fi
 
@@ -68,6 +80,9 @@ fi
 #    useradd <user>
 #    passwd <user>
 #    visudo (uncomment %wheel)
+#           # Defaults always_set_home (to be commented out or -E won't work)
+#           # Timeout in minutes before asking for password again
+#           Defaults:%wheel timestamp_timeout=510
 #    gpasswd -a <user> wheel
 #    ifconfig (to see IP)
 #    add <vm> to ~/.ssh/config
