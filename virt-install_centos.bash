@@ -4,7 +4,7 @@
 
 (($# == 1)) || { echo 'Usage: vinstall <vm>' >&2; exit 1; }
 
-images=/var/lib/libvirt/images
+images="$HOME"/images
 name="$1"
 
 image="$images/$name".img
@@ -15,52 +15,46 @@ size=7 # in Gigabytes
 # Note the URL must specify the major version only: 6 Vs 6.4!
 mirror=http://mirror.as29550.net/mirror.centos.org/6/os/x86_64/
 
-ksdir="$images"
-ks=centos.ks
-
-# http://fedoraproject.org/wiki/Anaconda/Kickstart
-if [[ ! -f $ksdir/$ks ]]; then
-cat << 'EOF' > "$ksdir"/"$ks"
-install
-text
-reboot
-lang en_GB.UTF-8
-keyboard uk
-network --bootproto dhcp
-rootpw password
-firewall --disabled
-selinux --disabled
-timezone --utc Europe/London
-bootloader --location=mbr --append="console=tty0 console=ttyS0,115200 rd_NO_PLYMOUTH"
-zerombr
-clearpart --all --initlabel
-autopart
-
-%packages
-@core
-vim-enhanced
-%end
-# %end (unavailable in centos 5)
-EOF
-fi
+# # http://fedoraproject.org/wiki/Anaconda/Kickstart
+# wgetpaste -r << 'KS'
+# install
+# text
+# reboot
+# lang en_GB.UTF-8
+# keyboard uk
+# network --bootproto dhcp
+# rootpw password
+# firewall --disabled
+# selinux --disabled
+# timezone --utc Europe/London
+# bootloader --location=mbr --append="console=tty0 console=ttyS0,115200 rd_NO_PLYMOUTH"
+# zerombr
+# clearpart --all --initlabel
+# autopart
+#
+# %packages
+# @core
+# vim-enhanced
+# %end
+# # %end (unavailable in centos 5)
+# KS
 
 # I used to use the qemu group (Vs kvm)
-if qemu-img create "$image" "$size"G && chown mitko:kvm "$image" "$ksdir"/"$ks"
+if qemu-img create "$image" "$size"G && chown mitko:kvm "$image"
 then
-   virt-install                                                    \
-      --initrd-inject="$ksdir"/"$ks"                               \
-      --extra-args="ks=file:$ks console=tty0 console=ttyS0,115200" \
-      --location="$mirror"                                         \
-      --connect=qemu:///system                                     \
-      --name "$name"                                               \
-      --ram 1024                                                   \
-      --vcpus=4                                                    \
-      --os-type=linux                                              \
-      --os-variant=rhel6                                           \
-      --accelerate                                                 \
-      --hvm                                                        \
-      --network bridge=virbr0                                      \
-      --graphics none                                              \
+   virt-install                                          \
+      --location "$mirror"                               \
+      --connect qemu:///system                           \
+      --extra-args "ks=http://dpaste.com/1719977/plain/" \
+      --name "$name"                                     \
+      --ram 2048                                         \
+      --vcpus 2                                          \
+      --os-type linux                                    \
+      --os-variant rhel6                                 \
+      --accelerate                                       \
+      --hvm                                              \
+      --network bridge=virbr0                            \
+      --graphics none                                    \
       --disk path="$image",size="$size"
 fi
 
