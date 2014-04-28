@@ -99,7 +99,7 @@ cprepos() {
 
  rcdirs=(bash config help scripts vim)
     rcs=(.dir_colors .gitignore .{input,irb,screen,top}rc .Xresources)
- vimrcs=(.{,g}vimrc)
+ vimrcs=(.{,g,n,gn}vimrc)
 bashrcs=(.profile .bash_{profile,login,logout} .bashrc .logout)
  bashxs=(terminal_colors.bash em mkconfig host_to_sshconfig.bash mssh)
 
@@ -114,6 +114,7 @@ mklinks() {
    done
 
    ln -sT "$base"/vim "$HOME"/.vim
+   ln -sT "$base"/vim "$HOME"/.nvim
 
    ln -s "${rcs[@]/#/$base/config/dotfiles/}" \
       "${vimrcs[@]/#/$base/vim/}"             \
@@ -129,11 +130,11 @@ mklinks() {
 
 rmlinks() {
    command \
-      rm "$HOME"/{.cdmarks.skel,.vim,bin/vc} \
-          "${rcdirs[@]/#/$HOME/}"            \
-             "${rcs[@]/#/$HOME/}"            \
-          "${vimrcs[@]/#/$HOME/}"            \
-         "${bashrcs[@]/#/$HOME/}"            \
+      rm "$HOME"/{.cdmarks.skel,.vim,.nvim,bin/vc} \
+          "${rcdirs[@]/#/$HOME/}"                  \
+             "${rcs[@]/#/$HOME/}"                  \
+          "${vimrcs[@]/#/$HOME/}"                  \
+         "${bashrcs[@]/#/$HOME/}"                  \
           "${bashxs[@]/#/$HOME/bin/}"
 }
 
