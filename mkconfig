@@ -3,11 +3,10 @@
 shopt -s extglob
 
 mkrepos() {
-   local base="$HOME"/github
-   mkdir -p "$base"
+   mkdir -p "$HOME"/github
 
    for repo in bash config help scripts vim; do
-      if cd "$base" && [[ ! -d $repo ]]; then
+      if cd "$HOME"/github && [[ ! -d $repo ]]; then
          if git clone git@github.com:kurkale6ka/"$repo".git; then
             if [[ $repo == @(bash|vim) ]]
             then cd "$repo" && git submodule init && git submodule update
@@ -17,8 +16,12 @@ mkrepos() {
          fi
       fi
    done
+   mktags
+}
 
-   # tags generation
+mktags() {
+   local base="$HOME"/github
+
    cd "$base" &&
    ctags -R --langmap=vim:+.vimrc,sh:+.bashrc.bash_profile                       \
    --exclude=*~ --exclude=.*~ --exclude=bundle --exclude=colors --exclude=keymap \
@@ -138,36 +141,12 @@ rmlinks() {
           "${bashxs[@]/#/$HOME/bin/}"
 }
 
-mkenv() {
-   mkrepos; mklinks
-
-   # Put in @sets ?
-   emerge bind-tools     \
-          evince         \
-          figlet         \
-          gcalctool      \
-          # dev-vcs/git -gtk
-          git            \
-          gnupg          \
-          moreutils      \
-          ntp            \
-          # sys-process/parallel \ ?
-          sudo           \
-          tcpdump        \
-          vixie-cron     \
-          wgetpaste      \
-          x11-misc/xclip
-   # rc-update add ntpd vixie-cron default
-
-   # visudo
-   # Defaults:mitko timestamp_timeout=50 # min before asking for password again
-
-   mkdir -p "$HOME"/backups
-   # crontab -u "$USER" "$HOME"/rc/crontab/crontab.backups
-}
-
- options=('Update repositories' 'Create repositories' 'Copy repositories')
-options+=('Make links'          'Remove links'        'Machine setup')
+options[0]='Update repositories'
+options[1]='Create repositories'
+options[2]='Copy repositories'
+options[3]='Generate tags'
+options[4]='Make links'
+options[5]='Remove links'
 
 select choice in "${options[@]}"
 do
@@ -175,9 +154,9 @@ do
       "${options[0]}") updaterepos;      break;;
       "${options[1]}") mkrepos; mklinks; break;;
       "${options[2]}") cprepos;          break;;
-      "${options[3]}") mklinks;          break;;
-      "${options[4]}") rmlinks;          break;;
-      "${options[5]}") mkenv;            break;;
+      "${options[3]}") mktags;           break;;
+      "${options[4]}") mklinks;          break;;
+      "${options[5]}") rmlinks;          break;;
                     *) echo '*** Wrong choice ***' >&2
    esac
 done
