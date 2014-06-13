@@ -100,6 +100,7 @@ cprepos() {
    done
 }
 
+# Create/remove symbolic links
  rcdirs=(bash config help scripts vim)
     rcs=(.dir_colors .gitignore .{input,irb,screen,top}rc .Xresources)
  vimrcs=(.{,g,n,gn}vimrc)
@@ -160,3 +161,5 @@ do
                     *) echo '*** Wrong choice ***' >&2
    esac
 done
+
+# vim: foldmethod=indent
