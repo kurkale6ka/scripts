@@ -23,18 +23,24 @@ mktags() {
    local base="$HOME"/github
 
    cd "$base" &&
-   ctags -R --langmap=vim:+.vimrc,sh:+.bashrc.bash_profile                       \
-   --exclude=*~ --exclude=.*~ --exclude=bundle --exclude=colors --exclude=keymap \
-   --exclude=pathogen.vim                                                        \
-   "$base"/bash/scripts                                                          \
-   "$base"/bash/.bashrc                                                          \
-   "$base"/scripts                                                               \
-   "$base"/vim                                                                   \
-   "$base"/vim/bundle/vsearch                                                    \
-   "$base"/vim/bundle/_my/blanklines                                             \
-   "$base"/vim/bundle/_my/blockinsert                                            \
-   "$base"/vim/bundle/_my/pairs                                                  \
-   "$base"/vim/bundle/_my/sequence                                               \
+   ctags -R                                       \
+   --langmap=vim:+.vimrc,sh:+.bashrc.bashrc_after \
+   --exclude=*~                                   \
+   --exclude=.*~                                  \
+   --exclude=bundle                               \
+   --exclude=colors                               \
+   --exclude=keymap                               \
+   --exclude=pathogen.vim                         \
+   "$HOME"/.bashrc_after                          \
+   "$base"/bash/.bashrc                           \
+   "$base"/bash/scripts                           \
+   "$base"/scripts                                \
+   "$base"/vim                                    \
+   "$base"/vim/bundle/vsearch                     \
+   "$base"/vim/bundle/_my/blanklines              \
+   "$base"/vim/bundle/_my/blockinsert             \
+   "$base"/vim/bundle/_my/pairs                   \
+   "$base"/vim/bundle/_my/sequence                \
    "$base"/vim/bundle/_my/swap
    # "$base"/vim/bundle/_my/desertEx
    # "$base"/vim/bundle/_my/chess
