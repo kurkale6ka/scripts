@@ -1,0 +1,58 @@
+#! /usr/bin/env bash
+
+# Help
+if [[ $1 == -@(h|-h)* ]] || (($# != 1))
+then
+   info='Usage: mkmod module_name'
+   if (($#))
+   then echo "$info"    ; exit 0
+   else echo "$info" >&2; exit 1
+   fi
+fi
+
+modules="$HOME"/repos/.../modules
+module="$1"
+
+while [[ ! -d $modules ]]
+do
+   read -p 'Enter the folder where you cloned the ops repo: ' base
+   modules="${base/\~/$HOME}"
+   modules="${modules%/}"/.../modules
+done
+
+mkdir -p "$modules/$module"/{manifests,files,lib,templates,tests} || exit 2
+
+main="$modules/$module"/manifests/init.pp
+
+if [[ ! -f $main ]]
+then
+cat << EOM > "$main"
+# Describe the purpose of this module!
+class $module {
+}
+EOM
+else
+echo "File $main already exists. Won't overwrite!" 1>&2; exit 3
+fi
+
+if [[ -f $main ]]
+then
+   if command -v tree >/dev/null 2>&1
+   then
+      echo 'Created:'
+      tree -C --noreport "$modules/$module"
+   else
+      printf '%s\n%s\n' 'Created:' "$modules/$module"
+cat << 'EOM'
+`- files
+`- lib
+`- manifests
+   `- init.pp
+`- templates
+`- tests
+EOM
+   fi
+else
+   echo "Abort: couldn't create $main. Deleting module folders..." 1>&2
+   rm -r "$modules/$module"
+fi
