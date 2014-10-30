@@ -108,7 +108,7 @@ cprepos() {
 
 # Create/remove symbolic links
  rcdirs=(bash config help scripts vim)
-    rcs=(.dir_colors .gitignore .{input,irb,screen,top}rc .Xresources)
+    rcs=(.dir_colors .gitignore .{input,irb,screen,top}rc .Xresources .tmux.conf)
  vimrcs=(.{,g,n}vimrc)
 bashrcs=(.profile .bash_{profile,login,logout} .bashrc .logout)
  bashxs=(terminal_colors.bash em mkconfig host_to_sshconfig.bash mssh)
