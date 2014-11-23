@@ -107,45 +107,51 @@ cprepos() {
 }
 
 # Create/remove symbolic links
- rcdirs=(bash config help scripts vim)
-    rcs=(.dir_colors .gitignore .{input,irb,screen,top}rc .Xresources .tmux.conf)
- vimrcs=(.{,g,n}vimrc)
-bashrcs=(.profile .bash_{profile,login,logout} .bashrc .logout)
- bashxs=(terminal_colors.bash em mkconfig host_to_sshconfig.bash mssh)
+  repos=(bash config help scripts vim)
+    vim=(.{,g,n}vimrc)
+   bash=(.profile .bash_{profile,login,logout} .bashrc .logout)
+configs=(.dir_colors .gitignore .{input,irb}rc .Xresources)
+   exes=(terminal_colors.bash mkconfig)
 
 mklinks() {
    local base="$HOME"/github
 
    # Same as in ${parameter#word to remove} or ${parameter%word to remove},
-   # # <=> \< and % <=> \>, so ${rcdir/#/$base/} means replace the
-   # beginning of rcdir with $base/
-   for rcdir in "${rcdirs[@]}"
-   do ln -sT "${rcdir/#/$base/}" "${rcdir/#/$HOME/}"
+   # # <=> \< and % <=> \>, so ${r/#/$base/} means replace the
+   # beginning of r with $base/
+   for r in "${repos[@]}"
+   do ln -sT "${r/#/$base/}" "${r/#/$HOME/}"
    done
 
    ln -sT "$base"/vim "$HOME"/.vim
    ln -sT "$base"/vim "$HOME"/.nvim
 
-   ln -s "${rcs[@]/#/$base/config/dotfiles/}" \
-      "${vimrcs[@]/#/$base/vim/}"             \
-     "${bashrcs[@]/#/$base/bash/}"            \
-     "$base"/bash/scripts/cd/.cdmarks.skel "$HOME"
+   ln -s "${configs[@]/#/$base/config/dotfiles/}" \
+             "${vim[@]/#/$base/vim/}"             \
+            "${bash[@]/#/$base/bash/}"            \
+            "$base"/bash/scripts/cd/.cdmarks.skel "$HOME"
+
+   ln -s ~/github/config/tmux/.tmux.conf "$HOME"
+   ln -s ~/github/config/ctags/.ctags "$HOME"
 
    mkdir -p "$HOME"/bin
    if [[ -d $HOME/bin ]]; then
-      ln -s "${bashxs[@]/#/$base/scripts/}" \
+      ln -s "${exes[@]/#/$base/scripts/}" \
             "$base"/vim/scripts/vc "$HOME"/bin
+
+      ln -s ~/github/config/tmux/layout "$HOME"/bin/lay
    fi
 }
 
 rmlinks() {
    command \
-      rm "$HOME"/{.cdmarks.skel,.vim,.nvim,bin/vc} \
-          "${rcdirs[@]/#/$HOME/}"                  \
-             "${rcs[@]/#/$HOME/}"                  \
-          "${vimrcs[@]/#/$HOME/}"                  \
-         "${bashrcs[@]/#/$HOME/}"                  \
-          "${bashxs[@]/#/$HOME/bin/}"
+      rm "$HOME"/{.cdmarks.skel,.ctags,.tmux.conf,.vim,.nvim,bin/vc} \
+           "${repos[@]/#/$HOME/}"                                    \
+         "${configs[@]/#/$HOME/}"                                    \
+             "${vim[@]/#/$HOME/}"                                    \
+            "${bash[@]/#/$HOME/}"                                    \
+            "${exes[@]/#/$HOME/bin/}"
+   command rm ~/bin/lay
 }
 
 options[0]='Update repositories'
