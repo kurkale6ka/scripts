@@ -1,0 +1,39 @@
+#! /usr/bin/env bash
+
+if [[ $1 == -@(h|-h)* ]]
+then
+   info='Usage: mkssh [/tmp/keys]'
+   if (($#))
+   then echo "$info"    ; exit 0
+   else echo "$info" >&2; exit 1
+   fi
+fi
+
+b="$(tput bold)"
+y="$(printf %s "$b"; tput setaf 3)"
+r="$(tput sgr0)"
+
+if (($#))
+then
+   if [[ ! -r /tmp/keys ]]
+   then
+      echo 'Put the public keys in /tmp/keys please!' 1>&2
+      exit 1
+   else
+      while read -r key
+      do
+         [[ $key = \#* ]] && continue
+         echo "$key"
+      done < /tmp/keys
+   fi
+else
+   IFS= read -p 'Public key: ' sshkey
+
+   email="$(egrep -o '\S+$' <<< "$sshkey")"
+
+   login="${email%@*}"
+
+   read -p "Change login name $y${login}$r or Enter to accept: "
+
+   [[ $REPLY ]] && login="$REPLY"
+fi
