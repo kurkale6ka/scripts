@@ -1,0 +1,59 @@
+#! /usr/bin/env bash
+
+shopt -s extglob
+
+if [[ $1 == -@(h|-h)* ]]
+then
+   info='Usage: mkuser [/tmp/keys]'
+   if (($#))
+   then echo "$info"    ; exit 0
+   else echo "$info" >&2; exit 1
+   fi
+fi
+
+b="$(tput bold)"
+y="$(printf %s "$b"; tput setaf 3)"
+r="$(tput sgr0)"
+
+# Usage: _mkauth sshkey
+_mkauth () {
+   # email from ssh key
+   local email="$(egrep -o '\S+$' <<< "$1")"
+
+   # login from email
+   local login="${email%@*}"
+
+   read -p "Change login name $y${login}$r or Enter to accept: "
+
+   [[ $REPLY ]] && login="$REPLY"
+
+   useradd -m -c'TEST' -s/bin/bash "$login"
+
+   mkdir ~/.ssh
+
+   cat "$sshkey" > ~/.ssh/authorized_keys
+}
+
+
+if (($#))
+then
+   if [[ $1 == -@(p|-p)* ]]
+   then
+      # Fix ~/.ssh/id_rsa permissions
+      exit 0
+   fi
+   if [[ ! -r /tmp/keys ]]
+   then
+      echo 'Put the public keys in /tmp/keys please!' 1>&2
+      exit 1
+   else
+      while read -r sshkey
+      do
+         [[ $sshkey = \#* ]] && continue
+         _mkauth "$sshkey"
+      done < /tmp/keys
+   fi
+else
+   IFS= read -p 'Public key: ' sshkey
+   _mkauth "$sshkey"
+fi
