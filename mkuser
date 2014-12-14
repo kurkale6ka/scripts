@@ -17,35 +17,52 @@ r="$(tput sgr0)"
 
 # Usage: _mkauth sshkey
 _mkauth () {
-   # email from ssh key
+
+   # Parse ssh key
+   local key="$(awk '{print $2}' <<< "$1")"
+
    local email="$(egrep -o '\S+$' <<< "$1")"
 
-   # login from email
    local login="${email%@*}"
 
    read -p "Change login name $y${login}$r or Enter to accept: "
 
    [[ $REPLY ]] && login="$REPLY"
 
-   useradd -m -c'TEST' -s/bin/bash "$login"
+   # Create user
+   if ! grep "$login" /etc/passwd
+   then
+      IFS= read -p 'Name: (First Last) ' full_name
+      useradd -m -s/bin/bash -c"$full_name" "$login"
+   fi
 
-   mkdir ~/.ssh
+   # Install key
+   mkdir -p "$HOME"/"$login"/.ssh
 
-   cat "$sshkey" > ~/.ssh/authorized_keys
+   if ! grep "$key" "$HOME"/"$login"/.ssh/authorized_keys
+   then
+      echo "$sshkey" >> "$HOME"/"$login"/.ssh/authorized_keys
+   fi
+
+   # Change permissions + ownership
+   chmod 700 "$HOME"/"$login"/.ssh
+   chmod 600 "$HOME"/"$login"/.ssh/authorized_keys
+
+   chown -R "$login":"$login" "$HOME"/"$login"/.ssh
 }
-
 
 if (($#))
 then
    if [[ $1 == -@(p|-p)* ]]
    then
-      # Fix ~/.ssh/id_rsa permissions
+      chmod 700 "$HOME"/.ssh
+      chmod 600 "$HOME"/.ssh/id_rsa
       exit 0
    fi
    if [[ ! -r /tmp/keys ]]
    then
       echo 'Put the public keys in /tmp/keys please!' 1>&2
-      exit 1
+      exit 2
    else
       while read -r sshkey
       do
