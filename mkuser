@@ -43,31 +43,28 @@ _mkauth () {
 
    [[ $REPLY ]] && login="$REPLY"
 
-   # Create user
-   if ((EUID != 0))
-   then
-      if ! grep "$login" /etc/passwd >/dev/null
-      then
-         IFS= read -p 'Name: (First Last) ' full_name
-         useradd -m -s/bin/bash -c"$full_name" "$login"
-      elif [[ ! -d /home/$login ]]
-      then
-         if mkdir -p /home/"$login"
-         then
-            chown "$login":"$login" /home/"$login"
-         fi
-      fi
-   fi
-
-   # Install key
-   if ((EUID == 0))
+   if [[ $login == root ]]
    then local home=/root
    else local home=/home/"$login"
    fi
 
+   # Create user
+   if ! grep "$login" /etc/passwd >/dev/null
+   then
+      IFS= read -p 'Name: (First Last) ' full_name
+      useradd -m -s/bin/bash -c"$full_name" "$login"
+   elif [[ ! -d $home ]]
+   then
+      if mkdir -p "$home"
+      then
+         chown "$login":"$login" "$home"
+      fi
+   fi
+
+   # Install key
    if mkdir -p "$home"/.ssh
    then
-      if ! grep "$key" "$home"/.ssh/authorized_keys >/dev/null
+      if ! grep "$key" "$home"/.ssh/authorized_keys 2>/dev/null
       then
          echo "$sshkey" >> "$home"/.ssh/authorized_keys
       fi
