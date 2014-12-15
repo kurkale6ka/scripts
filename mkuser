@@ -1,10 +1,17 @@
 #! /usr/bin/env bash
 
+# Remote user(s) creation + installation of public key(s)
+#
+# Usage:
+#    mkuser
+#    mkuser /file/with/keys
+#           (entries like: key-type AAA... user@domain)
+
 shopt -s extglob
 
 if [[ $1 == -@(h|-h)* ]]
 then
-   info='Usage: mkuser [/tmp/keys]'
+   info='Usage: mkuser [/file/with/keys]'
    if (($#))
    then echo "$info"    ; exit 0
    else echo "$info" >&2; exit 1
@@ -18,6 +25,13 @@ r="$(tput sgr0)"
 # Usage: _mkauth sshkey
 _mkauth () {
 
+   # key-type AAA... user@domain
+   if (($(awk '{print NF}' <<< $1) != 3))
+   then
+      echo 'Wrong ssh key format. Please use: key-type AAA... user@domain!' 1>&2
+      exit 2
+   fi
+
    # Parse ssh key
    local key="$(awk '{print $2}' <<< "$1")"
 
@@ -25,51 +39,55 @@ _mkauth () {
 
    local login="${email%@*}"
 
-   read -p "Change login name $y${login}$r or Enter to accept: "
+   read -p "The key will be installed under $y${login}$r. Change the user or Enter to accept: "
 
    [[ $REPLY ]] && login="$REPLY"
 
    # Create user
-   if ! grep "$login" /etc/passwd
+   if ((EUID != 0))
    then
-      IFS= read -p 'Name: (First Last) ' full_name
-      useradd -m -s/bin/bash -c"$full_name" "$login"
+      if ! grep "$login" /etc/passwd >/dev/null
+      then
+         IFS= read -p 'Name: (First Last) ' full_name
+         useradd -m -s/bin/bash -c"$full_name" "$login"
+      elif [[ ! -d /home/$login ]]
+      then
+         if mkdir -p /home/"$login"
+         then
+            chown "$login":"$login" /home/"$login"
+         fi
+      fi
    fi
 
    # Install key
-   mkdir -p "$HOME"/"$login"/.ssh
-
-   if ! grep "$key" "$HOME"/"$login"/.ssh/authorized_keys
-   then
-      echo "$sshkey" >> "$HOME"/"$login"/.ssh/authorized_keys
+   if ((EUID == 0))
+   then local home=/root
+   else local home=/home/"$login"
    fi
 
-   # Change permissions + ownership
-   chmod 700 "$HOME"/"$login"/.ssh
-   chmod 600 "$HOME"/"$login"/.ssh/authorized_keys
+   if mkdir -p "$home"/.ssh
+   then
+      if ! grep "$key" "$home"/.ssh/authorized_keys >/dev/null
+      then
+         echo "$sshkey" >> "$home"/.ssh/authorized_keys
+      fi
 
-   chown -R "$login":"$login" "$HOME"/"$login"/.ssh
+      # Change permissions + ownership
+      chmod 700 "$home"/.ssh
+      chmod 600 "$home"/.ssh/authorized_keys
+
+      chown -R "$login":"$login" "$home"/.ssh
+   fi
 }
 
 if (($#))
 then
-   if [[ $1 == -@(p|-p)* ]]
-   then
-      chmod 700 "$HOME"/.ssh
-      chmod 600 "$HOME"/.ssh/id_rsa
-      exit 0
-   fi
-   if [[ ! -r /tmp/keys ]]
-   then
-      echo 'Put the public keys in /tmp/keys please!' 1>&2
-      exit 2
-   else
-      while read -r sshkey
-      do
-         [[ $sshkey = \#* ]] && continue
-         _mkauth "$sshkey"
-      done < /tmp/keys
-   fi
+   # Without -u3, _mkauth's read would also read from the file vs STDIN
+   while IFS= read -r -u3 sshkey
+   do
+      [[ $sshkey = \#* ]] && continue
+      _mkauth "$sshkey"
+   done 3< "$1"
 else
    IFS= read -p 'Public key: ' sshkey
    _mkauth "$sshkey"
