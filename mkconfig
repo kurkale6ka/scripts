@@ -139,7 +139,7 @@ mklinks() {
       ln -s "${exes[@]/#/$base/scripts/}" \
             "$base"/vim/scripts/vc "$HOME"/bin
 
-      ln -s ~/github/config/tmux/layout "$HOME"/bin/lay
+      ln -s ~/github/config/tmux/lay "$HOME"/bin
    fi
 }
 
