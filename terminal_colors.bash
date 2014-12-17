@@ -40,26 +40,33 @@ cat << 'HELP'
 Usage: colors RC RC ... RC (row column)
        colors 21 35 64
 
-Rows:    0-7 for the fg (eg: tput setaf 3)
-Columns: 0-7 for the bg (eg: tput setab 7), dash (-) means default bg
+Rows:    fg (eg: tput setaf 3)
+Columns: bg (eg: tput setab 7), dash (-) means default bg
 
 Ex:
 1- 1- 1- 1- | 10 10 10 10 | ... | 16 16 16 16 | 17 17 17 17
 2- 2- 2- 2- | 20 20 20 20 | ... | 26 26 26 26 | 27 27 27 27
-                                       ^
-            .                          |
-            .                     Second row (green foreground), sixth column (cyan background)
-                                  Normal, Normal underlined, Bold, Bold underlined
+                                   \   \
+                                    \   *-- 6th col (cyan bg)
+            .                        *- 2nd row (green fg)
+            .
 4- 4- 4- 4- | 40 40 40 40 | ... | 46 46 46 46 | 47 47 47 47
+ \  \  \  \
+  \  \  \  *---- Bold underlined
+   \  \  *--- Bold
+    \  *-- Normal underlined
+     *- Normal
 HELP
 exit 0
 fi
 
+# fg
 for ((i = 0; i < 8; i++))
 do
    fg="$(tput setaf "$i")"
    echo -n "$fg$i- $u$i-$r $fg$b$i- $u$i-$r "
 
+   # bg
    for ((j = 0; j < 8; j++))
    do
       bg="$(tput setab "$j")"
