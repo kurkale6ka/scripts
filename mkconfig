@@ -111,7 +111,7 @@ cprepos() {
     vim=(.{,g,n}vimrc)
    bash=(.profile .bash_{profile,login,logout} .bashrc .logout)
 configs=(.dir_colors .gitignore .{input,irb}rc .Xresources)
-   exes=(terminal_colors.bash mkconfig)
+   exes=(colors_term.bash colors_tmux.bash mkconfig)
 
 mklinks() {
    local base="$HOME"/github

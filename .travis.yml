@@ -4,4 +4,4 @@ install:
   - sudo apt-get install figlet
 script:
    - bash figlet_test_all.bash
-   - bash terminal_colors.bash
+   - bash colors_term.bash
