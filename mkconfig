@@ -37,13 +37,13 @@ mktags() {
    "$base"/scripts                                \
    "$base"/vim                                    \
    "$base"/vim/bundle/vsearch                     \
-   "$base"/vim/bundle/_my/blanklines              \
-   "$base"/vim/bundle/_my/blockinsert             \
-   "$base"/vim/bundle/_my/pairs                   \
-   "$base"/vim/bundle/_my/sequence                \
-   "$base"/vim/bundle/_my/swap
-   # "$base"/vim/bundle/_my/desertEx
-   # "$base"/vim/bundle/_my/chess
+   "$base"/vim/.bundle/blanklines                 \
+   "$base"/vim/.bundle/blockinsert                \
+   "$base"/vim/.bundle/pairs                      \
+   "$base"/vim/.bundle/sequence                   \
+   "$base"/vim/.bundle/swap
+   # "$base"/vim/.bundle/desertEx
+   # "$base"/vim/.bundle/chess
 }
 
 updaterepos() {
