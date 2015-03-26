@@ -92,8 +92,8 @@ mklinks() {
    done
 
    # Vim
-   ln -sT $base/vim ~/.vim
-   ln -sT $base/vim ~/.nvim
+   ${commands[gln]:-ln} -sT $base/vim ~/.vim
+   ${commands[gln]:-ln} -sT $base/vim ~/.nvim
    ln -s $base/vim/.{,g,n}vimrc ~
 
    # Zsh
