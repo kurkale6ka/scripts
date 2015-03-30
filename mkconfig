@@ -34,7 +34,7 @@ mkrepos() {
 
 updaterepos() {
 
-   for repo in ~/github/*~$HOME/github/bash-cd(/)
+   for repo in ~/github/^bash-cd(/)
    do
       if cd $repo
       then
@@ -86,7 +86,7 @@ mklinks() {
    local base=~/github
 
    # Create repo links in ~
-   for repo in $base/*~$base/bash-cd(/)
+   for repo in $base/^bash-cd(/)
    do
       ln -s $repo ~
    done
@@ -125,7 +125,7 @@ mklinks() {
 rmlinks() {
 
    # Remove repo links in ~
-   for l in ~/github/*~$HOME/github/bash-cd(/:t)
+   for l in ~/github/^bash-cd(/:t)
    do
       'rm' ~/$l
    done
