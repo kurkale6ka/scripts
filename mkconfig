@@ -155,18 +155,18 @@ rmlinks() {
 
 opts[1]='Update repositories'
 opts[2]='Create repositories'
-opts[4]='Generate tags'
-opts[5]='Make links'
-opts[6]='Remove links'
+opts[3]='Generate tags'
+opts[4]='Make links'
+opts[5]='Remove links'
 
 select choice in $opts
 do
    case $choice in
       (${opts[1]}) updaterepos;      break;;
       (${opts[2]}) mkrepos; mklinks; break;;
-      (${opts[4]}) mktags;           break;;
-      (${opts[5]}) mklinks;          break;;
-      (${opts[6]}) rmlinks;          break;;
+      (${opts[3]}) mktags;           break;;
+      (${opts[4]}) mklinks;          break;;
+      (${opts[5]}) rmlinks;          break;;
                (*) echo '*** Wrong choice ***' >&2
    esac
 done
