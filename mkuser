@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 
-# Remote user(s) creation + installation of public key(s)
+# User(s) creation + installation of public key(s)
+# Run on the target machine
 #
 # Usage:
 #    mkuser
@@ -9,15 +10,21 @@
 
 shopt -s extglob
 
+## Help
 if [[ $1 == -@(h|-h)* ]]
 then
-   info='Usage: mkuser [/file/with/keys]'
+read -r -d $'\0' info << 'HELP'
+Usage:
+   mkuser
+   mkuser /file/with/keys
+HELP
    if (($#))
    then echo "$info"    ; exit 0
    else echo "$info" >&2; exit 1
    fi
 fi
 
+# Colors
 b="$(tput bold)"
 y="$(printf %s "$b"; tput setaf 3)"
 r="$(tput sgr0)"
@@ -25,30 +32,29 @@ r="$(tput sgr0)"
 # Usage: _mkauth sshkey
 _mkauth () {
 
-   # key-type AAA... user@domain
+   ## Key check: type AAA... user@domain
    if (($(awk '{print NF}' <<< $1) != 3))
    then
-      echo 'Wrong ssh key format. Please use: key-type AAA... user@domain!' 1>&2
+      echo 'Wrong ssh key format. Please use: type AAA... user@domain!' 1>&2
       exit 2
    fi
 
-   # Parse ssh key
+   ## Parse ssh key
    local key="$(awk '{print $2}' <<< "$1")"
-
    local email="$(awk '{print $3}' <<< "$1")"
-
    local login="${email%@*}"
 
    read -p "The key will be installed under $y${login}$r. Change the user or Enter to accept: "
 
    [[ $REPLY ]] && login="$REPLY"
 
+   # Set the user's home
    if [[ $login == root ]]
    then local home=/root
    else local home=/home/"$login"
    fi
 
-   # Create user
+   ## Create user
    if ! grep "$login" /etc/passwd >/dev/null
    then
       IFS= read -p 'Name: (First Last) ' full_name
@@ -61,7 +67,7 @@ _mkauth () {
       fi
    fi
 
-   # Install key
+   ## Install key
    if mkdir -p "$home"/.ssh
    then
       if ! grep "$key" "$home"/.ssh/authorized_keys 2>/dev/null
@@ -77,6 +83,8 @@ _mkauth () {
    fi
 }
 
+## Main
+# several users
 if (($#))
 then
    # Without -u3, _mkauth's read would also read from the file vs STDIN
@@ -85,7 +93,10 @@ then
       [[ $sshkey = \#* ]] && continue
       _mkauth "$sshkey"
    done 3< "$1"
+# a single user
 else
    IFS= read -p 'Public key: ' sshkey
    _mkauth "$sshkey"
 fi
+
+# vim: fde=getline(v\:lnum)=~'^\\s*##'?'>'.(len(matchstr(getline(v\:lnum),'###*'))-1)\:'='
