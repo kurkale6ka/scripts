@@ -58,7 +58,7 @@ _mkauth () {
    [[ $REPLY ]] && home="$REPLY"
 
    ## Create user
-   if ! grep "$login" /etc/passwd >/dev/null
+   if ! getent passwd "$login" >/dev/null
    then
       IFS= read -p 'Name: (First Last) ' full_name
       useradd -m -s/bin/bash -c"$full_name" "$login"
