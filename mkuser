@@ -6,7 +6,8 @@
 # Usage:
 #    mkuser
 #    mkuser /file/with/keys
-#           (entries like: key-type AAA... user@domain)
+#           ssh-rsa AAAxxx user@domain
+#           ...
 
 shopt -s extglob
 
@@ -17,6 +18,8 @@ read -r -d $'\0' info << 'HELP'
 Usage:
    mkuser
    mkuser /file/with/keys
+          ssh-rsa AAAxxx user@domain
+          ...
 HELP
    if (($#))
    then echo "$info"    ; exit 0
@@ -32,27 +35,27 @@ r="$(tput sgr0)"
 # Usage: _mkauth sshkey
 _mkauth () {
 
-   ## Key check: type AAA... user@domain
+   ## Key check: type key email
    if (($(awk '{print NF}' <<< $1) != 3))
    then
-      echo 'Wrong ssh key format. Please use: type AAA... user@domain!' 1>&2
+      echo 'Wrong ssh key format. Please use: type key email!' 1>&2
       exit 2
    fi
 
-   ## Parse ssh key
+   ## Parse the ssh key
    local key="$(awk '{print $2}' <<< "$1")"
    local email="$(awk '{print $3}' <<< "$1")"
    local login="${email%@*}"
 
-   read -p "The key will be installed under $y${login}$r. Change the user or Enter to accept: "
-
-   [[ $REPLY ]] && login="$REPLY"
-
-   # Set the user's home
+   # Set the user's home directory
    if [[ $login == root ]]
    then local home=/root
    else local home=/home/"$login"
    fi
+
+   read -p "The user's home directory is: $y${home}$r. Change the value or Enter to accept: "
+
+   [[ $REPLY ]] && home="$REPLY"
 
    ## Create user
    if ! grep "$login" /etc/passwd >/dev/null
