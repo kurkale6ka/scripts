@@ -19,6 +19,7 @@ shopt -s extglob
 ## Colors
 _bld="$(tput bold)"
 _ylw="$(printf %s "$_bld"; tput setaf 3)"
+_grn="$(printf %s "$_bld"; tput setaf 2)"
 _red="$(printf %s "$_bld"; tput setaf 1)"
 _res="$(tput sgr0)"
 
@@ -80,23 +81,24 @@ _mkauth () {
    [[ $REPLY ]] && home="$REPLY"
 
    ## Create user
-   if ! getent passwd "$login" >/dev/null
+   if ! getent passwd "$login"
    then
       IFS= read -p 'Name: (First Last) ' full_name
       useradd -m -d"$home" -s/bin/bash -c"$full_name" "$login"
    elif [[ ! -d $home ]]
    then
-      if mkdir -p "$home"
+      if mkdir -p -- "$home"
       then
          chown "$login":"$login" "$home"
       fi
    fi
 
    ## Install key
-   if mkdir -p "$home"/.ssh
+   if mkdir -p -- "$home"/.ssh
    then
-      if ! grep "$key" "$home"/.ssh/authorized_keys 2>/dev/null
+      if ! grep -q "$key" "$home"/.ssh/authorized_keys 2>/dev/null
       then
+         echo "Installing $_grn$login$_res's ssh key under $home/.ssh/authorized_keys..."
          echo "$sshkey" >> "$home"/.ssh/authorized_keys
       fi
 
@@ -127,7 +129,17 @@ then
 # Delete a user
 elif (($# == 2))
 then
-   userdel -r "$2"
+   if ! userdel -r "$2"
+   then
+      _home="$(getent passwd "$2" | cut -d: -f6)"
+      if [[ -d $_home ]]
+      then
+         echo "Deleting ${_home}..."
+         rm -rI --preserve-root -- "$_home"
+      else
+         echo "Local user ${_red}$2$_res doesn't exist and there is no home directory associated with him."
+      fi
+   fi
 fi
 
 # vim: fde=getline(v\:lnum)=~'^\\s*##'?'>'.(len(matchstr(getline(v\:lnum),'###*'))-1)\:'='
