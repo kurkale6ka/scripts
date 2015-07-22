@@ -1,6 +1,9 @@
 #! /usr/bin/env bash
 
 # User(s) creation + installation of public key(s)
+# or
+# User removal
+#
 # Run on the target machine
 #
 # Usage:
@@ -8,23 +11,41 @@
 #    mkuser /file/with/keys
 #           ssh-rsa AAAxxx user@domain
 #           ...
+#    or
+#    mkuser -d login
 
 shopt -s extglob
 
 ## Help
-if [[ $1 == -@(h|-h)* ]]
-then
+_help() {
 read -r -d $'\0' info << 'HELP'
 Usage:
    mkuser
    mkuser /file/with/keys
           ssh-rsa AAAxxx user@domain
           ...
+   or
+   mkuser -d login
 HELP
-   if (($#))
-   then echo "$info"    ; exit 0
-   else echo "$info" >&2; exit 1
-   fi
+
+if (($1 == 0))
+then echo "$info"
+else echo "$info" >&2
+fi
+
+exit "$1"
+}
+
+# Sanity checks
+if (($# > 2))
+then
+   echo 'Wrong number of arguments' >&2
+   _help 1
+fi
+
+if [[ $1 == -@(h|-h)* ]]
+then
+   _help 0
 fi
 
 # Colors
@@ -87,8 +108,14 @@ _mkauth () {
 }
 
 ## Main
-# several users
-if (($#))
+
+# Add a single user
+if (($# == 0))
+then
+   IFS= read -p 'Public key: ' sshkey
+   _mkauth "$sshkey"
+# Add several users
+elif (($# == 1))
 then
    # Without -u3, _mkauth's read would also read from the file vs STDIN
    while IFS= read -r -u3 sshkey
@@ -96,10 +123,10 @@ then
       [[ $sshkey = \#* ]] && continue
       _mkauth "$sshkey"
    done 3< "$1"
-# a single user
-else
-   IFS= read -p 'Public key: ' sshkey
-   _mkauth "$sshkey"
+# Delete a user
+elif (($# == 2))
+then
+   userdel -r "$login"
 fi
 
 # vim: fde=getline(v\:lnum)=~'^\\s*##'?'>'.(len(matchstr(getline(v\:lnum),'###*'))-1)\:'='
