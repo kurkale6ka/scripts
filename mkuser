@@ -83,8 +83,9 @@ _mkauth () {
    ## Create user
    if ! getent passwd "$login"
    then
-      IFS= read -p 'Name: (First Last) ' full_name
-      useradd -m -d"$home" -s/bin/bash -c"$full_name" "$login"
+      IFS= read -p 'First name: ' fname
+      IFS= read -p ' Last name: ' lname
+      useradd -m -d"$home" -s/bin/bash -c"$fname $lname" "$login"
    elif [[ ! -d $home ]]
    then
       if mkdir -p -- "$home"
