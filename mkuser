@@ -78,7 +78,11 @@ _mkauth () {
 
    read -p "The user's home directory is: $_ylw${home}$_res. Change the value or Enter to accept: "
 
-   [[ $REPLY ]] && home="$REPLY"
+   if [[ $REPLY ]]
+   then
+      login="${REPLY##*/}"
+      home="$REPLY"
+   fi
 
    ## Create user
    if ! getent passwd "$login"
@@ -88,9 +92,13 @@ _mkauth () {
       useradd -m -d"$home" -s/bin/bash -c"$fname $lname" "$login"
    elif [[ ! -d $home ]]
    then
+      # Create home directory
       if mkdir -p -- "$home"
       then
-         chown "$login":"$login" "$home"
+         # copy skeleton files
+         cp -a /etc/skel/.[^.]* "$home"
+
+         chown -R "$login":"$login" "$home"
       fi
    fi
 
@@ -130,15 +138,21 @@ then
 # Delete a user
 elif (($# == 2))
 then
+   if [[ $2 == root ]]
+   then
+      echo "You are not supposed to delete ${_red}root${_res}!" >&2
+      exit 3
+   fi
+
    if ! userdel -r "$2"
    then
-      _home="$(getent passwd "$2" | cut -d: -f6)"
-      if [[ -d $_home ]]
+      if [[ -d /home/$2 ]]
       then
-         echo "Deleting ${_home}..."
-         rm -rI --preserve-root -- "$_home"
+         echo "Deleting /home/${_red}$2${_res}..."
+         rm -rI --preserve-root -- /home/"$2"
       else
-         echo "Local user ${_red}$2$_res doesn't exist and there is no home directory associated with him."
+         echo "There is no home directory associated with ${_red}$2${_res}!" >&2
+         exit 4
       fi
    fi
 fi
