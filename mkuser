@@ -103,32 +103,34 @@ _mkauth () {
       IFS= read -p 'First name: ' fname
       IFS= read -p ' Last name: ' lname
       useradd -m -d"$home" -k"$skel" -s/bin/bash -c"$fname $lname" "$login"
-   elif [[ ! -d $home ]]
-   then
-      # Create home directory
-      if mkdir -p -- "$home"
+   else
+      if [[ ! -d $home ]]
       then
-         # copy skeleton files
-         cp -a "$skel"/.[^.]* "$home"
+         # Create home directory
+         if mkdir -p -- "$home"
+         then
+            # copy skeleton files
+            cp -a "$skel"/.[^.]* "$home"
 
-         chown -R "$login":"$login" "$home"
-      fi
-   fi
-
-   ## Install key
-   if mkdir -p -- "$home"/.ssh
-   then
-      if ! grep -q "$key" "$home"/.ssh/authorized_keys 2>/dev/null
-      then
-         echo "Installing $_grn$login$_res's ssh key under $home/.ssh/authorized_keys..."
-         echo "$sshkey" >> "$home"/.ssh/authorized_keys
+            chown -R "$login":"$login" "$home"
+         fi
       fi
 
-      # Change permissions + ownership
-      chmod 700 "$home"/.ssh
-      chmod 600 "$home"/.ssh/authorized_keys
+      ## Install key
+      if mkdir -p -- "$home"/.ssh
+      then
+         if ! grep -q "$key" "$home"/.ssh/authorized_keys 2>/dev/null
+         then
+            echo "Installing $_grn$login$_res's ssh key under $home/.ssh/authorized_keys..."
+            echo "$sshkey" >> "$home"/.ssh/authorized_keys
+         fi
 
-      chown -R "$login":"$login" "$home"/.ssh
+         # Change permissions + ownership
+         chmod 700 "$home"/.ssh
+         chmod 600 "$home"/.ssh/authorized_keys
+
+         chown -R "$login":"$login" "$home"/.ssh
+      fi
    fi
 }
 
