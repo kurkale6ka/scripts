@@ -13,6 +13,8 @@
 #           ...
 #    or
 #    mkuser -d login
+#
+# Note: HOMES can be used to define a different root for home directories
 
 shopt -s extglob
 
@@ -33,6 +35,8 @@ Usage:
           ...
    or
    mkuser -d login
+
+Note: HOMES can be used to define a different root for home directories
 HELP
 
 if (($1 == 0))
@@ -70,10 +74,19 @@ _mkauth () {
    local email="$(awk '{print $3}' <<< "$1")"
    local login="${email%@*}"
 
-   # Set the user's home directory
-   if [[ $login == root ]]
-   then local home=/root
-   else local home=/home/"$login"
+   local skel=/etc/skel
+
+   if [[ $HOMES && $login != root ]]
+   then
+      local home="${HOMES%/}"/"$login"
+
+      skel="$HOMES"/skel
+   else
+      # Set the user's home directory
+      if [[ $login == root ]]
+      then local home=/root
+      else local home=/home/"$login"
+      fi
    fi
 
    read -p "The user's home directory is: $_ylw${home}$_res. Change the value or Enter to accept: "
@@ -89,14 +102,14 @@ _mkauth () {
    then
       IFS= read -p 'First name: ' fname
       IFS= read -p ' Last name: ' lname
-      useradd -m -d"$home" -s/bin/bash -c"$fname $lname" "$login"
+      useradd -m -d"$home" -k"$skel" -s/bin/bash -c"$fname $lname" "$login"
    elif [[ ! -d $home ]]
    then
       # Create home directory
       if mkdir -p -- "$home"
       then
          # copy skeleton files
-         cp -a /etc/skel/.[^.]* "$home"
+         cp -a "$skel"/.[^.]* "$home"
 
          chown -R "$login":"$login" "$home"
       fi
@@ -146,14 +159,19 @@ then
 
    if ! userdel -r "$2"
    then
-      if [[ -d /home/$2 ]]
+      if [[ -d $HOMES/$2 ]]
       then
-         echo "Deleting /home/${_red}$2${_res}..."
-         rm -rI --preserve-root -- /home/"$2"
+         _home="$HOMES"
+      elif [[ -d /home/$2 ]]
+      then
+         _home=/home
       else
          echo "There is no home directory associated with ${_red}$2${_res}!" >&2
          exit 4
       fi
+
+      echo "Deleting $_home/${_red}$2${_res}..."
+      rm -rI --preserve-root -- "$_home"/"$2"
    fi
 fi
 
