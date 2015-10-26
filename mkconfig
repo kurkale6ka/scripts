@@ -93,8 +93,8 @@ mklinks() {
 
    # Vim
    ${commands[gln]:-ln} -sT $base/vim ~/.vim
-   ${commands[gln]:-ln} -sT $base/vim ~/.nvim
-   ln -s $base/vim/.{,g,n}vimrc ~
+   ${commands[gln]:-ln} -sT $base/vim ~/.config/nvim
+   ln -s $base/vim/.{,g}vimrc ~
 
    # Zsh
    ln -s $base/zsh/.zsh ~
@@ -131,8 +131,8 @@ rmlinks() {
    done
 
    # Vim
-   'rm' ~/{.vim,.nvim}
-   'rm' ~/.{,g,n}vimrc
+   'rm' ~/.vim ~/.config/nvim
+   'rm' ~/.{,g}vimrc
 
    # Zsh
    'rm' ~/.zsh
