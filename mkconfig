@@ -105,9 +105,12 @@ mklinks() {
    for c in $bash; ln -s $base/bash/$c ~
    ln -s $base/bash/scripts/cd/.cdmarks.skel ~
 
+   mkdir -p ~/.config/ranger
+
    # Misc configs
    ln -s $base/config/ctags/.ctags ~
    ln -s $base/config/tmux/.tmux.conf ~
+   ln -s $base/config/ranger/rc.conf ~/.config/ranger
    for c in $configs; ln -s $base/config/dotfiles/$c ~
 
    # ~/bin
@@ -145,6 +148,7 @@ rmlinks() {
 
    # Misc configs
    'rm' ~/{.ctags,.tmux.conf}
+   'rm' ~/.config/ranger/rc.conf
    for c in $configs; 'rm' ~/$c
 
    # ~/bin
