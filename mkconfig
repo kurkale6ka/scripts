@@ -2,6 +2,9 @@
 
 setopt extended_glob
 
+# Don't update my cd bookmarks for automated cds
+chpwd_functions=()
+
 mkrepos() {
 
    mkdir -p ~/github
