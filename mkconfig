@@ -15,19 +15,13 @@ mkrepos() {
       do
          if [[ ! -d $repo ]]
          then
+            print -nP "%F{45}${repo}%f: "
             if git clone git@github.com:kurkale6ka/$repo.git
             then
-               if [[ $repo == (bash|vim) ]]
+               if cd $repo
                then
-                  (
-                  if cd $repo
-                  then
-                     git submodule init && git submodule update
-                  fi
-                  )
+                  git submodule init && git submodule update
                fi
-               # No newline for the last one
-               [[ ! $repo == zsh ]] && echo
             fi
          fi
       done
@@ -41,14 +35,14 @@ updaterepos() {
    do
       if cd $repo
       then
-         if git pull git@github.com:kurkale6ka/$repo:t.git master
+         git fetch -q
+         if [[ $(git symbolic-ref --short HEAD) == master ]] && git status -sb | grep -q behind
          then
-            if [[ $repo:t == (bash|vim) ]]
+            print -nP "%F{45}${repo:t}%f: "
+            if git pull
             then
                git submodule sync >/dev/null && git submodule update
             fi
-            # No newline for the last one
-            [[ ! $repo:t == zsh ]] && echo
          fi
       fi
    done
@@ -56,9 +50,7 @@ updaterepos() {
 
 mktags() {
 
-   local base=~/github
-
-   cd $base &&
+   cd ~/github &&
    ctags -R                                \
    --langmap=vim:+.vimrc,zsh:+.zshrc_after \
    --exclude='*~ '                         \
@@ -68,16 +60,16 @@ mktags() {
    --exclude=keymap                        \
    --exclude=pathogen.vim                  \
    ~/.zshrc_after                          \
-   $base/zsh/.zsh/autoload                 \
-   $base/bash/scripts                      \
-   $base/scripts                           \
-   $base/vim                               \
-   $base/vim/bundle/vsearch                \
-   $base/vim/.bundle/blanklines            \
-   $base/vim/.bundle/blockinsert           \
-   $base/vim/.bundle/pairs                 \
-   $base/vim/.bundle/sequence              \
-   $base/vim/.bundle/swap
+   ~/github/zsh/.zsh/autoload              \
+   ~/github/bash/scripts                   \
+   ~/github/scripts                        \
+   ~/github/vim                            \
+   ~/github/vim/bundle/vsearch             \
+   ~/github/vim/.bundle/blanklines         \
+   ~/github/vim/.bundle/blockinsert        \
+   ~/github/vim/.bundle/pairs              \
+   ~/github/vim/.bundle/sequence           \
+   ~/github/vim/.bundle/swap
 }
 
 bash=(.profile .bash_{profile,login,logout} .bashrc .logout)
@@ -86,44 +78,42 @@ exes=(colors_term.bash colors_tmux.bash mkconfig)
 
 mklinks() {
 
-   local base=~/github
-
    # Create repo links in ~
-   for repo in $base/*(/)
+   for repo in ~/github/*(/)
    do
       ln -s $repo ~
    done
 
    # Vim
-   ${commands[gln]:-ln} -sT $base/vim ~/.vim
-   ${commands[gln]:-ln} -sT $base/vim ~/.config/nvim
-   ln -s $base/vim/.{,g}vimrc ~
+   ${commands[gln]:-ln} -sT ~/github/vim ~/.vim
+   ${commands[gln]:-ln} -sT ~/github/vim ~/.config/nvim
+   ln -s ~/github/vim/.{,g}vimrc ~
 
    # Zsh
-   ln -s $base/zsh/.zsh ~
-   ln -s $base/zsh/.zprofile ~
-   ln -s $base/zsh/.zshrc ~
+   ln -s ~/github/zsh/.zsh ~
+   ln -s ~/github/zsh/.zprofile ~
+   ln -s ~/github/zsh/.zshrc ~
 
    # Bash
-   for c in $bash; ln -s $base/bash/$c ~
-   ln -s $base/bash/scripts/cd/.cdmarks.skel ~
+   for c in $bash; ln -s ~/github/bash/$c ~
+   ln -s ~/github/bash/scripts/cd/.cdmarks.skel ~
 
    mkdir -p ~/.config/ranger
 
    # Misc configs
-   ln -s $base/config/ctags/.ctags ~
-   ln -s $base/config/tmux/.tmux.conf ~
-   ln -s $base/config/ranger/rc.conf ~/.config/ranger
-   for c in $configs; ln -s $base/config/dotfiles/$c ~
+   ln -s ~/github/config/ctags/.ctags ~
+   ln -s ~/github/config/tmux/.tmux.conf ~
+   ln -s ~/github/config/ranger/rc.conf ~/.config/ranger
+   for c in $configs; ln -s ~/github/config/dotfiles/$c ~
 
    # ~/bin
    mkdir -p ~/bin
    if [[ -d ~/bin ]]
    then
-      for c in $exes; ln -s $base/scripts/$c ~/bin
+      for c in $exes; ln -s ~/github/scripts/$c ~/bin
 
-      ln -s $base/vim/scripts/vc ~/bin
-      ln -s $base/config/tmux/lay ~/bin
+      ln -s ~/github/vim/scripts/vc ~/bin
+      ln -s ~/github/config/tmux/lay ~/bin
    fi
 
 } 2>/dev/null
