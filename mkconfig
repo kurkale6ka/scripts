@@ -11,20 +11,16 @@ mkrepos() {
 
    if cd ~/github
    then
-      for repo in *(/)
-      do
-         if [[ ! -d $repo ]]
-         then
-            print -nP "%F{45}${repo}%f: "
-            if git clone git@github.com:kurkale6ka/$repo.git
-            then
-               if cd $repo
-               then
-                  git submodule init && git submodule update
-               fi
-            fi
-         fi
-      done
+      git clone git@github.com:kurkale6ka/bash.git
+      git clone git@github.com:kurkale6ka/config.git
+      git clone git@github.com:kurkale6ka/help.git
+      git clone git@github.com:kurkale6ka/zsh.git
+      git clone git@github.com:kurkale6ka/scripts.git
+      git clone git@github.com:kurkale6ka/vim.git
+      if cd vim
+      then
+         git submodule init && git submodule update
+      fi
       mktags
    fi
 }
