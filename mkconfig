@@ -46,26 +46,28 @@ updaterepos() {
 
 mktags() {
 
-   cd ~/github &&
-   ctags -R                                \
-   --langmap=vim:+.vimrc,zsh:+.zshrc_after \
-   --exclude='*~ '                         \
-   --exclude='.*~'                         \
-   --exclude=bundle                        \
-   --exclude=colors                        \
-   --exclude=keymap                        \
-   --exclude=pathogen.vim                  \
-   ~/.zshrc_after                          \
-   ~/github/zsh/.zsh/autoload              \
-   ~/github/bash/scripts                   \
-   ~/github/scripts                        \
-   ~/github/vim                            \
-   ~/github/vim/bundle/vsearch             \
-   ~/github/vim/.bundle/blanklines         \
-   ~/github/vim/.bundle/blockinsert        \
-   ~/github/vim/.bundle/pairs              \
-   ~/github/vim/.bundle/sequence           \
-   ~/github/vim/.bundle/swap
+   # Cheat by treating zsh files as sh
+   # note: ~/github/zsh/autoload can't be added since the function names are 'missing'
+   if cd ~/github
+   then
+      ctags -R                            \
+         --langmap=vim:+.vimrc,sh:+.after \
+         --exclude='*~ '                  \
+         --exclude='.*~'                  \
+         --exclude=bundle                 \
+         --exclude=colors                 \
+         --exclude=keymap                 \
+         --exclude=pathogen.vim           \
+         $XDG_CONFIG_HOME/zsh             \
+         ~/github/scripts                 \
+         ~/github/vim                     \
+         ~/github/vim/bundle/vsearch      \
+         ~/github/vim/.bundle/blanklines  \
+         ~/github/vim/.bundle/blockinsert \
+         ~/github/vim/.bundle/pairs       \
+         ~/github/vim/.bundle/sequence    \
+         ~/github/vim/.bundle/swap
+   fi
 }
 
 bash=(.profile .bash_{profile,login,logout} .bashrc .logout)
@@ -82,24 +84,23 @@ mklinks() {
 
    # Vim
    ${commands[gln]:-ln} -sT ~/github/vim ~/.vim
-   ${commands[gln]:-ln} -sT ~/github/vim ~/.config/nvim
+   ${commands[gln]:-ln} -sT ~/github/vim $XDG_CONFIG_HOME/nvim
    ln -s ~/github/vim/.{,g}vimrc ~
 
    # Zsh
-   ln -s ~/github/zsh/.zsh ~
-   ln -s ~/github/zsh/.zprofile ~
-   ln -s ~/github/zsh/.zshrc ~
+   ln -s ~/github/zsh/autoload $XDG_CONFIG_HOME/zsh
+   ln -s ~/github/zsh/.zprofile $XDG_CONFIG_HOME/zsh
+   ln -s ~/github/zsh/.zshrc $XDG_CONFIG_HOME/zsh
 
    # Bash
    for c in $bash; ln -s ~/github/bash/$c ~
-   ln -s ~/github/bash/scripts/cd/.cdmarks.skel ~
 
-   mkdir -p ~/.config/ranger
+   mkdir -p $XDG_CONFIG_HOME/ranger
 
    # Misc configs
    ln -s ~/github/config/ctags/.ctags ~
    ln -s ~/github/config/tmux/.tmux.conf ~
-   ln -s ~/github/config/ranger/rc.conf ~/.config/ranger
+   ln -s ~/github/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
    for c in $configs; ln -s ~/github/config/dotfiles/$c ~
 
    # ~/bin
@@ -123,21 +124,20 @@ rmlinks() {
    done
 
    # Vim
-   'rm' ~/.vim ~/.config/nvim
+   'rm' ~/.vim $XDG_CONFIG_HOME/nvim
    'rm' ~/.{,g}vimrc
 
    # Zsh
-   'rm' ~/.zsh
-   'rm' ~/.zprofile
-   'rm' ~/.zshrc
+   'rm' $XDG_CONFIG_HOME/zsh/autoload
+   'rm' $XDG_CONFIG_HOME/zsh/.zprofile
+   'rm' $XDG_CONFIG_HOME/zsh/.zshrc
 
    # Bash
    for c in $bash; 'rm' ~/$c
-   'rm' ~/.cdmarks.skel
 
    # Misc configs
    'rm' ~/{.ctags,.tmux.conf}
-   'rm' ~/.config/ranger/rc.conf
+   'rm' $XDG_CONFIG_HOME/ranger/rc.conf
    for c in $configs; 'rm' ~/$c
 
    # ~/bin
