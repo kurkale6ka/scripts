@@ -3,33 +3,19 @@
 #      fg/bg color (-f/-b)
 #             bold (-s for strong)
 #       underlined (-u)
-# examples:
-#    cecho -fblue -bgreen -su message
-#    cecho -fylw:221 message # 256 colors support (ylw: is optional)
+#
+# Examples:
+# cecho -fblue -bgreen -su message
+# cecho -fylw:221 message # 256 colors support (ylw: is optional)
+# cecho -usfcyan << EOM
+# Hello
+# World
+# EOM
+
 cecho() {
 
-   local _bld="$(tput bold || tput md)"
-   local _udl="$(tput smul || tput us)"
-   local _res="$(tput sgr0 || tput me)"
-
-   OPTIND=1
-
-   local opt
-   while getopts ':f:b:su' opt
-   do
-      case "$opt" in
-          f) local _fg="$OPTARG" ;;
-          b) local _bg="$OPTARG" ;;
-          s) local _b=1 ;;
-          u) local _u=1 ;;
-         \?) echo "Invalid option: -$OPTARG" 1>&2
-             return 1 ;;
-      esac
-   done
-
-   shift "$((OPTIND-1))"
-
-   local color
+   ## colors
+   local color error
 
    _get_color() {
       case "$1" in
@@ -43,26 +29,39 @@ cecho() {
           white) color=7 ;;
          [0-9]*) color="$1" ;;
               *) echo 'Unrecognized color' 1>&2
-                 return 2
+                 error=1
                  ;;
       esac
    }
 
-   local fg bg
+   ## options
+   OPTIND=1
 
-   if [[ $_fg ]]
-   then
-      _get_color "${_fg#*:}"
-      fg="$(tput setaf "$color" || tput AF "$color")"
-   fi
+   local opt
+   while getopts 'usb:f:' opt
+   do
+      case "$opt" in
+          f) _get_color "${OPTARG#*:}"
+             ((error)) && return 1
+             local _fg="$(tput setaf "$color" || tput AF "$color")"
+             ;;
+          b) _get_color "${OPTARG#*:}"
+             ((error)) && return 2
+             local _bg="$(tput setab "$color" || tput AB "$color")"
+             ;;
+          s) local _bld="$(tput bold || tput md)" ;;
+          u) local _udl="$(tput smul || tput us)" ;;
+         \?) echo "Invalid option: -$OPTARG" 1>&2
+             return 3 ;;
+      esac
+   done
 
-   if [[ $_bg ]]
-   then
-      _get_color "${_bg#*:}"
-      bg="$(tput setab "$color" || tput AB "$color")"
-   fi
+   shift "$((OPTIND-1))"
 
-   # If no arguments are given, read from STDIN
+   ## Output
+   local _res="$(tput sgr0 || tput me)"
+
+   # Without arguments, read from STDIN
    if (($# == 0))
    then
       local messages=()
@@ -70,17 +69,13 @@ cecho() {
       do
          messages+=("$REPLY")
       done
-   fi
 
-   [[ $_b ]] && echo -n "$_bld"
-   [[ $_u ]] && echo -n "$_udl"
-
-   if (($# != 0))
-   then
-      echo "${fg}${bg}${@}${_res}"
-   else
-      echo -n "${fg}${bg}"
+      echo -n "${_bld}${_udl}${_fg}${_bg}"
       printf '%s\n' "${messages[@]}"
       echo -n "${_res}"
+   else
+      echo "${_bld}${_udl}${_fg}${_bg}${@}${_res}"
    fi
 }
+
+# vim: fde=getline(v\:lnum)=~'^\\s*##'?'>'.(len(matchstr(getline(v\:lnum),'###*'))-1)\:'='
