@@ -42,19 +42,19 @@ cecho() {
    do
       case "$opt" in
           f) _get_color "${OPTARG#*:}"
-             ((error)) && return 1
              local _fg="$(tput setaf "$color" || tput AF "$color")"
              ;;
           b) _get_color "${OPTARG#*:}"
-             ((error)) && return 2
              local _bg="$(tput setab "$color" || tput AB "$color")"
              ;;
           s) local _bld="$(tput bold || tput md)" ;;
           u) local _udl="$(tput smul || tput us)" ;;
          \?) echo "Invalid option: -$OPTARG" 1>&2
-             return 3 ;;
+             return 1 ;;
       esac
    done
+
+   ((error)) && return 2
 
    shift "$((OPTIND-1))"
 
@@ -64,14 +64,11 @@ cecho() {
    # Without arguments, read from STDIN
    if (($# == 0))
    then
-      local messages=()
+      echo -n "${_bld}${_udl}${_fg}${_bg}"
       while read -r
       do
-         messages+=("$REPLY")
+         echo "$REPLY"
       done
-
-      echo -n "${_bld}${_udl}${_fg}${_bg}"
-      printf '%s\n' "${messages[@]}"
       echo -n "${_res}"
    else
       echo "${_bld}${_udl}${_fg}${_bg}${@}${_res}"
