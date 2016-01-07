@@ -74,7 +74,7 @@ cecho() {
       done
       echo -n "${_res}"
    else
-      echo "$_opt" "${_bld}${_udl}${_fg}${_bg}${@}${_res}"
+      echo $_opt "${_bld}${_udl}${_fg}${_bg}${@}${_res}"
    fi
 }
 
