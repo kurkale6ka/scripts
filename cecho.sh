@@ -4,11 +4,16 @@
 #               underlined (-u)
 #              fg/bg color (-f/-b)
 #      no trailing newline (-n)
-#           set a variable (-v, use cset for this)
+#      printf style format (-p)
+#           set a variable (-v)
 #
 # Examples:
+# for i in {0..255}; do cecho -p'%s%03d  ' -f"$i" color "$i"; ((i%7 == 0)) && echo; done; echo
+#
 # cecho -fblue -bgreen -su message
-# cecho -fylw:221 message # 256 colors support (ylw: is optional)
+# cecho -v -sfblue:39 var val
+# cecho -n -fylw:221 message # 256 colors support (ylw: is optional)
+#
 # cecho -usfcyan << EOM
 # Hello
 # World
@@ -39,9 +44,9 @@ cecho() {
    ## options
    OPTIND=1
 
-   local opt _opt _cset
+   local opt _fmt
 
-   while getopts 'suf:b:nv' opt
+   while getopts 'suf:b:np:v' opt
    do
       case "$opt" in
           s) local _bld="$(tput bold || tput md)" ;;
@@ -52,8 +57,23 @@ cecho() {
           b) _get_color "${OPTARG#*:}"
              local _bg="$(tput setab "$color" || tput AB "$color")"
              ;;
-          n) _opt=-n ;;
-          v) _cset=1 ;;
+          n) # format already set by -p
+             if [[ $_fmt ]]
+             then
+                _fmt="${_fmt//\\n/}"
+             else
+                _fmt=%s
+             fi
+             ;;
+          p) # format already set to %s by -n
+             if [[ $_fmt ]]
+             then
+                _fmt="${OPTARG//\\n/}"
+             else
+                _fmt="$OPTARG"
+             fi
+             ;;
+          v) local _cset=1 ;;
          \?) echo "Invalid option: -$OPTARG" 1>&2
              return 1 ;;
       esac
@@ -85,11 +105,11 @@ cecho() {
          echo -n "${_bld}${_udl}${_fg}${_bg}"
          while read -r
          do
-            echo "$REPLY"
+            printf "${_fmt:-%s\n}" "$REPLY"
          done
-         echo -n "${_res}"
+         echo -n "$_res"
       else
-         echo $_opt "${_bld}${_udl}${_fg}${_bg}${@}${_res}"
+         printf "${_bld}${_udl}${_fg}${_bg}${_fmt:-%s\n}${_res}" "$@"
       fi
    fi
 }
