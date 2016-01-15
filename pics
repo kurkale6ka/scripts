@@ -1,0 +1,44 @@
+# Move to yyyy/Month folders
+# *.jpg
+exiftool -ext jpg '-directory<createdate' -d '%Y/%B' .
+# a single file
+exiftool '-directory<createdate' -d '%Y/%B' file_name
+
+# Rename files to Dropbox format
+exiftool '-filename<createdate' -d '%Y-%m-%d %H.%M.%S%%-c.%%le' .
+
+# Move to yyyy/Month folders + rename files to dropbox format
+# %%-c if 2 images have the same name, add a number
+# %%le is for lowercase extension
+exiftool '-filename<createdate' -d '%Y/%B/%Y-%m-%d %H.%M.%S%%-c.%%le' .
+# ex:
+exiftool -if '$filename =~ /With/' '-filename<createdate' -d '%Y/%B/%Y-%m-%d %H.%M.%S%%-c.%%le' .
+
+# Append camera maker to the file name
+# make sure beforehand that basename hasn't got any letters in it
+exiftool -r -ext jpg '-filename<%f ${make;}.%e' -if '${filename;s/\.\S+//} !~ /[[:alpha:]]/i' .
+
+# Add tags
+exiftool -iptc:keywords+=my_tag -iptc:keywords+=my_tag_2 my_pic
+exiftool -xmp:usercomment=mytag my_pic
+
+# Print file names other than *(samsung|apple)*
+for i in 20??/**/*(.); [[ ${i##*/} != *(#i)(samsung|apple)* ]] && echo $i
+
+# Find file names with a specific tag
+exiftool -q -r -if '$iptc:keywords =~ /birthday/i' -if '$iptc:keywords =~ /victor/i' -filename -p '$filename: $keywords' .
+
+# Print files' keywords tag
+exiftool -q -r -iptc:keywords -p '$filename: $iptc:keywords' -if '$iptc:keywords' .
+
+# Tag photos
+# todo: avoid duplication
+exiftool -iptc:keywords+='christmas eve' 20[0-9][0-9]/**/20[0-9][0-9]-12-24*(.)
+exiftool -iptc:keywords+='christmas' 20[0-9][0-9]/**/20[0-9][0-9]-12-25*(.)
+
+exiftool -iptc:keywords+='Mitko' -iptc:keywords+='birthday' 20[0-9][0-9]/October/*-10-19*(.)
+exiftool -iptc:keywords+='Iva' -iptc:keywords+='birthday' 20[0-9][0-9]/May/*-05-30*(.)
+
+# Delete originals
+print -l **/*_original
+exiftool -delete_original! .
