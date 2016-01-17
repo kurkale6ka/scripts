@@ -28,6 +28,9 @@ for i in 20??/**/*(.); [[ ${i##*/} != *(#i)(samsung|apple)* ]] && echo $i
 # Find file names with a specific tag
 exiftool -q -r -if '$iptc:keywords =~ /birthday/i' -if '$iptc:keywords =~ /victor/i' -filename -p '$filename: $keywords' .
 
+# List files without a -keywords tag
+exiftool -if 'not $keywords' -filename -p '$filename' . 2>/dev/null
+
 # Print files' keywords tag
 exiftool -q -r -iptc:keywords -p '$filename: $iptc:keywords' -if '$iptc:keywords' .
 
