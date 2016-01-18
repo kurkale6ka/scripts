@@ -11,8 +11,11 @@ exiftool '-filename<createdate' -d '%Y-%m-%d %H.%M.%S%%-c.%%le' .
 # %%-c if 2 images have the same name, add a number
 # %%le is for lowercase extension
 exiftool '-filename<createdate' -d '%Y/%B/%Y-%m-%d %H.%M.%S%%-c.%%le' .
-# ex:
+
+# examples:
 exiftool -if '$filename =~ /With/' '-filename<createdate' -d '%Y/%B/%Y-%m-%d %H.%M.%S%%-c.%%le' .
+or
+exiftool '-filename<createdate' -d '%Y/%B/%Y-%m-%d %H.%M.%S%%-c.%%le' With*
 
 # Append camera maker to the file name
 # make sure beforehand that basename hasn't got any letters in it
@@ -22,14 +25,20 @@ exiftool -r -ext jpg '-filename<%f ${make;}.%e' -if '${filename;s/\.\S+//} !~ /[
 exiftool -iptc:keywords+=my_tag -iptc:keywords+=my_tag_2 my_pic
 exiftool -xmp:usercomment=mytag my_pic
 
-# Print file names other than *(samsung|apple)*
+# Print file names (within your years folders) with camera brands ('make') != *(samsung|apple)*
 for i in 20??/**/*(.); [[ ${i##*/} != *(#i)(samsung|apple)* ]] && echo $i
+
+# List files without camera brands in the name
+ll 20??/**/[^a-zA-Z]##.[^.]##
 
 # Find file names with a specific tag
 exiftool -q -r -if '$iptc:keywords =~ /birthday/i' -if '$iptc:keywords =~ /victor/i' -filename -p '$filename: $keywords' .
 
 # List files without a -keywords tag
 exiftool -if 'not $keywords' -filename -p '$filename' . 2>/dev/null
+
+# List tags in a specific group only
+exiftool -xmp:all 425E0CE44F.jpg
 
 # Print files' keywords tag
 exiftool -q -r -iptc:keywords -p '$filename: $iptc:keywords' -if '$iptc:keywords' .
