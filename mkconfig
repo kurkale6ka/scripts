@@ -88,9 +88,15 @@ mklinks() {
    ln -s ~/github/vim/.{,g}vimrc ~
 
    # Zsh
-   ln -s ~/github/zsh/autoload $XDG_CONFIG_HOME/zsh
-   ln -s ~/github/zsh/.zprofile $XDG_CONFIG_HOME/zsh
-   ln -s ~/github/zsh/.zshrc $XDG_CONFIG_HOME/zsh
+   if [[ -n $XDG_CONFIG_HOME ]] then
+      mkdir -p $XDG_CONFIG_HOME/zsh
+      mkdir -p $XDG_DATA_HOME/zsh
+      ln -s ~/github/zsh/autoload $XDG_CONFIG_HOME/zsh
+      ln -s ~/github/zsh/.zprofile $XDG_CONFIG_HOME/zsh
+      ln -s ~/github/zsh/.zshrc $XDG_CONFIG_HOME/zsh
+   else
+      echo 'An initial setup of XDG in zshenv is first needed!' 1>&2
+   fi
 
    # Bash
    for c in $bash; ln -s ~/github/bash/$c ~
