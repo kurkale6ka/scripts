@@ -84,34 +84,41 @@ mklinks() {
 
    # Vim
    ${commands[gln]:-ln} -sT ~/github/vim ~/.vim
-   ${commands[gln]:-ln} -sT ~/github/vim $XDG_CONFIG_HOME/nvim
    ln -s ~/github/vim/.{,g}vimrc ~
 
-   # Zsh
-   if [[ -n $XDG_CONFIG_HOME ]] then
-      mkdir -p $XDG_CONFIG_HOME/zsh
-      mkdir -p $XDG_DATA_HOME/zsh
-      ln -s ~/github/zsh/autoload $XDG_CONFIG_HOME/zsh
-      ln -s ~/github/zsh/.zprofile $XDG_CONFIG_HOME/zsh
-      ln -s ~/github/zsh/.zshrc $XDG_CONFIG_HOME/zsh
+   if [[ -n $XDG_CONFIG_HOME ]]
+   then
+      # nvim
+      ${commands[gln]:-ln} -sT ~/github/vim $XDG_CONFIG_HOME/nvim
+
+      # zsh
+      if mkdir -p {$XDG_CONFIG_HOME,$XDG_DATA_HOME}/zsh
+      then
+         ln -s ~/github/zsh/autoload $XDG_CONFIG_HOME/zsh
+         ln -s ~/github/zsh/.zprofile $XDG_CONFIG_HOME/zsh
+         ln -s ~/github/zsh/.zshrc $XDG_CONFIG_HOME/zsh
+      fi
+
+      # ranger
+      if mkdir -p $XDG_CONFIG_HOME/ranger
+      then
+         ln -s ~/github/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
+      fi
    else
-      echo 'An initial setup of XDG in zshenv is first needed!' 1>&2
+      echo 'nvim, zsh, ranger: an initial setup of XDG in zshenv is first needed!' 1>&2
    fi
 
    # Bash
    for c in $bash; ln -s ~/github/bash/$c ~
 
-   mkdir -p $XDG_CONFIG_HOME/ranger
-
    # Misc configs
    ln -s ~/github/config/ctags/.ctags ~
    ln -s ~/github/config/tmux/.tmux.conf ~
-   ln -s ~/github/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
+
    for c in $configs; ln -s ~/github/config/dotfiles/$c ~
 
    # ~/bin
-   mkdir -p ~/bin
-   if [[ -d ~/bin ]]
+   if mkdir -p ~/bin
    then
       for c in $exes; ln -s ~/github/scripts/$c ~/bin
 
@@ -130,20 +137,28 @@ rmlinks() {
    done
 
    # Vim
-   'rm' ~/.vim $XDG_CONFIG_HOME/nvim
+   'rm' ~/.vim
    'rm' ~/.{,g}vimrc
 
-   # Zsh
-   'rm' $XDG_CONFIG_HOME/zsh/autoload
-   'rm' $XDG_CONFIG_HOME/zsh/.zprofile
-   'rm' $XDG_CONFIG_HOME/zsh/.zshrc
+   if [[ -n $XDG_CONFIG_HOME ]]
+   then
+      # nvim
+      'rm' $XDG_CONFIG_HOME/nvim
+
+      # zsh
+      'rm' $XDG_CONFIG_HOME/zsh/autoload
+      'rm' $XDG_CONFIG_HOME/zsh/.zprofile
+      'rm' $XDG_CONFIG_HOME/zsh/.zshrc
+
+      # ranger
+      'rm' $XDG_CONFIG_HOME/ranger/rc.conf
+   fi
 
    # Bash
    for c in $bash; 'rm' ~/$c
 
    # Misc configs
    'rm' ~/{.ctags,.tmux.conf}
-   'rm' $XDG_CONFIG_HOME/ranger/rc.conf
    for c in $configs; 'rm' ~/$c
 
    # ~/bin
