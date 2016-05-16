@@ -59,7 +59,7 @@ def status(app, k = None, patt = None):
 
       if a in _in:
          _procs_a = [x for x in _in.split('\n') if a in x]
-         _times = set([l.split()[0] for l in _procs_a])
+         _times = {l.split()[0] for l in _procs_a}
 
          # app, nb procs, up/down, highlighted?, start_times
          _res.append((apps[app][1][a], len(_procs_a), True, highlight, _times))
