@@ -54,19 +54,18 @@ mktags() {
          --langmap=vim:+.vimrc,sh:+.after \
          --exclude='*~ '                  \
          --exclude='.*~'                  \
-         --exclude=bundle                 \
+         --exclude=plugged                \
          --exclude=colors                 \
          --exclude=keymap                 \
-         --exclude=pathogen.vim           \
+         --exclude=plug.vim               \
          $XDG_CONFIG_HOME/zsh             \
          ~/github/scripts                 \
          ~/github/vim                     \
-         ~/github/vim/bundle/vsearch      \
-         ~/github/vim/.bundle/blanklines  \
-         ~/github/vim/.bundle/blockinsert \
-         ~/github/vim/.bundle/pairs       \
-         ~/github/vim/.bundle/sequence    \
-         ~/github/vim/.bundle/swap
+         ~/github/vim/plugged/vsearch     \
+         ~/github/vim/plugged/blockinsert \
+         ~/github/vim/plugged/pairs       \
+         ~/github/vim/plugged/sequence    \
+         ~/github/vim/plugged/swap
    fi
 }
 
