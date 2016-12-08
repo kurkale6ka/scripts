@@ -17,10 +17,6 @@ mkrepos() {
       git clone git@github.com:kurkale6ka/zsh.git
       git clone git@github.com:kurkale6ka/scripts.git
       git clone git@github.com:kurkale6ka/vim.git
-      if cd vim
-      then
-         git submodule init && git submodule update
-      fi
       mktags
    fi
 }
@@ -35,10 +31,7 @@ updaterepos() {
          if [[ $(git symbolic-ref --short HEAD) == master ]] && git status -sb | grep -q behind
          then
             print -nP "%F{45}${repo:t}%f: "
-            if git pull
-            then
-               git submodule sync >/dev/null && git submodule update
-            fi
+            git pull
          fi
       fi
    done
