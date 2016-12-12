@@ -114,7 +114,7 @@ mklinks() {
    then
       for c in $exes; ln -s ~/github/scripts/$c ~/bin
 
-      ln -s ~/github/vim/scripts/vc ~/bin
+      ln -s ~/github/vim/extra/vc ~/bin
       ln -s ~/github/config/tmux/lay ~/bin
    fi
 
