@@ -43,22 +43,22 @@ mktags() {
    # note: ~/github/zsh/autoload can't be added since the function names are 'missing'
    if cd ~/github
    then
-      ctags -R                            \
-         --langmap=vim:+.vimrc,sh:+.after \
-         --exclude='*~ '                  \
-         --exclude='.*~'                  \
-         --exclude=plugged                \
-         --exclude=colors                 \
-         --exclude=keymap                 \
-         --exclude=plug.vim               \
-         $XDG_CONFIG_HOME/zsh             \
-         ~/github/scripts                 \
-         ~/github/vim                     \
-         ~/github/vim/plugged/vsearch     \
-         ~/github/vim/plugged/blockinsert \
-         ~/github/vim/plugged/pairs       \
-         ~/github/vim/plugged/sequence    \
-         ~/github/vim/plugged/swap
+      ctags -R                                \
+         --langmap=vim:+.vimrc,sh:+.after     \
+         --exclude='*~ '                      \
+         --exclude='.*~'                      \
+         --exclude=plugged                    \
+         --exclude=colors                     \
+         --exclude=keymap                     \
+         --exclude=plug.vim                   \
+         $XDG_CONFIG_HOME/zsh                 \
+         ~/github/scripts                     \
+         ~/github/vim                         \
+         ~/github/vim/plugged/vsearch         \
+         ~/github/vim/plugged/vim-blockinsert \
+         ~/github/vim/plugged/vim-pairs       \
+         ~/github/vim/plugged/vim-sequence    \
+         ~/github/vim/plugged/vim-swap
    fi
 }
 
