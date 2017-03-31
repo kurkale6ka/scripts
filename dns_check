@@ -34,3 +34,14 @@ then
 else
    diff      -wBU0 "$aws" "$dyn"
 fi
+
+# And the associated crontab:
+# differences="$(/usr/bin/cli53 l | tail -n+2 | awk '{print $2}' | xargs -n1 -P0 ./dns_check)"
+#
+# if ! grep -qi 'unreachable\|fail\|timeout' <<< "$differences"
+# then
+#    if (( $(grep -v Zone <<< "$differences" | wc -l) != 0 ))
+#    then
+#       echo "$differences" 1>&2
+#    fi
+# fi
