@@ -6,15 +6,13 @@ setopt extended_glob
 chpwd_functions=()
 
 mkrepos() {
-
    mkdir -p ~/github
-
    if cd ~/github
    then
-      git clone git@github.com:kurkale6ka/bash.git
-      git clone git@github.com:kurkale6ka/config.git
-      git clone git@github.com:kurkale6ka/help.git
       git clone git@github.com:kurkale6ka/zsh.git
+      git clone git@github.com:kurkale6ka/bash.git
+      git clone git@github.com:kurkale6ka/help.git
+      git clone git@github.com:kurkale6ka/config.git
       git clone git@github.com:kurkale6ka/scripts.git
       git clone git@github.com:kurkale6ka/vim.git
       mktags
@@ -22,7 +20,6 @@ mkrepos() {
 }
 
 updaterepos() {
-
    for repo in ~/github/*(/)
    do
       if cd $repo
@@ -38,7 +35,6 @@ updaterepos() {
 }
 
 mktags() {
-
    # Cheat by treating zsh files as sh
    # note: ~/github/zsh/autoload can't be added since the function names are 'missing'
    if cd ~/github
@@ -56,24 +52,18 @@ mktags() {
          ~/github/vim                         \
          ~/github/vim/plugged/vsearch         \
          ~/github/vim/plugged/vim-blockinsert \
+         ~/github/vim/plugged/vim-chess       \
+         ~/github/vim/plugged/vim-desertEX    \
          ~/github/vim/plugged/vim-pairs       \
-         ~/github/vim/plugged/vim-sequence    \
          ~/github/vim/plugged/vim-swap
    fi
 }
 
-bash=(.profile .bash_{profile,login,logout} .bashrc .logout)
-configs=(.dir_colors .gitignore .{input,irb}rc .Xresources)
+bash=(.bash_{profile,logout} .bashrc)
+configs=(.gitignore .irbrc .pyrc .Xresources)
 exes=(colors_term.bash colors_tmux.bash mkconfig)
 
 mklinks() {
-
-   # Create repo links in ~
-   for repo in ~/github/*(/)
-   do
-      ln -s $repo ~
-   done
-
    # Vim
    ${commands[gln]:-ln} -sT ~/github/vim ~/.vim
    ln -s ~/github/vim/.{,g}vimrc ~
@@ -121,13 +111,6 @@ mklinks() {
 } 2>/dev/null
 
 rmlinks() {
-
-   # Remove repo links in ~
-   for l in ~/github/*(/:t)
-   do
-      'rm' ~/$l
-   done
-
    # Vim
    'rm' ~/.vim
    'rm' ~/.{,g}vimrc
