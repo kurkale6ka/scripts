@@ -1,13 +1,19 @@
 #! /usr/bin/env zsh
 
+if [[ -z $REPOS_BASE ]]
+then
+   echo 'REPOS_BASE needs to be set' 1>&2
+   return 1
+fi
+
 setopt extended_glob
 
 # Don't update my cd bookmarks for automated cds
 chpwd_functions=()
 
 mkrepos() {
-   mkdir -p ~/github
-   if cd ~/github
+   mkdir -p $REPOS_BASE
+   if cd $REPOS_BASE
    then
       git clone git@github.com:kurkale6ka/zsh.git
       git clone git@github.com:kurkale6ka/bash.git
@@ -20,7 +26,7 @@ mkrepos() {
 }
 
 updaterepos() {
-   for repo in ~/github/*(/)
+   for repo in $REPOS_BASE/*(/)
    do
       if cd $repo
       then
@@ -36,26 +42,26 @@ updaterepos() {
 
 mktags() {
    # Cheat by treating zsh files as sh
-   # note: ~/github/zsh/autoload can't be added since the function names are 'missing'
-   if cd ~/github
+   # note: $REPOS_BASE/zsh/autoload can't be added since the function names are 'missing'
+   if cd $REPOS_BASE
    then
-      ctags -R                                \
-         --langmap=vim:+.vimrc,sh:+.after     \
-         --exclude='*~ '                      \
-         --exclude='.*~'                      \
-         --exclude=plugged                    \
-         --exclude=colors                     \
-         --exclude=keymap                     \
-         --exclude=plug.vim                   \
-         $XDG_CONFIG_HOME/zsh                 \
-         ~/github/scripts                     \
-         ~/github/vim                         \
-         ~/github/vim/plugged/vsearch         \
-         ~/github/vim/plugged/vim-blockinsert \
-         ~/github/vim/plugged/vim-chess       \
-         ~/github/vim/plugged/vim-desertEX    \
-         ~/github/vim/plugged/vim-pairs       \
-         ~/github/vim/plugged/vim-swap
+      ctags -R                                   \
+         --langmap=vim:+.vimrc,sh:+.after        \
+         --exclude='*~ '                         \
+         --exclude='.*~'                         \
+         --exclude=plugged                       \
+         --exclude=colors                        \
+         --exclude=keymap                        \
+         --exclude=plug.vim                      \
+         $XDG_CONFIG_HOME/zsh                    \
+         $REPOS_BASE/scripts                     \
+         $REPOS_BASE/vim                         \
+         $REPOS_BASE/vim/plugged/vsearch         \
+         $REPOS_BASE/vim/plugged/vim-blockinsert \
+         $REPOS_BASE/vim/plugged/vim-chess       \
+         $REPOS_BASE/vim/plugged/vim-desertEX    \
+         $REPOS_BASE/vim/plugged/vim-pairs       \
+         $REPOS_BASE/vim/plugged/vim-swap
    fi
 }
 
@@ -65,47 +71,47 @@ exes=(colors_term.bash colors_tmux.bash mkconfig)
 
 mklinks() {
    # Vim
-   ${commands[gln]:-ln} -sT ~/github/vim ~/.vim
-   ln -s ~/github/vim/.{,g}vimrc ~
+   ${commands[gln]:-ln} -sT $REPOS_BASE/vim ~/.vim
+   ln -s $REPOS_BASE/vim/.{,g}vimrc ~
 
    if [[ -n $XDG_CONFIG_HOME ]]
    then
       # nvim
-      ${commands[gln]:-ln} -sT ~/github/vim $XDG_CONFIG_HOME/nvim
+      ${commands[gln]:-ln} -sT $REPOS_BASE/vim $XDG_CONFIG_HOME/nvim
 
       # zsh
       if mkdir -p {$XDG_CONFIG_HOME,$XDG_DATA_HOME}/zsh
       then
-         ln -s ~/github/zsh/autoload $XDG_CONFIG_HOME/zsh
-         ln -s ~/github/zsh/.zprofile $XDG_CONFIG_HOME/zsh
-         ln -s ~/github/zsh/.zshrc $XDG_CONFIG_HOME/zsh
+         ln -s $REPOS_BASE/zsh/autoload $XDG_CONFIG_HOME/zsh
+         ln -s $REPOS_BASE/zsh/.zprofile $XDG_CONFIG_HOME/zsh
+         ln -s $REPOS_BASE/zsh/.zshrc $XDG_CONFIG_HOME/zsh
       fi
 
       # ranger
       if mkdir -p $XDG_CONFIG_HOME/ranger
       then
-         ln -s ~/github/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
+         ln -s $REPOS_BASE/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
       fi
    else
       echo 'nvim, zsh, ranger: an initial setup of XDG in zshenv is first needed!' 1>&2
    fi
 
    # Bash
-   for c in $bash; ln -s ~/github/bash/$c ~
+   for c in $bash; ln -s $REPOS_BASE/bash/$c ~
 
    # Misc configs
-   ln -s ~/github/config/ctags/.ctags ~
-   ln -s ~/github/config/tmux/.tmux.conf ~
+   ln -s $REPOS_BASE/config/ctags/.ctags ~
+   ln -s $REPOS_BASE/config/tmux/.tmux.conf ~
 
-   for c in $configs; ln -s ~/github/config/dotfiles/$c ~
+   for c in $configs; ln -s $REPOS_BASE/config/dotfiles/$c ~
 
    # ~/bin
    if mkdir -p ~/bin
    then
-      for c in $exes; ln -s ~/github/scripts/$c ~/bin
+      for c in $exes; ln -s $REPOS_BASE/scripts/$c ~/bin
 
-      ln -s ~/github/vim/extra/vc ~/bin
-      ln -s ~/github/config/tmux/lay ~/bin
+      ln -s $REPOS_BASE/vim/extra/vc ~/bin
+      ln -s $REPOS_BASE/config/tmux/lay ~/bin
    fi
 
 } 2>/dev/null
