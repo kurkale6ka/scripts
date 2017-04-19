@@ -69,7 +69,7 @@ updaterepos() {
 mktags() {
    if [[ -z $XDG_CONFIG_HOME ]]
    then
-      echo 'mktags: XDG setup needed' 1>&2
+      echo 'mktags (zsh): XDG setup needed' 1>&2
       return 3
    fi
 
@@ -126,7 +126,7 @@ mklinks() {
          ln -s $REPOS_BASE/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
       fi
    else
-      echo 'mklinks: XDG setup needed' 1>&2
+      echo 'mklinks (nvim, zsh, ranger): XDG setup needed' 1>&2
    fi
 
    # Bash
