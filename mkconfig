@@ -82,6 +82,7 @@ mklinks() {
       # zsh
       if mkdir -p {$XDG_CONFIG_HOME,$XDG_DATA_HOME}/zsh
       then
+         ln -s $REPOS_BASE/zsh/.zshenv ~
          ln -s $REPOS_BASE/zsh/autoload $XDG_CONFIG_HOME/zsh
          ln -s $REPOS_BASE/zsh/.zprofile $XDG_CONFIG_HOME/zsh
          ln -s $REPOS_BASE/zsh/.zshrc $XDG_CONFIG_HOME/zsh
@@ -127,6 +128,7 @@ rmlinks() {
       'rm' $XDG_CONFIG_HOME/nvim
 
       # zsh
+      'rm' ~/.zshenv
       'rm' $XDG_CONFIG_HOME/zsh/autoload
       'rm' $XDG_CONFIG_HOME/zsh/.zprofile
       'rm' $XDG_CONFIG_HOME/zsh/.zshrc
