@@ -2,7 +2,7 @@
 
 if [[ -z $REPOS_BASE ]]
 then
-   echo 'REPOS_BASE needs to be set' 1>&2
+   echo 'mkconfig: REPOS_BASE needs to be set' 1>&2
    return 1
 fi
 
@@ -11,17 +11,43 @@ setopt extended_glob
 # Don't update my cd bookmarks for automated cds
 chpwd_functions=()
 
-mkrepos() {
+initial_setup() {
+
    mkdir -p $REPOS_BASE
    if cd $REPOS_BASE
    then
+      echo '* Cloning repositories...'
       git clone git@github.com:kurkale6ka/zsh.git
       git clone git@github.com:kurkale6ka/bash.git
       git clone git@github.com:kurkale6ka/help.git
       git clone git@github.com:kurkale6ka/config.git
       git clone git@github.com:kurkale6ka/scripts.git
       git clone git@github.com:kurkale6ka/vim.git
-      mktags
+   fi
+
+   echo $'\n* Linking dot files...'
+   mklinks
+
+   echo '* Generating tags...'
+   mktags
+
+   # Fuzzy cd database
+   if [[ -n $XDG_DATA_HOME ]]
+   then
+      echo $'\n* Creating fuzzy cd database...'
+      mkdir -p $XDG_DATA_HOME/marks
+
+      sqlite3 $XDG_DATA_HOME/marks/marks.sqlite <<- 'INIT'
+		CREATE TABLE IF NOT EXISTS marks (
+		  dir VARCHAR(200) UNIQUE,
+		  weight INTEGER
+		);
+
+		CREATE INDEX IF NOT EXISTS _dir ON marks (dir);
+		INIT
+   else
+      echo 'fuzzy cd database: XDG setup needed' 1>&2
+      return 2
    fi
 }
 
@@ -41,6 +67,12 @@ updaterepos() {
 }
 
 mktags() {
+   if [[ -z $XDG_CONFIG_HOME ]]
+   then
+      echo 'mktags: XDG setup needed' 1>&2
+      return 3
+   fi
+
    # Cheat by treating zsh files as sh
    # note: $REPOS_BASE/zsh/autoload can't be added since the function names are 'missing'
    if cd $REPOS_BASE
@@ -94,7 +126,7 @@ mklinks() {
          ln -s $REPOS_BASE/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
       fi
    else
-      echo 'nvim, zsh, ranger: an initial setup of XDG in zshenv is first needed!' 1>&2
+      echo 'mklinks: XDG setup needed' 1>&2
    fi
 
    # Bash
@@ -151,7 +183,7 @@ rmlinks() {
 }
 
 opts[1]='Update repositories'
-opts[2]='Create repositories'
+opts[2]='Initial setup'
 opts[3]='Generate tags'
 opts[4]='Make links'
 opts[5]='Remove links'
@@ -159,11 +191,11 @@ opts[5]='Remove links'
 select choice in $opts
 do
    case $choice in
-      (${opts[1]}) updaterepos;      break;;
-      (${opts[2]}) mkrepos; mklinks; break;;
-      (${opts[3]}) mktags;           break;;
-      (${opts[4]}) mklinks;          break;;
-      (${opts[5]}) rmlinks;          break;;
+      (${opts[1]}) updaterepos;   break;;
+      (${opts[2]}) initial_setup; break;;
+      (${opts[3]}) mktags;        break;;
+      (${opts[4]}) mklinks;       break;;
+      (${opts[5]}) rmlinks;       break;;
                (*) echo '*** Wrong choice ***' >&2
    esac
 done
