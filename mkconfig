@@ -2,7 +2,7 @@
 
 if [[ -z $REPOS_BASE ]]
 then
-   echo 'mkconfig: REPOS_BASE needs to be set' 1>&2
+   print -P '%F{red}REPOS_BASE needs to be set%f' 1>&2
    return 1
 fi
 
@@ -12,43 +12,26 @@ setopt extended_glob
 chpwd_functions=()
 
 initial_setup() {
-
    mkdir -p $REPOS_BASE
    if cd $REPOS_BASE
    then
-      echo '* Cloning repositories...'
-      git clone git@github.com:kurkale6ka/zsh.git
-      git clone git@github.com:kurkale6ka/bash.git
-      git clone git@github.com:kurkale6ka/help.git
-      git clone git@github.com:kurkale6ka/config.git
-      git clone git@github.com:kurkale6ka/scripts.git
-      git clone git@github.com:kurkale6ka/vim.git
+      print -P "* %F{45}Cloning repositories in %F{blue}${REPOS_BASE/$HOME/~}%f..."
+      [[ ! -d zsh     ]] && git clone git@github.com:kurkale6ka/zsh.git
+      [[ ! -d bash    ]] && git clone git@github.com:kurkale6ka/bash.git
+      [[ ! -d help    ]] && git clone git@github.com:kurkale6ka/help.git
+      [[ ! -d config  ]] && git clone git@github.com:kurkale6ka/config.git
+      [[ ! -d scripts ]] && git clone git@github.com:kurkale6ka/scripts.git
+      [[ ! -d vim     ]] && git clone git@github.com:kurkale6ka/vim.git
    fi
 
-   echo $'\n* Linking dot files...'
+   print -P '\n* %F{45}Linking dot files%f...'
    mklinks
 
-   echo '* Generating tags...'
+   print -P '* %F{45}Generating tags%f...'
    mktags
 
-   # Fuzzy cd database
-   if [[ -n $XDG_DATA_HOME ]]
-   then
-      echo $'\n* Creating fuzzy cd database...'
-      mkdir -p $XDG_DATA_HOME/marks
-
-      sqlite3 $XDG_DATA_HOME/marks/marks.sqlite <<- 'INIT'
-		CREATE TABLE IF NOT EXISTS marks (
-		  dir VARCHAR(200) UNIQUE,
-		  weight INTEGER
-		);
-
-		CREATE INDEX IF NOT EXISTS _dir ON marks (dir);
-		INIT
-   else
-      echo 'fuzzy cd database: XDG setup needed' 1>&2
-      return 2
-   fi
+   print -P '* %F{45}Creating fuzzy cd database%f...'
+   mkdb
 }
 
 updaterepos() {
@@ -69,8 +52,8 @@ updaterepos() {
 mktags() {
    if [[ -z $XDG_CONFIG_HOME ]]
    then
-      echo 'mktags (zsh): XDG setup needed' 1>&2
-      return 3
+      print -P 'mktags (zsh): %F{red}XDG setup needed%f' 1>&2
+      return 2
    fi
 
    # Cheat by treating zsh files as sh
@@ -97,57 +80,77 @@ mktags() {
    fi
 }
 
+# Fuzzy cd database
+mkdb() {
+   if [[ -n $XDG_DATA_HOME ]]
+   then
+      mkdir -p $XDG_DATA_HOME/marks
+
+      sqlite3 $XDG_DATA_HOME/marks/marks.sqlite <<- 'INIT'
+		CREATE TABLE IF NOT EXISTS marks (
+		  dir VARCHAR(200) UNIQUE,
+		  weight INTEGER
+		);
+
+		CREATE INDEX IF NOT EXISTS _dir ON marks (dir);
+		INIT
+   else
+      print -P 'fuzzy cd database: %F{red}XDG setup needed%f' 1>&2
+      return 3
+   fi
+}
+
 bash=(.bash_{profile,logout} .bashrc)
 configs=(.gitignore .irbrc .pyrc .Xresources)
 exes=(colors_term.bash colors_tmux.bash mkconfig)
 
 mklinks() {
    # Vim
-   ${commands[gln]:-ln} -sT $REPOS_BASE/vim ~/.vim
-   ln -s $REPOS_BASE/vim/.{,g}vimrc ~
+   ${commands[gln]:-ln} -sfT $REPOS_BASE/vim ~/.vim
+   ln -sf $REPOS_BASE/vim/.{,g}vimrc ~
 
    if [[ -n $XDG_CONFIG_HOME ]]
    then
       # nvim
-      ${commands[gln]:-ln} -sT $REPOS_BASE/vim $XDG_CONFIG_HOME/nvim
+      ${commands[gln]:-ln} -sfT $REPOS_BASE/vim $XDG_CONFIG_HOME/nvim
 
       # zsh
       if mkdir -p {$XDG_CONFIG_HOME,$XDG_DATA_HOME}/zsh
       then
-         ln -s $REPOS_BASE/zsh/.zshenv ~
-         ln -s $REPOS_BASE/zsh/autoload $XDG_CONFIG_HOME/zsh
-         ln -s $REPOS_BASE/zsh/.zprofile $XDG_CONFIG_HOME/zsh
-         ln -s $REPOS_BASE/zsh/.zshrc $XDG_CONFIG_HOME/zsh
+         ln -sf $REPOS_BASE/zsh/.zshenv ~
+         ln -sf $REPOS_BASE/zsh/autoload $XDG_CONFIG_HOME/zsh
+         ln -sf $REPOS_BASE/zsh/.zprofile $XDG_CONFIG_HOME/zsh
+         ln -sf $REPOS_BASE/zsh/.zshrc $XDG_CONFIG_HOME/zsh
       fi
 
       # ranger
       if mkdir -p $XDG_CONFIG_HOME/ranger
       then
-         ln -s $REPOS_BASE/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
+         ln -sf $REPOS_BASE/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
       fi
    else
-      echo 'mklinks (nvim, zsh, ranger): XDG setup needed' 1>&2
+      print -P 'mklinks (nvim, zsh, ranger): %F{red}XDG setup needed%f' 1>&2
    fi
 
    # Bash
-   for c in $bash; ln -s $REPOS_BASE/bash/$c ~
+   for c in $bash; ln -sf $REPOS_BASE/bash/$c ~
 
    # Misc configs
-   ln -s $REPOS_BASE/config/ctags/.ctags ~
-   ln -s $REPOS_BASE/config/tmux/.tmux.conf ~
+   ln -sf $REPOS_BASE/config/ctags/.ctags ~
+   ln -sf $REPOS_BASE/config/tmux/.tmux.conf ~
 
-   for c in $configs; ln -s $REPOS_BASE/config/dotfiles/$c ~
+   for c in $configs; ln -sf $REPOS_BASE/config/dotfiles/$c ~
+   ln -sf ~/.gitignore ~/.agignore
 
    # ~/bin
    if mkdir -p ~/bin
    then
-      for c in $exes; ln -s $REPOS_BASE/scripts/$c ~/bin
+      for c in $exes; ln -sf $REPOS_BASE/scripts/$c ~/bin
 
-      ln -s $REPOS_BASE/vim/extra/vc ~/bin
-      ln -s $REPOS_BASE/config/tmux/lay ~/bin
+      ln -sf $REPOS_BASE/vim/extra/vc ~/bin
+      ln -sf $REPOS_BASE/config/tmux/lay ~/bin
    fi
-
-} 2>/dev/null
+}
 
 rmlinks() {
    # Vim
@@ -175,6 +178,7 @@ rmlinks() {
    # Misc configs
    'rm' ~/{.ctags,.tmux.conf}
    for c in $configs; 'rm' ~/$c
+   'rm' ~/.agignore
 
    # ~/bin
    for c in $exes; 'rm' ~/bin/$c
@@ -185,8 +189,9 @@ rmlinks() {
 opts[1]='Update repositories'
 opts[2]='Initial setup'
 opts[3]='Generate tags'
-opts[4]='Make links'
-opts[5]='Remove links'
+opts[4]='Create fuzzy cd database'
+opts[5]='Make links'
+opts[6]='Remove links'
 
 select choice in $opts
 do
@@ -194,8 +199,9 @@ do
       (${opts[1]}) updaterepos;   break;;
       (${opts[2]}) initial_setup; break;;
       (${opts[3]}) mktags;        break;;
-      (${opts[4]}) mklinks;       break;;
-      (${opts[5]}) rmlinks;       break;;
+      (${opts[4]}) mkdb;          break;;
+      (${opts[5]}) mklinks;       break;;
+      (${opts[6]}) rmlinks;       break;;
                (*) echo '*** Wrong choice ***' >&2
    esac
 done
