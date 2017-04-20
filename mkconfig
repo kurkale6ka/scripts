@@ -106,13 +106,13 @@ exes=(colors_term.bash colors_tmux.bash mkconfig)
 
 mklinks() {
    # Vim
-   ${commands[gln]:-ln} -sfT $REPOS_BASE/vim ~/.vim
-   ln -sf $REPOS_BASE/vim/.{,g}vimrc ~
+   ln -sfT $REPOS_BASE/vim ~/.vim
+   ln -sf  $REPOS_BASE/vim/.{,g}vimrc ~
 
    if [[ -n $XDG_CONFIG_HOME ]]
    then
       # nvim
-      ${commands[gln]:-ln} -sfT $REPOS_BASE/vim $XDG_CONFIG_HOME/nvim
+      ln -sfT $REPOS_BASE/vim $XDG_CONFIG_HOME/nvim
 
       # zsh
       if mkdir -p {$XDG_CONFIG_HOME,$XDG_DATA_HOME}/zsh
