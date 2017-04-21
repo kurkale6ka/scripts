@@ -19,11 +19,11 @@
 shopt -s extglob
 
 ## Colors
-_bld="$(tput bold)"
-_ylw="$(printf %s "$_bld"; tput setaf 3)"
-_grn="$(printf %s "$_bld"; tput setaf 2)"
-_red="$(printf %s "$_bld"; tput setaf 1)"
-_res="$(tput sgr0)"
+_bld="$(tput bold || tput md)"
+_ylw="$_bld$(tput setaf 3 || tput AF 3)"
+_grn="$_bld$(tput setaf 2 || tput AF 2)"
+_red="$_bld$(tput setaf 1 || tput AF 1)"
+_res="$(tput sgr0 || tput me)"
 
 ## Help
 _help() {

@@ -17,4 +17,4 @@ do
    fi
 done
 
-tput sgr0
+tput sgr0 || tput me

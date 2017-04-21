@@ -1,38 +1,8 @@
 #! /usr/bin/env bash
 
-# For information:
-#
-#        Bold=$(tput bold)
-#   Underline=$(tput smul)
-#       Reset=$(tput sgr0)
-#       Black=$(tput setaf 0)
-#     BlackBG=$(tput setab 0)
-#    DarkGrey=$(printf %s "$Bold"; tput setaf 0)
-#   LightGrey=$(tput setaf 7)
-# LightGreyBG=$(tput setab 7)
-#       White=$(printf %s "$Bold"; tput setaf 7)
-#         Red=$(tput setaf 1)
-#       RedBG=$(tput setab 1)
-#    LightRed=$(printf %s "$Bold"; tput setaf 1)
-#       Green=$(tput setaf 2)
-#     GreenBG=$(tput setab 2)
-#  LightGreen=$(printf %s "$Bold"; tput setaf 2)
-#       Brown=$(tput setaf 3)
-#     BrownBG=$(tput setab 3)
-#      Yellow=$(printf %s "$Bold"; tput setaf 3)
-#        Blue=$(tput setaf 4)
-#      BlueBG=$(tput setab 4)
-#   LightBlue=$(printf %s "$Bold"; tput setaf 4)
-#      Purple=$(tput setaf 5)
-#    PurpleBG=$(tput setab 5)
-#        Pink=$(printf %s "$Bold"; tput setaf 5)
-#        Cyan=$(tput setaf 6)
-#      CyanBG=$(tput setab 6)
-#   LightCyan=$(printf %s "$Bold"; tput setaf 6)
-
-b="$(tput bold)"
-u="$(tput smul)" # underline
-r="$(tput sgr0)" # reset
+b="$(tput bold || tput md)"
+u="$(tput smul || tput us)" # underline
+r="$(tput sgr0 || tput me)" # reset
 
 if [[ $1 == -* ]]
 then
@@ -63,13 +33,13 @@ fi
 # fg
 for ((i = 0; i < 8; i++))
 do
-   fg="$(tput setaf "$i")"
+   fg="$(tput setaf "$i" || tput AF "$i")"
    echo -n "$fg$i- $u$i-$r $fg$b$i- $u$i-$r "
 
    # bg
    for ((j = 0; j < 8; j++))
    do
-      bg="$(tput setab "$j")"
+      bg="$(tput setab "$j" || tput AB "$j")"
       echo -n "$fg$bg$i$j $u$i$j$r$fg$bg$b $i$j $u$i$j$r$bg $r"
    done
    echo
@@ -81,10 +51,10 @@ set -- "${1:-0-}" "${2:-35}" "${@:3}"
 # lc - line, column
 for lc in "$@"
 do
-   fg="$(tput setaf "${lc%?}")"
+   fg="$(tput setaf "${lc%?}" || tput AF "${lc%?}")"
    if [[ $lc != *- ]]
    then
-      bg="$(tput setab "${lc#?}")"
+      bg="$(tput setab "${lc#?}" || tput AB "${lc#?}")"
    else
       unset bg
    fi
