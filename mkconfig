@@ -2,7 +2,7 @@
 
 if [[ -z $REPOS_BASE ]]
 then
-   print -P '%F{red}REPOS_BASE needs to be set%f' 1>&2
+   print -P '%F{red}REPOS_BASE needs to be set%f\nex: export REPOS_BASE=~/github' 1>&2
    return 1
 fi
 
