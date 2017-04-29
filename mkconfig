@@ -12,6 +12,7 @@ then
    print -P '%F{red}REPOS_BASE empty%f'
    read 'REPLY?defaulting to ~/github (enter to accept or change value): '
    REPOS_BASE=${REPLY:-~/github}
+   echo
 fi
 
 setopt extended_glob
@@ -20,22 +21,25 @@ setopt extended_glob
 chpwd_functions=()
 
 initial_setup() {
+   if [[ -r ~/.ssh/id_rsa ]]
+   then
+      print -P '* %F{45}Configuring git%f...'
+      . $REPOS_BASE/config/git.bash
+   else
+      print -P '%F{red}Please upload your key to GitHub%f: ssh-keygen -b4096 -trsa' 1>&2
+      return 1
+   fi
+
    mkdir -p $REPOS_BASE
    if cd $REPOS_BASE
    then
-      if [[ -r ~/.ssh/id_rsa ]]
-      then
-         print -P "* %F{45}Cloning repositories in %F{blue}${REPOS_BASE/$HOME/~}%f..."
-         [[ ! -d zsh     ]] && git clone git@github.com:kurkale6ka/zsh.git
-         [[ ! -d bash    ]] && git clone git@github.com:kurkale6ka/bash.git
-         [[ ! -d help    ]] && git clone git@github.com:kurkale6ka/help.git
-         [[ ! -d config  ]] && git clone git@github.com:kurkale6ka/config.git
-         [[ ! -d scripts ]] && git clone git@github.com:kurkale6ka/scripts.git
-         [[ ! -d vim     ]] && git clone git@github.com:kurkale6ka/vim.git
-      else
-         print -P '%F{red}Please upload your key to GitHub%f: ssh-keygen -b4096 -trsa -CDimitar'
-         return 1
-      fi
+      print -P "* %F{45}Cloning repositories in %F{blue}${REPOS_BASE/$HOME/~}%f..."
+      [[ ! -d zsh     ]] && git clone git@github.com:kurkale6ka/zsh.git
+      [[ ! -d bash    ]] && git clone git@github.com:kurkale6ka/bash.git
+      [[ ! -d help    ]] && git clone git@github.com:kurkale6ka/help.git
+      [[ ! -d config  ]] && git clone git@github.com:kurkale6ka/config.git
+      [[ ! -d scripts ]] && git clone git@github.com:kurkale6ka/scripts.git
+      [[ ! -d vim     ]] && git clone git@github.com:kurkale6ka/vim.git
    fi
 
    if [[ $(uname) == Darwin ]]
@@ -52,11 +56,13 @@ initial_setup() {
          brew install mariadb
          brew install gnu-sed --with-default-names
          brew install grep --with-default-names
-         brew install vim --with-override-system-vi
          brew install tmux
          brew install weechat --with-aspell --with-python --with-perl --with-ruby
+         brew install vim --with-override-system-vi
+         brew tap neovim/neovim
+         brew install --HEAD neovim
       else
-         print -P '%F{red}Please install Homebrew%f'
+         print -P '%F{red}Please install Homebrew%f' 1>&2
          return 2
       fi
       # Fix Homebrew PATHs
@@ -69,9 +75,6 @@ initial_setup() {
 
    print -P '\n* %F{45}Linking dot files%f...'
    mklinks
-
-   print -P '* %F{45}Configuring git%f...'
-   . $REPOS_BASE/config/git.bash
 
    print -P '* %F{45}Generating tags%f...'
    mktags
