@@ -66,8 +66,8 @@ initial_setup() {
          return 2
       fi
       # Fix Homebrew PATHs
-      path=($(brew --prefix coreutils)/libexec/gnubin $path)
-      typeset -U path
+      path=("$(brew --prefix coreutils)"/libexec/gnubin $path)
+      typeset -Ug path
    fi
 
    # XDG setup
