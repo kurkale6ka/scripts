@@ -74,7 +74,7 @@ initial_setup() {
    # XDG setup
    . $REPOS_BASE/zsh/.zshenv
 
-   print -P '\n* %F{45}Linking dot files%f...'
+   print -P '* %F{45}Linking dot files%f...'
    mklinks
 
    print -P '* %F{45}Generating tags%f...'
