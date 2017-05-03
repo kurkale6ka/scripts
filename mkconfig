@@ -47,6 +47,7 @@ initial_setup() {
    then
       if (( $+commands[brew] ))
       then
+         print -P "* %F{45}Installing Homebrew formulae%f..."
          brew install zsh
          brew install coreutils
          brew install ed --with-default-names
@@ -63,6 +64,7 @@ initial_setup() {
          brew install vim --with-override-system-vi
          brew tap neovim/neovim
          brew install --HEAD neovim
+         echo
       else
          print -P '%F{red}Please install Homebrew%f' 1>&2
          return 2
