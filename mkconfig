@@ -52,6 +52,7 @@ initial_setup() {
          brew install ed --with-default-names
          brew install findutils --with-default-names
          brew install ag
+         brew install colordiff
          brew install ctags
          brew install tree
          brew install mariadb
