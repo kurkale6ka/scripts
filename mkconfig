@@ -1,4 +1,4 @@
-#! /usr/bin/env zsh
+#! /usr/bin/env bash
 
 # This script:
 # zsh <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig)
@@ -7,33 +7,34 @@
 # curl -fLo $REPOS_BASE/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 # PluginInstall
 
+# colors
+_red="$(tput setaf 1 || tput AF 1)"
+_blu="$(tput setaf 4 || tput AF 4)"
+_cya="$(tput setaf 45 || tput AF 45)"
+_res="$(tput sgr0 || tput me)"
+
 if [[ -z $REPOS_BASE ]]
 then
-   print -P '%F{red}REPOS_BASE empty%f'
-   read 'REPLY?defaulting to ~/github (enter to accept or change value): '
-   REPOS_BASE=${REPLY:-~/github}
+   printf "${_red}REPOS_BASE empty${_res}\n"
+   read -p 'defaulting to ~/github (enter to accept or change value): '
+   REPOS_BASE="${REPLY:-~/github}"
    echo
 fi
-
-setopt extended_glob
-
-# Don't update my cd bookmarks for automated cds
-chpwd_functions=()
 
 initial_setup() {
    if [[ -r ~/.ssh/id_rsa ]]
    then
-      print -P '* %F{45}Configuring git%f...'
-      . $REPOS_BASE/config/git.bash
+      printf "* ${_cya}Configuring git${_res}...\n"
+      . "$REPOS_BASE"/config/git.bash
    else
-      print -P '%F{red}Please upload your key to GitHub%f: ssh-keygen -b4096 -trsa' 1>&2
+      printf "${_red}Please upload your key to GitHub${_res}: ssh-keygen -b4096 -trsa\n" 1>&2
       return 1
    fi
 
-   mkdir -p $REPOS_BASE
-   if cd $REPOS_BASE
+   mkdir -p "$REPOS_BASE"
+   if cd "$REPOS_BASE"
    then
-      print -P "* %F{45}Cloning repositories in %F{blue}${REPOS_BASE/$HOME/~}%f..."
+      printf "* ${_cya}Cloning repositories in ${_blu}${REPOS_BASE/$HOME/~}${_res}...\n"
       [[ ! -d zsh     ]] && git clone git@github.com:kurkale6ka/zsh.git
       [[ ! -d bash    ]] && git clone git@github.com:kurkale6ka/bash.git
       [[ ! -d help    ]] && git clone git@github.com:kurkale6ka/help.git
@@ -47,7 +48,7 @@ initial_setup() {
    then
       if (( $+commands[brew] ))
       then
-         print -P "* %F{45}Installing Homebrew formulae%f..."
+         printf "* ${_cya}Installing Homebrew formulae${_res}...\n"
          brew install zsh
          brew install coreutils
          brew install ed --with-default-names
@@ -67,7 +68,7 @@ initial_setup() {
          brew install --HEAD neovim
          echo
       else
-         print -P '%F{red}Please install Homebrew%f' 1>&2
+         printf "${_red}Please install Homebrew${_res}\n" 1>&2
          return 2
       fi
       # Fix Homebrew PATHs
@@ -76,27 +77,27 @@ initial_setup() {
    fi
 
    # XDG setup
-   . $REPOS_BASE/zsh/.zshenv
+   . "$REPOS_BASE"/zsh/.zshenv
 
-   print -P '* %F{45}Linking dot files%f...'
+   printf "* ${_cya}Linking dot files${_res}...\n"
    mklinks
 
-   print -P '* %F{45}Generating tags%f...'
+   printf "* ${_cya}Generating tags${_res}...\n"
    mktags
 
-   print -P '* %F{45}Creating fuzzy cd database%f...'
+   printf "* ${_cya}Creating fuzzy cd database${_res}...\n"
    mkdb
 }
 
 updaterepos() {
-   for repo in $REPOS_BASE/*(/)
+   for repo in "$REPOS_BASE"/*(/)
    do
       if cd $repo
       then
          git fetch -q
          if [[ $(git symbolic-ref --short HEAD) == master ]] && git status -sb | grep -q behind
          then
-            print -nP "%F{45}${repo:t}%f: "
+            print -nP "${_cya}${repo:t}${_res}: "
             git pull
          fi
       fi
@@ -106,13 +107,13 @@ updaterepos() {
 mktags() {
    if [[ -z $XDG_CONFIG_HOME ]]
    then
-      print -P 'mktags (zsh): %F{red}XDG setup needed%f' 1>&2
+      printf "mktags (zsh): ${_red}XDG setup needed${_res}\n" 1>&2
       return 3
    fi
 
    # Cheat by treating zsh files as sh
    # note: $REPOS_BASE/zsh/autoload can't be added since the function names are 'missing'
-   if cd $REPOS_BASE
+   if cd "$REPOS_BASE"
    then
       ctags -R                                   \
          --langmap=vim:+.vimrc,sh:+.after        \
@@ -123,14 +124,14 @@ mktags() {
          --exclude=keymap                        \
          --exclude=plug.vim                      \
          $XDG_CONFIG_HOME/zsh                    \
-         $REPOS_BASE/scripts                     \
-         $REPOS_BASE/vim                         \
-         $REPOS_BASE/vim/plugged/vsearch         \
-         $REPOS_BASE/vim/plugged/vim-blockinsert \
-         $REPOS_BASE/vim/plugged/vim-chess       \
-         $REPOS_BASE/vim/plugged/vim-desertEX    \
-         $REPOS_BASE/vim/plugged/vim-pairs       \
-         $REPOS_BASE/vim/plugged/vim-swap
+         "$REPOS_BASE"/scripts                     \
+         "$REPOS_BASE"/vim                         \
+         "$REPOS_BASE"/vim/plugged/vsearch         \
+         "$REPOS_BASE"/vim/plugged/vim-blockinsert \
+         "$REPOS_BASE"/vim/plugged/vim-chess       \
+         "$REPOS_BASE"/vim/plugged/vim-desertEX    \
+         "$REPOS_BASE"/vim/plugged/vim-pairs       \
+         "$REPOS_BASE"/vim/plugged/vim-swap
    fi
 }
 
@@ -149,7 +150,7 @@ mkdb() {
 		CREATE INDEX IF NOT EXISTS _dir ON marks (dir);
 		INIT
    else
-      print -P 'fuzzy cd database: %F{red}XDG setup needed%f' 1>&2
+      printf "fuzzy cd database: ${_red}XDG setup needed${_res}\n" 1>&2
       return 4
    fi
 }
@@ -160,49 +161,49 @@ exes=(colors_term.bash colors_tmux.bash mkconfig)
 
 mklinks() {
    # Vim
-   ln -sfT $REPOS_BASE/vim ~/.vim
-   ln -sf  $REPOS_BASE/vim/.{,g}vimrc ~
+   ln -sfT "$REPOS_BASE"/vim ~/.vim
+   ln -sf  "$REPOS_BASE"/vim/.{,g}vimrc ~
 
    if [[ -n $XDG_CONFIG_HOME ]]
    then
       # nvim
-      ln -sfT $REPOS_BASE/vim $XDG_CONFIG_HOME/nvim
+      ln -sfT "$REPOS_BASE"/vim $XDG_CONFIG_HOME/nvim
 
       # zsh
       if mkdir -p {$XDG_CONFIG_HOME,$XDG_DATA_HOME}/zsh
       then
-         ln -sf $REPOS_BASE/zsh/.zshenv ~
-         ln -sf $REPOS_BASE/zsh/autoload $XDG_CONFIG_HOME/zsh
-         ln -sf $REPOS_BASE/zsh/.zprofile $XDG_CONFIG_HOME/zsh
-         ln -sf $REPOS_BASE/zsh/.zshrc $XDG_CONFIG_HOME/zsh
+         ln -sf "$REPOS_BASE"/zsh/.zshenv ~
+         ln -sf "$REPOS_BASE"/zsh/autoload $XDG_CONFIG_HOME/zsh
+         ln -sf "$REPOS_BASE"/zsh/.zprofile $XDG_CONFIG_HOME/zsh
+         ln -sf "$REPOS_BASE"/zsh/.zshrc $XDG_CONFIG_HOME/zsh
       fi
 
       # ranger
       if mkdir -p $XDG_CONFIG_HOME/ranger
       then
-         ln -sf $REPOS_BASE/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
+         ln -sf "$REPOS_BASE"/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
       fi
    else
-      print -P 'mklinks (nvim, zsh, ranger): %F{red}XDG setup needed%f' 1>&2
+      printf "mklinks (nvim, zsh, ranger): ${_red}XDG setup needed${_res}\n" 1>&2
    fi
 
    # Bash
-   for c in $bash; ln -sf $REPOS_BASE/bash/$c ~
+   for c in $bash; ln -sf "$REPOS_BASE"/bash/$c ~
 
    # Misc configs
-   ln -sf $REPOS_BASE/config/ctags/.ctags ~
-   ln -sf $REPOS_BASE/config/tmux/.tmux.conf ~
+   ln -sf "$REPOS_BASE"/config/ctags/.ctags ~
+   ln -sf "$REPOS_BASE"/config/tmux/.tmux.conf ~
 
-   for c in $configs; ln -sf $REPOS_BASE/config/dotfiles/$c ~
+   for c in $configs; ln -sf "$REPOS_BASE"/config/dotfiles/$c ~
    ln -sf ~/.gitignore ~/.agignore
 
    # ~/bin
    if mkdir -p ~/bin
    then
-      for c in $exes; ln -sf $REPOS_BASE/scripts/$c ~/bin
+      for c in $exes; ln -sf "$REPOS_BASE"/scripts/$c ~/bin
 
-      ln -sf $REPOS_BASE/vim/extra/vc ~/bin
-      ln -sf $REPOS_BASE/config/tmux/lay ~/bin
+      ln -sf "$REPOS_BASE"/vim/extra/vc ~/bin
+      ln -sf "$REPOS_BASE"/config/tmux/lay ~/bin
    fi
 }
 
