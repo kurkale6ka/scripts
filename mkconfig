@@ -1,18 +1,34 @@
 #! /usr/bin/env zsh
 
 # This script:
+# ------------
 # zsh <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig)
 #
-# vim-plug (after cloning)
+# vim-plug (after cloning):
+# -------------------------
 # curl -fLo $REPOS_BASE/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 # PluginInstall
 #
-# ~/.config/zsh/.zshrc_after
+# Post setup notes:
+# -----------------
+# root user: cd && ln -s $REPOS_BASE
+#
+# ~/.config/zsh/.zshrc_after:
+# # Auto syncing would be possible only if using ssh without options
+# # rsall -u<user> $@
 # ssh() {
-#    xclip <<< "TERM=xterm-256color; . ~/${REPOS_BASE#~/}/bash/.bash_profile; exec bash --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc"
-#    command ssh $@
+#    read -r -d$'\0' host_commands <<- REMOTE
+# 	{
+# 	TERM=xterm-256color
+# 	. ~/${REPOS_BASE#~/}/bash/.bash_profile
+# 	exec bash --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc
+# 	}
+# 	REMOTE
+#
+#    xclip <<< $host_commands
+#
+#    command ssh -t $@ $host_commands
 # }
-# for root: cd && ln -s $REPOS_BASE
 
 if [[ -z $REPOS_BASE ]]
 then
