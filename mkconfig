@@ -13,22 +13,23 @@
 # -----------------
 # root user: cd && ln -s $REPOS_BASE
 #
-# ~/.config/zsh/.zshrc_after:
+# autoload function to define in $XDG_CONFIG_HOME/zsh/after/ssh:
 # # Auto syncing would be possible only if using ssh without options
 # # rsall -u<user> $@
-# ssh() {
-#    read -r -d$'\0' host_commands <<- REMOTE
-# 	{
-# 	TERM=xterm-256color
-# 	. ~/${REPOS_BASE#~/}/bash/.bash_profile
-# 	exec bash --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc
-# 	}
-# 	REMOTE
 #
-#    xclip <<< $host_commands
+# local host_commands
 #
-#    command ssh -t $@ $host_commands
+# read -r -d$'\0' host_commands << REMOTE
+# {
+#    TERM=xterm-256color
+#    . ~/${REPOS_BASE#~/}/bash/.bash_profile
+#    exec bash --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc
 # }
+# REMOTE
+#
+# xclip <<< $host_commands
+#
+# command ssh -t $@ "$host_commands; ~/${REPOS_BASE#~/}/mkdb"
 
 if [[ -z $REPOS_BASE ]]
 then
