@@ -93,7 +93,7 @@ initial_setup() {
    mktags
 
    print -P '* %F{45}Creating fuzzy cd database%f...'
-   mkdb
+   . mkdb
 }
 
 updaterepos() {
@@ -139,26 +139,6 @@ mktags() {
          $REPOS_BASE/vim/plugged/vim-desertEX    \
          $REPOS_BASE/vim/plugged/vim-pairs       \
          $REPOS_BASE/vim/plugged/vim-swap
-   fi
-}
-
-# Fuzzy cd database
-mkdb() {
-   if [[ -n $XDG_DATA_HOME ]]
-   then
-      mkdir -p $XDG_DATA_HOME/marks
-
-      sqlite3 $XDG_DATA_HOME/marks/marks.sqlite <<- 'INIT'
-		CREATE TABLE IF NOT EXISTS marks (
-		  dir VARCHAR(200) UNIQUE,
-		  weight INTEGER
-		);
-
-		CREATE INDEX IF NOT EXISTS _dir ON marks (dir);
-		INIT
-   else
-      print -P 'fuzzy cd database: %F{red}XDG setup needed%f' 1>&2
-      return 4
    fi
 }
 
@@ -261,7 +241,7 @@ do
       (${opts[1]}) updaterepos;   break;;
       (${opts[2]}) initial_setup; break;;
       (${opts[3]}) mktags;        break;;
-      (${opts[4]}) mkdb;          break;;
+      (${opts[4]}) . mkdb;        break;;
       (${opts[5]}) mklinks;       break;;
       (${opts[6]}) rmlinks;       break;;
                (*) echo '*** Wrong choice ***' >&2

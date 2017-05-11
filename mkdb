@@ -1,0 +1,21 @@
+#! /usr/bin/env bash
+
+# Create the fuzzy cd database
+
+if [[ -n $XDG_DATA_HOME ]]
+then
+   mkdir -p "$XDG_DATA_HOME"/marks
+
+   sqlite3 "$XDG_DATA_HOME"/marks/marks.sqlite <<- 'INIT'
+	CREATE TABLE IF NOT EXISTS marks (
+	  dir VARCHAR(200) UNIQUE,
+	  weight INTEGER
+	);
+
+	CREATE INDEX IF NOT EXISTS _dir ON marks (dir);
+	INIT
+else
+   _red="$(tput setaf 1 || tput AF 1)"
+   _res="$(tput sgr0 || tput me)"
+   printf "fuzzy cd database: ${_red}XDG setup needed${_res}\n" 1>&2
+fi
