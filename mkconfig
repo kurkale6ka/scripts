@@ -6,6 +6,13 @@
 # vim-plug (after cloning)
 # curl -fLo $REPOS_BASE/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 # PluginInstall
+#
+# ~/.config/zsh/.zshrc_after
+# ssh() {
+#    xclip <<< "TERM=xterm-256color; . ~/${REPOS_BASE#~/}/bash/.bash_profile; exec bash --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc"
+#    command ssh $@
+# }
+# for root: cd && ln -s $REPOS_BASE
 
 if [[ -z $REPOS_BASE ]]
 then
