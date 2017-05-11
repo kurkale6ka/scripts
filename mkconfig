@@ -97,6 +97,9 @@ initial_setup() {
       # Fix Homebrew PATHs
       path=("$(brew --prefix coreutils)"/libexec/gnubin $path)
       typeset -Ug path
+   else
+      # TODO
+      # pacman -S ...
    fi
 
    # XDG setup
@@ -109,7 +112,7 @@ initial_setup() {
    mktags
 
    print -P '* %F{45}Creating fuzzy cd database%f...'
-   . mkdb
+   . $REPOS_BASE/scripts/mkdb
 }
 
 updaterepos() {
@@ -254,12 +257,12 @@ opts[6]='Remove links'
 select choice in $opts
 do
    case $choice in
-      (${opts[1]}) updaterepos;   break;;
-      (${opts[2]}) initial_setup; break;;
-      (${opts[3]}) mktags;        break;;
-      (${opts[4]}) . mkdb;        break;;
-      (${opts[5]}) mklinks;       break;;
-      (${opts[6]}) rmlinks;       break;;
+      (${opts[1]}) updaterepos;                break;;
+      (${opts[2]}) initial_setup;              break;;
+      (${opts[3]}) mktags;                     break;;
+      (${opts[4]}) . $REPOS_BASE/scripts/mkdb; break;;
+      (${opts[5]}) mklinks;                    break;;
+      (${opts[6]}) rmlinks;                    break;;
                (*) echo '*** Wrong choice ***' >&2
    esac
 done
