@@ -11,8 +11,6 @@
 #
 # Post setup notes:
 # -----------------
-# root user: cd && ln -s $REPOS_BASE
-#
 # autoload function to define in $XDG_CONFIG_HOME/zsh/after/ssh:
 # # Auto syncing would be possible only if using ssh without options
 # # rsall -u<user> $@
@@ -21,7 +19,7 @@
 #
 # read -r -d$'\0' host_commands << REMOTE
 # {
-#    TERM=xterm-256color
+#    TERM=xterm-256color; ((EUID == 0)) && ln -sf \$REPOS_BASE /root
 #    . ~/${REPOS_BASE#~/}/bash/.bash_profile
 #    exec bash --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc
 # }
