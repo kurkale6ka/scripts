@@ -21,13 +21,14 @@
 # {
 #    TERM=xterm-256color; ((EUID == 0)) && ln -sf \$REPOS_BASE /root
 #    . ~/${REPOS_BASE#~/}/bash/.bash_profile
+#    ~/${REPOS_BASE#~/}/mkdb
 #    exec bash --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc
 # }
 # REMOTE
 #
 # xclip <<< $host_commands
 #
-# command ssh -t $@ "$host_commands; ~/${REPOS_BASE#~/}/mkdb"
+# command ssh -t $@ $host_commands
 
 if [[ -z $REPOS_BASE ]]
 then
