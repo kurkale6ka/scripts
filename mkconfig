@@ -19,10 +19,17 @@
 #
 # read -r -d$'\0' host_commands << REMOTE
 # {
-#    TERM=xterm-256color; ((EUID == 0)) && ln -sf \$REPOS_BASE /root
-#    . ~/${REPOS_BASE#~/}/bash/.bash_profile
-#    ~/${REPOS_BASE#~/}/mkdb
-#    exec bash --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc
+#    TERM=xterm-256color
+#    . ~/.bash_profile
+#    if [[ -d ~/${REPOS_BASE#~/} ]]
+#    then
+#       ((EUID == 0)) && ln -sf \$REPOS_BASE /root
+#       . ~/${REPOS_BASE#~/}/bash/.bash_profile
+#       ~/${REPOS_BASE#~/}/mkdb
+#       exec bash --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc
+#    else
+#       exec bash
+#    fi
 # }
 # REMOTE
 #
