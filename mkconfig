@@ -11,7 +11,8 @@
 #
 # Post setup notes:
 # -----------------
-# autoload function to define in $XDG_CONFIG_HOME/zsh/after/ssh:
+# $XDG_CONFIG_HOME/zsh/after/ssh (autoload function):
+#
 # # Auto syncing would be possible only if using ssh without options
 # # rsall -u<user> $@
 #
@@ -36,6 +37,8 @@
 # xclip <<< $host_commands
 #
 # command ssh -t $@ $host_commands
+#
+# Note: in ~/${REPOS_BASE#~/}, I don't expand ~ locally as the remote user may not be the same
 
 if [[ -z $REPOS_BASE ]]
 then
