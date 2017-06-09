@@ -16,30 +16,39 @@
 # # Auto syncing would be possible only if using ssh without options
 # # rsall -u<user> $@
 #
+# [[ -z $REPOS_BASE ]] && { print -P '%F{red}$REPOS_BASE not setup%f' 1>&2; return 1; }
+#
 # # NB: when switching to root, use su vs su - in order to preserve $REPOS_BASE
 # xclip << ROOT_PASTE
 # {
 #    TERM=xterm-256color
+#    # TODO: isn't su - supposed to source ~/.bash_profile ???
 #    if [[ -d \$REPOS_BASE ]]
 #    then
+#       . ~/.bash_profile
 #       . \$REPOS_BASE/bash/.bash_profile
-#       exec bash -l --rcfile \$REPOS_BASE/bash/.bashrc
+#       exec bash --rcfile \$REPOS_BASE/bash/.bashrc
 #    fi
 # }
 # ROOT_PASTE
 #
-# command ssh -t $@ << REMOTE
-# TERM=xterm-256color
+# local host_commands
+#
 # # don't expand ~ locally as the remote user may not be the same
-# if [[ -n $REPOS_BASE && -d ~/${REPOS_BASE#~/} ]]
+# read -r -d$'\0' host_commands << REMOTE
+# TERM=xterm-256color
+# . ~/.bash_profile
+# if [[ -d ~/${REPOS_BASE#~/} ]]
 # then
 #    . ~/${REPOS_BASE#~/}/bash/.bash_profile
 #    ~/${REPOS_BASE#~/}/mkdb
-#    exec bash -l --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc
+#    exec bash --rcfile ~/${REPOS_BASE#~/}/bash/.bashrc
 # else
-#    exec bash -l
+#    exec bash
 # fi
 # REMOTE
+#
+# command ssh -t $@ $host_commands
 
 if [[ -z $REPOS_BASE ]]
 then
