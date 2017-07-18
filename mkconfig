@@ -109,6 +109,7 @@ initial_setup() {
          brew install wgetpaste
          brew install iproute2mac
          brew install parallel
+         brew install shellcheck
          brew install vim --with-override-system-vi
          brew tap neovim/neovim
          brew install --HEAD neovim
