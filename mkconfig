@@ -11,7 +11,7 @@
 #
 # Post setup notes:
 # -----------------
-# $XDG_CONFIG_HOME/zsh/after/ssh (autoload function):
+# $XDG_CONFIG_HOME/zsh/after/ssh: (autoload function, needs the below *_after files as well):
 #
 # # Auto syncing would be possible only if using ssh without options
 # # rsall -u<user> $@
@@ -27,7 +27,6 @@
 #    then
 #       . ~/.bash_profile
 #       . \$REPOS_BASE/bash/.bash_profile
-#       exec bash --rcfile \$REPOS_BASE/bash/.bashrc
 #    fi
 # }
 # ROOT_PASTE
@@ -43,13 +42,18 @@
 # then
 #    . \$REPOS_BASE/bash/.bash_profile
 #    \$REPOS_BASE/mkdb
-#    exec bash --rcfile \$REPOS_BASE/bash/.bashrc
 # else
 #    exec bash
 # fi
 # REMOTE
 #
 # command ssh -t $@ $host_commands
+#
+# $REPOS_BASE/bash/.bash_profile_after:
+# exec bash --rcfile "$REPOS_BASE"/bash/.bashrc
+#
+# $REPOS_BASE/bash/.bash_profile_after:
+# sed '/[^[:blank:]]/q;d' /etc/motd 2>/dev/null
 
 if [[ -z $REPOS_BASE ]]
 then
