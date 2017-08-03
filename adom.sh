@@ -12,7 +12,8 @@ else
    adom
 fi
 
-cat << 'SAVE'
-When finished, don't forget to update your own backup, with:
-rsync -ai -f'- backup/' ~/.adom.data/savedg/ ~/.adom.data/savedg/backup
-SAVE
+_red="$(tput setaf 1 || tput AF 1)"
+_res="$(tput sgr0 || tput me)"
+
+printf "${_red}Before finishing, don't forget to update your own backup${_res}:\n"
+echo "rsync -ai -f'- backup/' ~/.adom.data/savedg/ ~/.adom.data/savedg/backup"
