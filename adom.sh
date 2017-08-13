@@ -1,19 +1,37 @@
 #! /usr/bin/env bash
 
+# Usage: adom.sh [-s|-r]
+
 mkdir -p ~/.adom.data/savedg/backup
 
-# on start: restore from your personal backup
-rsync -ai ~/.adom.data/savedg/backup/ ~/.adom.data/savedg
+adom_start() {
+   if [[ $(uname) == Darwin ]]
+   then
+      open "$(mdfind ADOM.app)"
+   else
+      adom-noteye || adom
+   fi
+}
 
-if [[ $(uname) == Darwin ]]
-then
-   open "$(mdfind ADOM.app)"
-else
-   adom
-fi
+OPTIND=1
 
-_red="$(tput setaf 1 || tput AF 1)"
-_res="$(tput sgr0 || tput me)"
+while getopts ':sr' opt
+do
+   case "$opt" in
+       # update/create a personal backup
+       s) rsync -ai -f'- backup/' ~/.adom.data/savedg/ ~/.adom.data/savedg/backup
+          exit
+          ;;
+       # restore from your personal backup
+       r) rsync -ai ~/.adom.data/savedg/backup/ ~/.adom.data/savedg
+          adom_start
+          exit
+          ;;
+      \?) echo "Invalid option: -$OPTARG" 1>&2; exit 1
+          ;;
+   esac
+done
 
-printf "${_red}Before finishing, don't forget to update your own backup${_res}:\n"
-echo "rsync -ai -f'- backup/' ~/.adom.data/savedg/ ~/.adom.data/savedg/backup"
+shift "$((OPTIND-1))"
+
+adom_start
