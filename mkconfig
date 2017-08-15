@@ -103,6 +103,7 @@ initial_setup() {
          brew install ag
          brew install colordiff
          brew install ctags
+         brew install gcal
          brew install tree
          brew install mariadb
          brew install gnu-sed --with-default-names
