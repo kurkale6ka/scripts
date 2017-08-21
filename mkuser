@@ -27,6 +27,7 @@ _res="$(tput sgr0 || tput me)"
 
 ## Help
 _help() {
+local info
 read -r -d $'\0' info << 'HELP'
 Usage:
    mkuser
@@ -38,12 +39,10 @@ Usage:
 
 Note: HOMES can be used to define a different root for home directories
 HELP
-
 if (($1 == 0))
 then echo "$info"
 else echo "$info" >&2
 fi
-
 exit "$1"
 }
 
@@ -54,7 +53,7 @@ then
    _help 1
 fi
 
-if [[ $1 == -@(h|-h)* ]]
+if [[ $1 == @(-h|--help) ]]
 then
    _help 0
 fi
