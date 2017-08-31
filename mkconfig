@@ -53,7 +53,7 @@
 # exec bash --rcfile "$REPOS_BASE"/bash/.bashrc
 #
 # $REPOS_BASE/bash/.bash_profile_after:
-# sed '/[^[:blank:]]/q;d' /etc/motd 2>/dev/null
+# sed '/[^[:space:]]/q;d' /etc/motd 2>/dev/null
 
 if [[ -z $REPOS_BASE ]]
 then
