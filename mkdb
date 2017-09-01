@@ -1,4 +1,5 @@
-#! /usr/bin/env bash
+# No #! /usr/bin/env shell
+# as I need this script to work with both bash/zsh
 
 # Create the fuzzy cd database
 
@@ -17,7 +18,13 @@ then
 	CREATE INDEX IF NOT EXISTS _dir ON marks (dir);
 	INIT
 else
-   _red="$(tput setaf 1 || tput AF 1)"
-   _res="$(tput sgr0 || tput me)"
-   printf "fuzzy cd database: ${_red}XDG setup needed${_res}\n" 1>&2
+   if [[ $SHELL == *bash ]]
+   then
+      _red="$(tput setaf 1 || tput AF 1)"
+      _res="$(tput sgr0 || tput me)"
+      printf "fuzzy cd database: ${_red}XDG setup needed${_res}\n" 1>&2
+   elif [[ $SHELL == *zsh ]]
+   then
+      print -P 'fuzzy cd database: %F{red}XDG setup needed%f' 1>&2
+   fi
 fi
