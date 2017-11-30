@@ -159,7 +159,8 @@ initial_setup() {
          brew install weechat --with-aspell --with-python --with-perl --with-ruby
          brew install wgetpaste
          brew install iproute2mac
-         brew install parallel
+         brew install moreutils --without-parallel
+         brew install parallel --force
          brew install shellcheck
          brew install vim --with-override-system-vi
          brew tap neovim/neovim
