@@ -62,8 +62,11 @@ def easy_solutions():
 # print input
 ppuzzle(puzzle)
 
-while '-' in puzzle.values():
+while True:
+   unknowns = len([x for x in puzzle.values() if x == '-'])
    easy_solutions()
+   if len([x for x in puzzle.values() if x == '-']) == unknowns:
+      break
 
 # print solution
 print()
