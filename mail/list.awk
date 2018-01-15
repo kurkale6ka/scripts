@@ -7,6 +7,7 @@ BEGIN {
    print "<style type=\"text/css\">"
    print "dt {"
    print "  font-weight: bold;"
+   print "  margin-top: 1em;"
    print "}"
    print "</style>"
    print "</head>"
@@ -22,8 +23,6 @@ BEGIN {
       sub(".*", "<dt>&</dt>")
    else if (/.+[^:]$/)
       sub(".*", "<dd>&</dd>")
-   else
-      sub(".*", "<br />")
 
    print
 }
