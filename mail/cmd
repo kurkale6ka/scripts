@@ -1,0 +1,1 @@
+grep -v '^#' /etc/postfix/aliases | awk -F, '/,/ && NF > 2' | sed 's/\(^.*:\)[[:space:]]*/\n\1\n/' | sed 's/,[[:space:]]*/\n/g' | awk -f /tmp/list.awk > /tmp/aliases.html
