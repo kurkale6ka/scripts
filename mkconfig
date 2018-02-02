@@ -110,7 +110,7 @@
 if [[ -z $REPOS_BASE ]]
 then
    print -P '%F{red}REPOS_BASE empty%f'
-   read 'REPLY?defaulting to ~/github (enter to accept or change value): '
+   read 'REPLY?defaulting to ~/github (change value or enter to accept): '
    REPOS_BASE=${REPLY:-~/github}
    echo
 fi
@@ -121,7 +121,7 @@ setopt extended_glob
 chpwd_functions=()
 
 initial_setup() {
-   if [[ -r ~/.ssh/id_rsa ]]
+   if ssh-add -l 1>/dev/null 2>&1
    then
       print -P '* %F{45}Configuring git%f...'
       . $REPOS_BASE/config/git.bash
