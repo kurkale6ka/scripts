@@ -45,6 +45,9 @@
 #    [[ -r ~/.zshenv   ]] && . ~/.zshenv
 #    [[ -r ~/.zprofile ]] && . ~/.zprofile
 #    [[ -r ~/.zshrc    ]] && . ~/.zshrc
+# elif [[ \$SHELL == *ksh ]]
+# then
+#    [[ -r ~/.profile ]] && . ~/.profile
 # fi
 #
 # # don't expand ~ locally as the remote user may not be the same
@@ -89,6 +92,9 @@
 #    elif [[ \$SHELL == *zsh ]]
 #    then
 #       exec zsh
+#    elif [[ \$SHELL == *ksh ]]
+#    then
+#       exec ksh
 #    fi
 # fi
 # REMOTE
