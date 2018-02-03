@@ -165,6 +165,9 @@ initial_setup() {
          brew install weechat --with-aspell --with-python --with-perl --with-ruby
          brew install wgetpaste
          brew install iproute2mac
+         brew install nmap
+         brew install tcpdump
+         brew install telnet
          brew install moreutils --without-parallel
          brew install parallel --force
          brew install shellcheck
