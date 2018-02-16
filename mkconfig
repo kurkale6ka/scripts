@@ -155,9 +155,11 @@ initial_setup() {
          brew install ag
          brew install colordiff
          brew install ctags
+         brew install dos2unix
          brew install gcal
          brew install tree
          brew install mariadb
+         brew install gawk
          brew install gnu-sed --with-default-names
          brew install gnu-tar --with-default-names
          brew install grep --with-default-names
