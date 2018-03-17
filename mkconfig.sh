@@ -23,31 +23,38 @@ then
 fi
 
 initial_setup() {
-   if ! command -v git >/dev/null 2>&1
+   mkdir -p "$REPOS_BASE"
+
+   if command -v git >/dev/null 2>&1
+   then
+      if cd "$REPOS_BASE"
+      then
+         echo "* ${_blu}Cloning repositories in ${_blue}${REPOS_BASE/$HOME/~}${_res}..."
+
+         [[ ! -d zsh     ]] && git clone git@github.com:kurkale6ka/zsh.git
+         [[ ! -d bash    ]] && git clone git@github.com:kurkale6ka/bash.git
+         [[ ! -d help    ]] && git clone git@github.com:kurkale6ka/help.git
+         [[ ! -d config  ]] && git clone git@github.com:kurkale6ka/config.git
+         [[ ! -d scripts ]] && git clone git@github.com:kurkale6ka/scripts.git
+         [[ ! -d vim     ]] && git clone git@github.com:kurkale6ka/vim.git
+
+         echo
+
+         if [[ -d config ]]
+         then
+            if ssh-add -l 1>/dev/null 2>&1
+            then
+               echo "* ${_blu}Configuring git${_res}..."
+               . "$REPOS_BASE"/config/git.bash
+            else
+               echo "${_red}Please upload your key to GitHub${_res}: ssh-keygen -b4096 -trsa" 1>&2
+               return 1
+            fi
+         fi
+      fi
+   elif [[ ! -d $REPOS_BASE/bash ]]
    then
       echo "${_red}git isn't installed. please upload manually your config files!${_res}" 1>&2
-      return 1
-   fi
-
-   mkdir -p "$REPOS_BASE"
-   if cd "$REPOS_BASE"
-   then
-      echo "* ${_blu}Cloning repositories in ${_blue}${REPOS_BASE/$HOME/~}${_res}..."
-      [[ ! -d zsh     ]] && git clone git@github.com:kurkale6ka/zsh.git
-      [[ ! -d bash    ]] && git clone git@github.com:kurkale6ka/bash.git
-      [[ ! -d help    ]] && git clone git@github.com:kurkale6ka/help.git
-      [[ ! -d config  ]] && git clone git@github.com:kurkale6ka/config.git
-      [[ ! -d scripts ]] && git clone git@github.com:kurkale6ka/scripts.git
-      [[ ! -d vim     ]] && git clone git@github.com:kurkale6ka/vim.git
-      echo
-   fi
-
-   if ssh-add -l 1>/dev/null 2>&1
-   then
-      echo "* ${_blu}Configuring git${_res}..."
-      . "$REPOS_BASE"/config/git.bash
-   else
-      echo "${_red}Please upload your key to GitHub${_res}: ssh-keygen -b4096 -trsa" 1>&2
       return 2
    fi
 
