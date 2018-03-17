@@ -23,6 +23,12 @@ then
 fi
 
 initial_setup() {
+   if ! command -v git >/dev/null 2>&1
+   then
+      echo "${_red}git isn't installed. please upload manually your config files!${_res}" 1>&2
+      return 1
+   fi
+
    mkdir -p "$REPOS_BASE"
    if cd "$REPOS_BASE"
    then
@@ -42,7 +48,7 @@ initial_setup() {
       . "$REPOS_BASE"/config/git.bash
    else
       echo "${_red}Please upload your key to GitHub${_res}: ssh-keygen -b4096 -trsa" 1>&2
-      return 1
+      return 2
    fi
 
    # XDG setup
