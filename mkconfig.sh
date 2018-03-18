@@ -61,12 +61,14 @@ initial_setup() {
    # XDG setup
    [[ -z $XDG_CONFIG_HOME ]] && export XDG_CONFIG_HOME=~/.config
    [[ -z   $XDG_DATA_HOME ]] && export   XDG_DATA_HOME=~/.local/share
+   mkdir -p "$XDG_CONFIG_HOME"
+   mkdir -p "$XDG_DATA_HOME"
 
    echo "* ${_blu}Linking dot files${_res}..."
    mklinks
 
    echo "* ${_blu}Creating fuzzy cd database${_res}..."
-   . "$REPOS_BASE"/scripts/mkdb
+   . "$REPOS_BASE"/mkdb
 }
 
 updaterepos() {
@@ -176,11 +178,11 @@ opts[4]='Remove links'
 select choice in "${opts[@]}"
 do
    case "$choice" in
-      "${opts[0]}") updaterepos;                  break;;
-      "${opts[1]}") initial_setup;                break;;
-      "${opts[2]}") . "$REPOS_BASE"/scripts/mkdb; break;;
-      "${opts[3]}") mklinks;                      break;;
-      "${opts[4]}") rmlinks;                      break;;
+      "${opts[0]}") updaterepos;          break;;
+      "${opts[1]}") initial_setup;        break;;
+      "${opts[2]}") . "$REPOS_BASE"/mkdb; break;;
+      "${opts[3]}") mklinks;              break;;
+      "${opts[4]}") rmlinks;              break;;
                  *) echo '*** Wrong choice ***' >&2
    esac
 done
