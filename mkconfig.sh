@@ -69,29 +69,29 @@ initial_setup() {
    . "$REPOS_BASE"/scripts/mkdb
 }
 
-# updaterepos() {
-#    for repo in "$REPOS_BASE"/*(/)
-#    do
-#       if cd "$repo"
-#       then
-#          git fetch -q
-#          if [[ $(git symbolic-ref --short HEAD) == master ]] && git status -sb | grep -q behind
-#          then
-#             echo -n "${_blu}${repo:t}${_res}: "
-#             git pull
-#          fi
-#       fi
-#    done
-# }
+updaterepos() {
+   for repo in "$REPOS_BASE"/*
+   do
+      if [[ -d $repo ]] && cd "$repo"
+      then
+         git fetch -q
+         if [[ $(git symbolic-ref --short HEAD) == master ]] && git status -sb | grep -q behind
+         then
+            echo -n "${_blu}${repo:t}${_res}: "
+            git pull
+         fi
+      fi
+   done
+}
 
 bash=(.bash_{profile,logout} .bashrc)
 configs=(.gitignore .irbrc .pyrc .Xresources)
-exes=(colors_term.bash colors_tmux.bash mkconfig)
+exes=(mkconfig)
 
 mklinks() {
    # Vim
    ln -sfT "$REPOS_BASE"/vim ~/.vim
-   ln -sf  "$REPOS_BASE"/vim/.{,g}vimrc ~
+   ln -sf  "$REPOS_BASE"/vim/.vimrc ~
 
    if [[ -n $XDG_CONFIG_HOME ]]
    then
@@ -108,7 +108,6 @@ mklinks() {
    done
 
    # Misc configs
-   ln -sf "$REPOS_BASE"/config/ctags/.ctags ~
    ln -sf "$REPOS_BASE"/config/tmux/.tmux.conf ~
 
    for c in "${configs[@]}"
@@ -134,7 +133,7 @@ mklinks() {
 rmlinks() {
    # Vim
    'rm' ~/.vim
-   'rm' ~/.{,g}vimrc
+   'rm' ~/.vimrc
 
    if [[ -n $XDG_CONFIG_HOME ]]
    then
@@ -149,7 +148,7 @@ rmlinks() {
    done
 
    # Misc configs
-   'rm' ~/{.ctags,.tmux.conf}
+   'rm' ~/.tmux.conf
 
    for c in "${configs[@]}"
    do
