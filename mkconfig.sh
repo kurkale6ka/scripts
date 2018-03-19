@@ -35,7 +35,7 @@ initial_setup() {
    mklinks
 
    echo "* ${_blu}Creating fuzzy cd database${_res}..."
-   . "$REPOS_BASE"/mkdb
+   . "$REPOS_BASE"/scripts/mkdb
 }
 
 bash=(.bash_{profile,logout} .bashrc)
@@ -138,10 +138,10 @@ opts[3]='Remove links'
 select choice in "${opts[@]}"
 do
    case "$choice" in
-      "${opts[0]}") initial_setup;        break;;
-      "${opts[1]}") . "$REPOS_BASE"/mkdb; break;;
-      "${opts[2]}") mklinks;              break;;
-      "${opts[3]}") rmlinks;              break;;
+      "${opts[0]}") initial_setup;                break;;
+      "${opts[1]}") . "$REPOS_BASE"/scripts/mkdb; break;;
+      "${opts[2]}") mklinks;                      break;;
+      "${opts[3]}") rmlinks;                      break;;
                  *) echo '*** Wrong choice ***' >&2
    esac
 done
