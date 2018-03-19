@@ -70,8 +70,6 @@ mklinks() {
    done
 
    # Misc configs
-   ln -sf "$REPOS_BASE"/config/tmux/.tmux.conf ~
-
    for c in "${configs[@]}"
    do
       ln -sf "$REPOS_BASE"/config/dotfiles/"$c" ~
@@ -110,8 +108,6 @@ rmlinks() {
    done
 
    # Misc configs
-   'rm' ~/.tmux.conf
-
    for c in "${configs[@]}"
    do
       'rm' ~/"$c"
