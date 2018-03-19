@@ -40,7 +40,6 @@ initial_setup() {
 
 bash=(.bash_{profile,logout} .bashrc)
 configs=(.gitignore .irbrc .pyrc .Xresources)
-exes=(mkconfig)
 
 mklinks() {
    # Vim
@@ -83,10 +82,7 @@ mklinks() {
    # ~/bin
    if mkdir -p ~/bin
    then
-      for c in "${exes[@]}"
-      do
-         ln -sf "$REPOS_BASE"/scripts/"$c" ~/bin
-      done
+      ln -sf "$REPOS_BASE"/scripts/mkconfig.sh ~/bin/mkconfig
    fi
 }
 
@@ -124,10 +120,7 @@ rmlinks() {
    'rm' ~/.agignore
 
    # ~/bin
-   for c in "${exes[@]}"
-   do
-      'rm' ~/bin/"$c"
-   done
+   'rm' ~/bin/mkconfig
 }
 
 opts[0]='Initial setup'
