@@ -64,11 +64,6 @@ mklinks() {
    fi
 
    # Bash
-   if [[ -f ~/.bash_profile ]]
-   then
-      cat ~/.bash_profile >> "$REPOS_BASE"/bash/.bash_profile
-   fi
-
    for c in "${bash[@]}"
    do
       ln -sf "$REPOS_BASE"/bash/"$c" ~
