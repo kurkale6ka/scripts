@@ -26,8 +26,9 @@ printf '%s\n' "${dbs[${#dbs[@]}-1]}" >> Makefile
 cat >> Makefile << ALIASES
 
 aliases.db: aliases.in
-	postalias "aliases.in"
-	mv "aliases.in.db" "aliases.db"
+	@echo updating "aliases.db"...
+	@postalias "aliases.in"
+	@mv "aliases.in.db" "aliases.db"
 
 ALIASES
 
@@ -40,8 +41,9 @@ do
    # rule
    {
       printf '%s: %s.in\n' "$i" "${i%.db}"
-      printf '\tpostmap "%s.in"\n' "${i%.db}"
-      printf '\tmv "%s.in.db" "%s"\n\n' "${i%.db}" "$i"
+      printf '\t@echo updating "%s"...\n' "$i"
+      printf '\t@postmap "%s.in"\n' "${i%.db}"
+      printf '\t@mv "%s.in.db" "%s"\n\n' "${i%.db}" "$i"
    } >> Makefile
 done
 
