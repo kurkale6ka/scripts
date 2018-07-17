@@ -4,25 +4,38 @@
 #
 # http://www.postfix.org/DATABASE_README.html#safe_db
 
-shopt -s extglob
-
 cd /etc/postfix || exit 1
+
+shopt -s extglob nullglob
 
 # array of already created .db files, bar aliases.db
 dbs=(!(aliases).db)
 
+printf 'Creating rules for:\n* aliases.db\n'
+if [[ -n $dbs ]]
+then
+   printf '* %s\n' "${dbs[@]}"
+fi
+
 ## databases target + all prerequisites
-printf 'databases: aliases.db \\\n' > Makefile
+if [[ -z $dbs ]]
+then
+   printf 'databases: aliases.db\n' > Makefile
+else
+   printf 'databases: aliases.db \\\n' > Makefile
 
-for ((i = 0; i < ${#dbs[@]} - 1; i++))
-do
-   printf '%s \\\n' "${dbs[$i]}" >> Makefile
-done
+   for ((i = 0; i < ${#dbs[@]} - 1; i++))
+   do
+      printf '%s \\\n' "${dbs[$i]}" >> Makefile
+   done
 
-# don't append \ to the last one
-printf '%s\n' "${dbs[${#dbs[@]}-1]}" >> Makefile
+   # don't append \ to the last one
+   printf '%s\n' "${dbs[${#dbs[@]}-1]}" >> Makefile
+fi
 
 ## Rules
+ln -sf aliases aliases.in
+
 cat >> Makefile << ALIASES
 
 aliases.db: aliases.in
@@ -32,20 +45,23 @@ aliases.db: aliases.in
 
 ALIASES
 
-for i in "${dbs[@]}"
-do
-   # create link
-   # ex: aliases.in -> aliases
-   ln -sf "${i%.db}" "${i%.db}".in
+if [[ -n $dbs ]]
+then
+   for i in "${dbs[@]}"
+   do
+      # create link
+      # ex: aliases.in -> aliases
+      ln -sf "${i%.db}" "${i%.db}".in
 
-   # rule
-   {
-      printf '%s: %s.in\n' "$i" "${i%.db}"
-      printf '\t@echo updating "%s"...\n' "$i"
-      printf '\t@postmap "%s.in"\n' "${i%.db}"
-      printf '\t@mv "%s.in.db" "%s"\n\n' "${i%.db}" "$i"
-   } >> Makefile
-done
+      # rule
+      {
+         printf '%s: %s.in\n' "$i" "${i%.db}"
+         printf '\t@echo updating "%s"...\n' "$i"
+         printf '\t@postmap "%s.in"\n' "${i%.db}"
+         printf '\t@mv "%s.in.db" "%s"\n\n' "${i%.db}" "$i"
+      } >> Makefile
+   done
+fi
 
 ## Get rid of extra newline
 if command -v ed >/dev/null 2>&1
