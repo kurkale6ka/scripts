@@ -11,19 +11,38 @@ shopt -s extglob nullglob
 # array of already created .db files, bar aliases.db
 dbs=(!(aliases).db)
 
-printf 'Creating rules for:\n* aliases.db\n'
+# checks
+if [[ -f aliases.db || -n $dbs ]]
+then
+   echo 'Creating rules for:'
+else
+   echo 'No .db files found. Exiting.' 1>&2
+   exit 2
+fi
+
+# list created rules
+if [[ -f aliases.db ]]
+then
+   echo '* aliases.db'
+fi
 if [[ -n $dbs ]]
 then
    printf '* %s\n' "${dbs[@]}"
 fi
 
 ## databases target + all prerequisites
-if [[ -z $dbs ]]
+if [[ -f aliases.db ]]
 then
-   printf 'databases: aliases.db\n' > Makefile
-else
-   printf 'databases: aliases.db \\\n' > Makefile
+   if [[ -z $dbs ]]
+   then
+      echo 'databases: aliases.db' > Makefile
+   else
+      echo 'databases: aliases.db \' > Makefile
+   fi
+fi
 
+if [[ -n $dbs ]]
+then
    for ((i = 0; i < ${#dbs[@]} - 1; i++))
    do
       printf '%s \\\n' "${dbs[$i]}" >> Makefile
@@ -34,6 +53,8 @@ else
 fi
 
 ## Rules
+if [[ -f aliases.db ]]
+then
 ln -sf aliases aliases.in
 
 cat >> Makefile << ALIASES
@@ -44,6 +65,7 @@ aliases.db: aliases.in
 	@mv "aliases.in.db" "aliases.db"
 
 ALIASES
+fi
 
 if [[ -n $dbs ]]
 then
