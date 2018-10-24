@@ -25,19 +25,22 @@ if [[ -f aliases.db ]]
 then
    echo '* aliases.db'
 fi
+
 if [[ -n $dbs ]]
 then
    printf '* %s\n' "${dbs[@]}"
 fi
 
 ## databases target + all prerequisites
+echo -n 'databases: ' > Makefile
+
 if [[ -f aliases.db ]]
 then
    if [[ -z $dbs ]]
    then
-      echo 'databases: aliases.db' > Makefile
+      echo 'aliases.db' >> Makefile
    else
-      echo 'databases: aliases.db \' > Makefile
+      echo 'aliases.db \' >> Makefile
    fi
 fi
 
@@ -53,12 +56,13 @@ then
 fi
 
 ## Rules
+echo >> Makefile
+
 if [[ -f aliases.db ]]
 then
 ln -sf aliases aliases.in
 
 cat >> Makefile << ALIASES
-
 aliases.db: aliases.in
 	@echo updating "aliases.db"...
 	@postalias "aliases.in"
@@ -72,7 +76,7 @@ then
    for i in "${dbs[@]}"
    do
       # create link
-      # ex: aliases.in -> aliases
+      # ex: canonical.in -> canonical
       ln -sf "${i%.db}" "${i%.db}".in
 
       # rule
