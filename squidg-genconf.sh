@@ -42,7 +42,8 @@ do
    fi
 done < <(find . -type d -printf "%P\0")
 
-# Write the ACLs
+# ACLs
+# don't forget to add !s + move them before 'all'
 cat >> "$cfg" << ACL
 acl  {
    default  {
