@@ -23,7 +23,7 @@ setopt extended_glob
 chpwd_functions=()
 
 git_key() {
-   if ! ssh-add -l 2>/dev/null | grep -qi git
+   if ! ssh-add -L 2>/dev/null | grep -qi git
    then
       print -P '%F{red}Please add you GitHub key to your agent%f' 1>&2
       return 1
