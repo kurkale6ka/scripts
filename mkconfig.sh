@@ -4,10 +4,7 @@
 # ---------------------
 # bash <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.sh)
 #
-# vim-plug (after cloning):
-# -------------------------
-# curl -fLo "$REPOS_BASE"/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-# PluginInstall
+# This script is meant for remote systems only, where the default shell is bash
 
 _red="$(tput setaf 1 || tput AF 1)"
 _blue="$(tput setaf 4 || tput AF 4)"
