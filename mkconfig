@@ -11,7 +11,7 @@
 
 if [[ -z $REPOS_BASE ]]
 then
-   print -P '%F{red}REPOS_BASE empty%f'
+   print -P '%F{red}REPOS_BASE empty%f' 1>&2
    read 'REPLY?defaulting to ~/github (change value or enter to accept): '
    REPOS_BASE=${REPLY:-~/github}
    echo
@@ -22,16 +22,16 @@ setopt extended_glob
 # Don't update my cd bookmarks for automated cds
 chpwd_functions=()
 
-git_key() {
-   if ! ssh-add -L 2>/dev/null | grep -qi git
-   then
-      print -P '%F{red}Please add you GitHub key to your agent%f' 1>&2
-      return 1
-   fi
-}
-
 initial_setup() {
+
+   if (( $+commands[git] ))
+   then
+      print -P '%F{red}Please install git before proceeding!%f' 1>&2
+      return 4
+   fi
+
    mkdir -p $REPOS_BASE
+
    if cd $REPOS_BASE
    then
       print -P "* %F{45}Cloning repositories in %F{blue}${REPOS_BASE/$HOME/~}%f..."
@@ -88,9 +88,6 @@ initial_setup() {
       # Fix Homebrew PATHs
       path=("$(brew --prefix coreutils)"/libexec/gnubin $path)
       typeset -Ug path
-   else
-      # TODO
-      # pacman -S ...
    fi
 
    # XDG setup
@@ -108,6 +105,7 @@ initial_setup() {
 }
 
 updaterepos() {
+   local repo
    for repo in $REPOS_BASE/*(/)
    do
       if cd $repo
@@ -249,8 +247,8 @@ opts[6]='Remove links'
 select choice in $opts
 do
    case $choice in
-      (${opts[1]}) git_key && updaterepos;     break;;
-      (${opts[2]}) git_key && initial_setup;   break;;
+      (${opts[1]}) updaterepos;                break;;
+      (${opts[2]}) initial_setup;              break;;
       (${opts[3]}) mktags;                     break;;
       (${opts[4]}) . $REPOS_BASE/scripts/mkdb; break;;
       (${opts[5]}) mklinks;                    break;;

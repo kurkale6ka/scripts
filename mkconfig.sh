@@ -13,7 +13,7 @@ _res="$(tput sgr0 || tput me)"
 
 if [[ -z $REPOS_BASE ]]
 then
-   echo "${_red}REPOS_BASE empty${_res}"
+   echo "${_red}REPOS_BASE empty${_res}" 1>&2
    read -p 'defaulting to ~/github (change value or enter to accept): '
    REPOS_BASE=${REPLY:-~/github}
    echo
