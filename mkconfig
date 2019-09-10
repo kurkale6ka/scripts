@@ -54,8 +54,8 @@ initial_setup() {
          print -P "* %F{45}Installing Homebrew formulae%f..."
          brew install zsh
          brew install coreutils
-         brew install ed --with-default-names
-         brew install findutils --with-default-names
+         brew install ed
+         brew install findutils
          brew install ag
          brew install colordiff
          brew install ctags
@@ -64,9 +64,9 @@ initial_setup() {
          brew install tree
          brew install mariadb
          brew install gawk
-         brew install gnu-sed --with-default-names
-         brew install gnu-tar --with-default-names
-         brew install grep --with-default-names
+         brew install gnu-sed
+         brew install gnu-tar
+         brew install grep
          brew install tmux
          brew install weechat --with-aspell --with-python --with-perl --with-ruby
          brew install wgetpaste
