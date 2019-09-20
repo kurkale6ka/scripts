@@ -198,7 +198,6 @@ mklinks() {
    then
       for c in $exes; ln -sf $REPOS_BASE/scripts/$c ~/bin
 
-      ln -sf $REPOS_BASE/vim/extra/vc ~/bin
       ln -sf $REPOS_BASE/config/tmux/lay ~/bin
    fi
 }
@@ -233,7 +232,6 @@ rmlinks() {
 
    # ~/bin
    for c in $exes; 'rm' ~/bin/$c
-   'rm' ~/bin/vc
    'rm' ~/bin/lay
 }
 
