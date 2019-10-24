@@ -56,7 +56,7 @@ initial_setup() {
          brew install coreutils
          brew install ed
          brew install findutils
-         brew install ag
+         brew install ripgrep
          brew install colordiff
          brew install ctags
          brew install dos2unix
