@@ -25,7 +25,7 @@ initial_setup() {
    then
       if (( $+commands[brew] ))
       then
-         print -P "* %F{45}Installing Homebrew formulae%f..."
+         print '* Installing Homebrew formulae...\n'
 
          local -a formulae
 
@@ -99,18 +99,19 @@ initial_setup() {
 
    # XDG setup
    . $REPOS_BASE/zsh/.zshenv
+
    if [[ ! -f $HOME/.zshenv ]]
    then
       cp $REPOS_BASE/zsh/.zshenv $HOME/.zshenv
    fi
 
-   print -P '* Linking dot files%f'
+   print '* Linking dot files'
    links add
 
-   print -P '* Generating tags%f'
+   print '* Generating tags'
    mktags
 
-   print -P '* Creating fuzzy cd database%f'
+   print '* Creating fuzzy cd database'
    . $REPOS_BASE/scripts/mkdb
 }
 
@@ -221,7 +222,7 @@ links() {
          'rm' $XDG_CONFIG_HOME/ranger/rc.conf
       fi
    else
-      print -P 'mklinks (nvim, zsh, ranger): %F{red}XDG setup needed%f' >&2
+      print -P 'links(nvim, zsh, ranger): %F{red}XDG setup needed%f' >&2
    fi
 
    local config
@@ -289,6 +290,26 @@ then
    exit
 fi
 
+## Help
+_help() {
+local info
+read -r -d $'\0' info << 'HELP'
+Usage: mkconfig -isutclL
+
+-i: Initial setup
+-s: Check repositories statuses
+-u: Update repositories
+-t: Generate tags
+-c: Create fuzzy cd database
+-l: Make links
+-L: Remove links
+HELP
+if (($1 == 0))
+then echo $info
+else echo $info >&2
+fi
+}
+
 local -a switches
 
 # Command line options
@@ -296,7 +317,7 @@ while :
 do
    case $1 in
       (-h|--help)
-         echo 'Usage: mkconfig -isutclL'
+         _help 0
          exit
          ;;
       (-i|--ini)
@@ -345,7 +366,8 @@ done
 
 if (($#))
 then
-   echo 'Non-option arguments not allowed. Usage: mkconfig -isutclL' >&2
+   echo 'Non-option arguments not allowed.' >&2
+   _help 1
    exit 1
 fi
 

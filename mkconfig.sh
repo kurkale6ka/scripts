@@ -7,14 +7,12 @@
 # This script is meant for remote systems only, where the default shell is bash
 
 _red="$(tput setaf 1 || tput AF 1)"
-_blue="$(tput setaf 4 || tput AF 4)"
-_blu="$(tput setaf 45 || tput AF 45)"
 _res="$(tput sgr0 || tput me)"
 
 if [[ -z $REPOS_BASE ]]
 then
-   echo "${_red}REPOS_BASE empty${_res}" 1>&2
-   read -p 'defaulting to ~/github (change value or enter to accept): '
+   echo "${_red}REPOS_BASE empty${_res}" >&2
+   read -rp 'defaulting to ~/github (change value or enter to accept): '
    REPOS_BASE=${REPLY:-~/github}
    echo
 fi
@@ -24,112 +22,190 @@ initial_setup() {
 
    # XDG setup
    . "$REPOS_BASE"/zsh/.zshenv
+
    mkdir -p "$XDG_CONFIG_HOME"
    mkdir -p "$XDG_DATA_HOME"
-   [[ ! -f $HOME/.zshenv ]] && cp "$REPOS_BASE"/zsh/.zshenv "$HOME"/.zshenv
 
-   echo "* ${_blu}Linking dot files${_res}..."
-   mklinks
+   if [[ ! -f $HOME/.zshenv ]]
+   then
+      cp "$REPOS_BASE"/zsh/.zshenv "$HOME"/.zshenv
+   fi
 
-   echo "* ${_blu}Creating fuzzy cd database${_res}..."
+   echo '* Linking dot files'
+   links add
+
+   echo '* Creating fuzzy cd database'
    . "$REPOS_BASE"/scripts/mkdb
 }
 
-bash=(.bash_{profile,logout} .bashrc)
-configs=(.gitignore .irbrc .pyrc .Xresources)
-
-mklinks() {
-   # Vim
-   ln -sfT "$REPOS_BASE"/vim ~/.vim
-   ln -sf  "$REPOS_BASE"/vim/.vimrc ~
+links() {
+   # vim
+   if [[ $1 == add ]]
+   then
+      ln -sfT "$REPOS_BASE"/vim        ~/.vim
+      ln -sf  "$REPOS_BASE"/vim/.vimrc ~
+   else
+      'rm' ~/.vim
+      'rm' ~/.vimrc
+   fi
 
    if [[ -n $XDG_CONFIG_HOME ]]
    then
       # nvim
-      ln -sfT "$REPOS_BASE"/vim "$XDG_CONFIG_HOME"/nvim
+      if [[ $1 == add ]]
+      then
+         ln -sfT "$REPOS_BASE"/vim "$XDG_CONFIG_HOME"/nvim
+      else
+         'rm' "$XDG_CONFIG_HOME"/nvim
+      fi
 
       # zsh
-      if mkdir -p {"$XDG_CONFIG_HOME","$XDG_DATA_HOME"}/zsh
+      if [[ $1 == add ]]
       then
-         ln -sf "$REPOS_BASE"/zsh/.zshenv   ~
-         ln -sf "$REPOS_BASE"/zsh/autoload  "$XDG_CONFIG_HOME"/zsh
-         ln -sf "$REPOS_BASE"/zsh/.zprofile "$XDG_CONFIG_HOME"/zsh
-         ln -sf "$REPOS_BASE"/zsh/.zshrc    "$XDG_CONFIG_HOME"/zsh
+         if mkdir -p {"$XDG_CONFIG_HOME","$XDG_DATA_HOME"}/zsh
+         then
+            ln -sf "$REPOS_BASE"/zsh/.zshenv   ~
+            ln -sf "$REPOS_BASE"/zsh/autoload  "$XDG_CONFIG_HOME"/zsh
+            ln -sf "$REPOS_BASE"/zsh/.zprofile "$XDG_CONFIG_HOME"/zsh
+            ln -sf "$REPOS_BASE"/zsh/.zshrc    "$XDG_CONFIG_HOME"/zsh
+         fi
+      else
+         'rm' ~/.zshenv
+         'rm' "$XDG_CONFIG_HOME"/zsh/autoload
+         'rm' "$XDG_CONFIG_HOME"/zsh/.zprofile
+         'rm' "$XDG_CONFIG_HOME"/zsh/.zshrc
       fi
    else
-      echo "mklinks: ${_red}XDG setup needed${_res}" 1>&2
+      echo "links(nvim, zsh): ${_red}XDG setup needed${_res}" >&2
    fi
 
-   # Bash
-   for c in "${bash[@]}"
-   do
-      ln -sf "$REPOS_BASE"/bash/"$c" ~
-   done
+   local config
 
-   # Misc configs
-   for c in "${configs[@]}"
+   # bash
+   for config in .bash_profile .bashrc .bash_logout
    do
-      ln -sf "$REPOS_BASE"/config/dotfiles/"$c" ~
+      if [[ $1 == add ]]
+      then
+         ln -sf "$REPOS_BASE"/bash/"$config" ~
+      else
+         'rm' ~/"$config"
+      fi
    done
-
-   ln -sf ~/.gitignore ~/.agignore
 
    # ~/bin
-   if mkdir -p ~/bin
+   if [[ $1 == add ]]
    then
+      mkdir -p ~/bin
       ln -sf "$REPOS_BASE"/scripts/mkconfig.sh ~/bin/mkconfig
-   fi
-}
-
-rmlinks() {
-   # Vim
-   'rm' ~/.vim
-   'rm' ~/.vimrc
-
-   if [[ -n $XDG_CONFIG_HOME ]]
-   then
-      # nvim
-      'rm' "$XDG_CONFIG_HOME"/nvim
-
-      # zsh
-      'rm' ~/.zshenv
-      'rm' "$XDG_CONFIG_HOME"/zsh/autoload
-      'rm' "$XDG_CONFIG_HOME"/zsh/.zprofile
-      'rm' "$XDG_CONFIG_HOME"/zsh/.zshrc
+   else
+      'rm' ~/bin/mkconfig
    fi
 
-   # Bash
-   for c in "${bash[@]}"
+   # misc configs
+   for config in .gitignore .irbrc .pyrc .Xresources
    do
-      'rm' ~/"$c"
+      if [[ $1 == add ]]
+      then
+         ln -sf "$REPOS_BASE"/config/dotfiles/"$config" ~
+      else
+         'rm' ~/"$config"
+      fi
    done
-
-   # Misc configs
-   for c in "${configs[@]}"
-   do
-      'rm' ~/"$c"
-   done
-
-   'rm' ~/.agignore
-
-   # ~/bin
-   'rm' ~/bin/mkconfig
 }
 
-opts[0]='Initial setup'
-opts[1]='Create fuzzy cd database'
-opts[2]='Make links'
-opts[3]='Remove links'
+# if no arguments, initial setup
+if (($# == 0))
+then
+   echo 'Initial setup...'
+   initial_setup
+   exit
+fi
 
-select choice in "${opts[@]}"
+_help() {
+local info
+read -r -d $'\0' info << 'HELP'
+Usage: mkconfig -iclL
+
+-i: Initial setup
+-c: Create fuzzy cd database
+-l: Make links
+-L: Remove links
+HELP
+if (($1 == 0))
+then echo "$info"
+else echo "$info" >&2
+fi
+}
+
+switches=()
+
+# Command line options
+while :
 do
-   case "$choice" in
-      "${opts[0]}") initial_setup;                break;;
-      "${opts[1]}") . "$REPOS_BASE"/scripts/mkdb; break;;
-      "${opts[2]}") mklinks;                      break;;
-      "${opts[3]}") rmlinks;                      break;;
-                 *) echo '*** Wrong choice ***' >&2
+   case "$1" in
+      -h|--help)
+         _help 0
+         exit
+         ;;
+      -i|--ini)
+         switches+=(i)
+         shift
+         ;;
+      -c|--gen-c-db)
+         switches+=(c)
+         shift
+         ;;
+      -l|--links)
+         if [[ ${switches[*]} != *L* ]]
+         then
+            switches+=(l)
+         fi
+         shift
+         ;;
+      -L|--del-links)
+         if [[ ${switches[*]} != *l* ]]
+         then
+            switches+=(L)
+         fi
+         shift
+         ;;
+      -?*)
+         print -P "Error: unknown option %F{red}$1%f" >&2
+         exit 1
+         ;;
+      *)
+         break
+         ;;
    esac
 done
+
+if (($#))
+then
+   echo 'Non-option arguments not allowed.' >&2
+   _help 1
+   exit 1
+fi
+
+# Initial setup
+if [[ ${switches[*]} == *i* ]]
+then
+   initial_setup
+   exit
+fi
+
+# Create fuzzy cd database
+if [[ ${switches[*]} == *c* ]]
+then
+   . "$REPOS_BASE"/scripts/mkdb
+fi
+
+# Make/remove links
+if [[ ${switches[*]} == *l* ]]
+then
+   links add
+elif [[ ${switches[*]} == *L* ]]
+then
+   links del
+fi
 
 # vim: foldmethod=indent
