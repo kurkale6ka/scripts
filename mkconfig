@@ -21,7 +21,6 @@ fi
 chpwd_functions=()
 
 initial_setup() {
-
    if [[ $(uname) == Darwin ]]
    then
       if (( $+commands[brew] ))
@@ -220,9 +219,9 @@ links() {
    do
       if [[ $1 == add ]]
       then
-         ln -sf $REPOS_BASE/bash/$c ~
+         ln -sf $REPOS_BASE/bash/$config ~
       else
-         'rm' ~/$c
+         'rm' ~/$config
       fi
    done
 
@@ -236,9 +235,9 @@ links() {
    do
       if [[ $1 == add ]]
       then
-         ln -sf -t ~/bin $REPOS_BASE/scripts/$c
+         ln -sf -t ~/bin $REPOS_BASE/scripts/$config
       else
-         'rm' ~/bin/$c
+         'rm' ~/bin/$config
       fi
    done
 
@@ -250,13 +249,13 @@ links() {
    fi
 
    # misc configs
-   for c in .gitignore .irbrc .pyrc .Xresources
+   for config in .gitignore .irbrc .pyrc .Xresources
    do
       if [[ $1 == add ]]
       then
-         ln -sf $REPOS_BASE/config/dotfiles/$c ~
+         ln -sf $REPOS_BASE/config/dotfiles/$config ~
       else
-         'rm' ~/$c
+         'rm' ~/$config
       fi
    done
 
@@ -285,15 +284,23 @@ while :
 do
    case $1 in
       (-h|--help)
-         echo 'Usage: mkconfig -cilLtu'
+         echo 'Usage: mkconfig -iutclL'
          exit
-         ;;
-      (-c|--gen-c-db)
-         switches+=(c)
-         shift
          ;;
       (-i|--ini)
          switches+=(i)
+         shift
+         ;;
+      (-u|--update)
+         switches+=(u)
+         shift
+         ;;
+      (-t|--tags)
+         switches+=(t)
+         shift
+         ;;
+      (-c|--gen-c-db)
+         switches+=(c)
          shift
          ;;
       (-l|--links)
@@ -310,14 +317,6 @@ do
          fi
          shift
          ;;
-      (-t|--tags)
-         switches+=(t)
-         shift
-         ;;
-      (-u|--update)
-         switches+=(u)
-         shift
-         ;;
       (-?*)
          print -P "Error: unknown option %F{red}$1%f" >&2
          exit 1
@@ -330,7 +329,7 @@ done
 
 if (($#))
 then
-   echo 'Non-option arguments not allowed. Usage: mkconfig -cilLtu' >&2
+   echo 'Non-option arguments not allowed. Usage: mkconfig -iutclL' >&2
    exit 1
 fi
 
@@ -341,22 +340,10 @@ then
    exit
 fi
 
-# Create fuzzy cd database
-if [[ ${switches[*]} == *c* ]]
+# Update repositories
+if [[ ${switches[*]} == *u* ]]
 then
-   . $REPOS_BASE/scripts/mkdb
-fi
-
-# Make links
-if [[ ${switches[*]} == *l* ]]
-then
-   links add
-fi
-
-# Remove links
-if [[ ${switches[*]} == *L* ]]
-then
-   links del
+   updaterepos
 fi
 
 # Generate tags
@@ -365,10 +352,19 @@ then
    mktags
 fi
 
-# Update repositories
-if [[ ${switches[*]} == *u* ]]
+# Create fuzzy cd database
+if [[ ${switches[*]} == *c* ]]
 then
-   updaterepos
+   . $REPOS_BASE/scripts/mkdb
+fi
+
+# Make/remove links
+if [[ ${switches[*]} == *l* ]]
+then
+   links add
+elif [[ ${switches[*]} == *L* ]]
+then
+   links del
 fi
 
 # vim: foldmethod=indent
