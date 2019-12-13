@@ -11,10 +11,7 @@ _res="$(tput sgr0 || tput me)"
 
 if [[ -z $REPOS_BASE ]]
 then
-   echo "${_red}REPOS_BASE empty${_res}" >&2
-   read -rp 'defaulting to ~/github (change value or enter to accept): '
-   REPOS_BASE=${REPLY:-~/github}
-   echo
+   REPOS_BASE=~/github
 fi
 
 initial_setup() {
@@ -47,36 +44,6 @@ links() {
    else
       'rm' ~/.vim
       'rm' ~/.vimrc
-   fi
-
-   if [[ -n $XDG_CONFIG_HOME ]]
-   then
-      # nvim
-      if [[ $1 == add ]]
-      then
-         ln -sfT "$REPOS_BASE"/vim "$XDG_CONFIG_HOME"/nvim
-      else
-         'rm' "$XDG_CONFIG_HOME"/nvim
-      fi
-
-      # zsh
-      if [[ $1 == add ]]
-      then
-         if mkdir -p {"$XDG_CONFIG_HOME","$XDG_DATA_HOME"}/zsh
-         then
-            ln -sf "$REPOS_BASE"/zsh/.zshenv   ~
-            ln -sf "$REPOS_BASE"/zsh/autoload  "$XDG_CONFIG_HOME"/zsh
-            ln -sf "$REPOS_BASE"/zsh/.zprofile "$XDG_CONFIG_HOME"/zsh
-            ln -sf "$REPOS_BASE"/zsh/.zshrc    "$XDG_CONFIG_HOME"/zsh
-         fi
-      else
-         'rm' ~/.zshenv
-         'rm' "$XDG_CONFIG_HOME"/zsh/autoload
-         'rm' "$XDG_CONFIG_HOME"/zsh/.zprofile
-         'rm' "$XDG_CONFIG_HOME"/zsh/.zshrc
-      fi
-   else
-      echo "links(nvim, zsh): ${_red}XDG setup needed${_res}" >&2
    fi
 
    local config

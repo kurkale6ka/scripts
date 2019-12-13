@@ -25,7 +25,7 @@ initial_setup() {
    then
       if (( $+commands[brew] ))
       then
-         print '* Installing Homebrew formulae...\n'
+         print -P '%F{45}*%f Installing Homebrew formulae...\n'
 
          local -a formulae
 
@@ -82,18 +82,22 @@ initial_setup() {
 
    mkdir -p $REPOS_BASE
 
+   # Clone repos
    if cd $REPOS_BASE
    then
-      print -P "* Cloning repositories in %F{69}${REPOS_BASE/$HOME/~}%f ..."
-      [[ ! -d zsh     ]] && git clone git@github.com:kurkale6ka/zsh.git
-      [[ ! -d bash    ]] && git clone git@github.com:kurkale6ka/bash.git
-      [[ ! -d help    ]] && git clone git@github.com:kurkale6ka/help.git
-      [[ ! -d config  ]] && git clone git@github.com:kurkale6ka/config.git
-      [[ ! -d scripts ]] && git clone git@github.com:kurkale6ka/scripts.git
-      [[ ! -d vim     ]] && git clone git@github.com:kurkale6ka/vim.git
+      print -P "%F{45}*%f Cloning repositories in %F{69}${REPOS_BASE/$HOME/~}%f ...\n"
+      local repo
+      for repo in zsh bash help config scripts vim
+      do
+         if [[ ! -d $repo ]]
+         then
+            git clone git@github.com:kurkale6ka/$repo.git
+            echo
+         fi
+      done
    fi
 
-   print -P '* Configuring %F{45}git%f'
+   print -P '%F{45}*%f Configuring git'
    . $REPOS_BASE/config/git.bash
 
 
@@ -105,13 +109,13 @@ initial_setup() {
       cp $REPOS_BASE/zsh/.zshenv $HOME/.zshenv
    fi
 
-   print '* Linking dot files'
+   print -P '%F{45}*%f Linking dot files'
    links add
 
-   print '* Generating tags'
+   print -P '%F{45}*%f Generating tags'
    mktags
 
-   print '* Creating fuzzy cd database'
+   print -P '%F{45}*%f Creating fuzzy cd database'
    . $REPOS_BASE/scripts/mkdb
 }
 
