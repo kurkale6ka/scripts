@@ -111,17 +111,26 @@ initial_setup() {
    . $REPOS_BASE/scripts/mkdb
 }
 
-updaterepos() {
+repos() {
    local repo
    for repo in $REPOS_BASE/*(/)
    do
       if cd $repo
       then
-         git fetch -q
-         if [[ $(git symbolic-ref --short HEAD) == master ]] && git status -sb | grep -q behind
+         if [[ $1 == status ]]
          then
-            print -nP "%F{45}${repo:t}%f: "
-            git pull
+            if [[ -n $(git status --porcelain) ]] || git status -sb | grep -qE ']$'
+            then
+               print -nP "%F{45}${repo:t}%f: "
+               git status -sb
+            fi
+         else
+            git fetch -q
+            if [[ $(git symbolic-ref --short HEAD) == master ]] && git status -sb | grep -q behind
+            then
+               print -nP "%F{45}${repo:t}%f: "
+               git pull
+            fi
          fi
       fi
    done
@@ -273,7 +282,7 @@ links() {
 if (($# == 0))
 then
    echo 'Updating repos...'
-   updaterepos
+   repos update
    exit
 fi
 
@@ -284,11 +293,15 @@ while :
 do
    case $1 in
       (-h|--help)
-         echo 'Usage: mkconfig -iutclL'
+         echo 'Usage: mkconfig -isutclL'
          exit
          ;;
       (-i|--ini)
          switches+=(i)
+         shift
+         ;;
+      (-s|--status)
+         switches+=(s)
          shift
          ;;
       (-u|--update)
@@ -329,8 +342,15 @@ done
 
 if (($#))
 then
-   echo 'Non-option arguments not allowed. Usage: mkconfig -iutclL' >&2
+   echo 'Non-option arguments not allowed. Usage: mkconfig -isutclL' >&2
    exit 1
+fi
+
+# Check repositories statuses
+if [[ ${switches[*]} == *s* ]]
+then
+   repos status
+   exit
 fi
 
 # Initial setup
@@ -343,7 +363,7 @@ fi
 # Update repositories
 if [[ ${switches[*]} == *u* ]]
 then
-   updaterepos
+   repos update
 fi
 
 # Generate tags
