@@ -9,6 +9,16 @@
 # curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 # :PlugInstall
 
+# Usage: mkconfig -isutclL
+#
+# -i: Initial setup
+# -s: Check repositories statuses
+# -u: Update repositories
+# -t: Generate tags
+# -c: Create fuzzy cd database
+# -l: Make links
+# -L: Remove links
+
 if [[ -z $REPOS_BASE ]]
 then
    print -P '%F{red}REPOS_BASE empty%f' >&2
@@ -116,7 +126,7 @@ initial_setup() {
    mktags
 
    print -P '%F{45}*%f Creating fuzzy cd database'
-   . $REPOS_BASE/scripts/mkdb
+   . $REPOS_BASE/scripts/db-create
 }
 
 repos() {
@@ -370,7 +380,7 @@ done
 
 if (($#))
 then
-   echo 'Non-option arguments not allowed.' >&2
+   print -P '%F{red}Non-option arguments not allowed%f' >&2
    _help 1
    exit 1
 fi
@@ -404,7 +414,7 @@ fi
 # Create fuzzy cd database
 if [[ ${switches[*]} == *c* ]]
 then
-   . $REPOS_BASE/scripts/mkdb
+   . $REPOS_BASE/scripts/db-create
 fi
 
 # Make/remove links

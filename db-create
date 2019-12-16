@@ -5,18 +5,19 @@
 
 if [[ -n $XDG_DATA_HOME ]]
 then
-   [[ -r $XDG_DATA_HOME/marks/marks.sqlite ]] && exit 0
+   if [[ ! -f $XDG_DATA_HOME/marks/marks.sqlite ]]
+   then
+      mkdir -p "$XDG_DATA_HOME"/marks
 
-   mkdir -p "$XDG_DATA_HOME"/marks
-
-   sqlite3 "$XDG_DATA_HOME"/marks/marks.sqlite <<- 'INIT'
+      sqlite3 "$XDG_DATA_HOME"/marks/marks.sqlite <<- 'INIT'
 	CREATE TABLE IF NOT EXISTS marks (
-	  dir VARCHAR(200) UNIQUE,
-	  weight INTEGER
+	   dir VARCHAR(200) UNIQUE,
+	   weight INTEGER
 	);
 
 	CREATE INDEX IF NOT EXISTS _dir ON marks (dir);
 	INIT
+   fi
 else
    if [[ $SHELL == *bash ]]
    then

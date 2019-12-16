@@ -6,12 +6,19 @@
 #
 # This script is meant for remote systems only, where the default shell is bash
 
+# Usage: mkconfig -iclL
+#
+# -i: Initial setup
+# -c: Create fuzzy cd database
+# -l: Make links
+# -L: Remove links
+
 _red="$(tput setaf 1 || tput AF 1)"
 _res="$(tput sgr0 || tput me)"
 
 if [[ -z $REPOS_BASE ]]
 then
-   REPOS_BASE=~/github
+   export REPOS_BASE=~/github
 fi
 
 initial_setup() {
@@ -23,16 +30,11 @@ initial_setup() {
    mkdir -p "$XDG_CONFIG_HOME"
    mkdir -p "$XDG_DATA_HOME"
 
-   if [[ ! -f $HOME/.zshenv ]]
-   then
-      cp "$REPOS_BASE"/zsh/.zshenv "$HOME"/.zshenv
-   fi
-
    echo '* Linking dot files'
    links add
 
    echo '* Creating fuzzy cd database'
-   . "$REPOS_BASE"/scripts/mkdb
+   . "$REPOS_BASE"/scripts/db-create
 }
 
 links() {
@@ -58,26 +60,6 @@ links() {
          'rm' ~/"$config"
       fi
    done
-
-   # ~/bin
-   if [[ $1 == add ]]
-   then
-      mkdir -p ~/bin
-      ln -sf "$REPOS_BASE"/scripts/mkconfig.sh ~/bin/mkconfig
-   else
-      'rm' ~/bin/mkconfig
-   fi
-
-   # misc configs
-   for config in .gitignore .irbrc .pyrc .Xresources
-   do
-      if [[ $1 == add ]]
-      then
-         ln -sf "$REPOS_BASE"/config/dotfiles/"$config" ~
-      else
-         'rm' ~/"$config"
-      fi
-   done
 }
 
 # if no arguments, initial setup
@@ -85,7 +67,7 @@ if (($# == 0))
 then
    echo 'Initial setup...'
    initial_setup
-   exit
+   exec bash
 fi
 
 _help() {
@@ -137,7 +119,7 @@ do
          shift
          ;;
       -?*)
-         print -P "Error: unknown option %F{red}$1%f" >&2
+         echo "Error: unknown option ${_red}$1${_res}" >&2
          exit 1
          ;;
       *)
@@ -148,7 +130,7 @@ done
 
 if (($#))
 then
-   echo 'Non-option arguments not allowed.' >&2
+   echo "${_red}Non-option arguments not allowed${_res}" >&2
    _help 1
    exit 1
 fi
@@ -157,13 +139,13 @@ fi
 if [[ ${switches[*]} == *i* ]]
 then
    initial_setup
-   exit
+   exec bash
 fi
 
 # Create fuzzy cd database
 if [[ ${switches[*]} == *c* ]]
 then
-   . "$REPOS_BASE"/scripts/mkdb
+   . "$REPOS_BASE"/scripts/db-create
 fi
 
 # Make/remove links
