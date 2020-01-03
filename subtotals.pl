@@ -1,12 +1,24 @@
 #! /usr/bin/env perl
 
-while (<>) {
-   @record = split;
-   $db{$record[0]}{$record[1]} += 1;
+while (<DATA>) {
+   ($val1, $val2) = split;
+   $db{$val1}{$val2}++;
 }
 
-foreach $key (keys %db) {
-   foreach $key2 (keys %{$db{$key}}) {
-      print "$key: $db{$key}{$key2} $key2\n";
+while (($key, $val) = each %db) {
+   while (($key2, $val2) = each %$val) {
+      print "$key: $val2 $key2\n";
    }
 }
+
+__DATA__
+apples blue
+berries red
+tomatoes green
+apples red
+apples blue
+berries red
+tomatoes green
+berries red
+apples blue
+berries green
