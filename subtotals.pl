@@ -1,24 +1,27 @@
 #! /usr/bin/env perl
 
-while (<DATA>) {
-   ($val1, $val2) = split;
-   $db{$val1}{$val2}++;
+while (<DATA>)
+{
+   ($col1, $col2) = split;
+   $db{$col1}{$col2}++;
 }
 
-while (($key, $val) = each %db) {
-   while (($key2, $val2) = each %$val) {
-      print "$key: $val2 $key2\n";
+while (($key, $val) = each %db)
+{
+   while (($key2, $val2) = each %$val)
+   {
+      printf "%8s: %d %s\n", $key, $val2, $key2;
    }
 }
 
 __DATA__
-apples blue
-berries red
+apples   blue
+berries  red
 tomatoes green
-apples red
-apples blue
-berries red
+apples   red
+apples   blue
+berries  red
 tomatoes green
-berries red
-apples blue
-berries green
+berries  red
+apples   blue
+berries  green
