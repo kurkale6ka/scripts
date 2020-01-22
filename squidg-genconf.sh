@@ -4,6 +4,8 @@
 #
 # create .db files with:
 #    squidGuard -db -c squidGuard.conf -C all
+# reload squid:
+#    squid -k reconfigure
 # test with:
 #    echo "http://www.twitter.com - - - GET" | squidGuard -c squidGuard.conf -d 2>&1 | grep block
 
