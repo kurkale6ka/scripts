@@ -110,14 +110,8 @@ initial_setup() {
    print -P '%F{45}*%f Configuring git'
    . $REPOS_BASE/config/git.bash
 
-
    # XDG setup
    . $REPOS_BASE/zsh/.zshenv
-
-   if [[ ! -f $HOME/.zshenv ]]
-   then
-      cp $REPOS_BASE/zsh/.zshenv $HOME/.zshenv
-   fi
 
    print -P '%F{45}*%f Linking dot files'
    links add
@@ -189,9 +183,9 @@ links() {
    # vim
    if [[ $1 == add ]]
    then
-      ln -sfT $REPOS_BASE/vim         ~/.vim
-      ln -sf  $REPOS_BASE/vim/.vimrc  ~
-      ln -sf  $REPOS_BASE/vim/.gvimrc ~
+      ln -srfT $REPOS_BASE/vim ~/.vim
+      ln -srf $REPOS_BASE/vim/.vimrc ~
+      ln -srf $REPOS_BASE/vim/.gvimrc ~
    else
       'rm' ~/.vim
       'rm' ~/.vimrc
@@ -213,30 +207,19 @@ links() {
       then
          if mkdir -p {$XDG_CONFIG_HOME,$XDG_DATA_HOME}/zsh
          then
-            ln -sf $REPOS_BASE/zsh/.zshenv   ~
-            ln -sf $REPOS_BASE/zsh/autoload  $XDG_CONFIG_HOME/zsh
+            ln -srf $REPOS_BASE/zsh/.zshenv   ~
             ln -sf $REPOS_BASE/zsh/.zprofile $XDG_CONFIG_HOME/zsh
             ln -sf $REPOS_BASE/zsh/.zshrc    $XDG_CONFIG_HOME/zsh
+            ln -sf $REPOS_BASE/zsh/autoload  $XDG_CONFIG_HOME/zsh
          fi
       else
          'rm' ~/.zshenv
-         'rm' $XDG_CONFIG_HOME/zsh/autoload
          'rm' $XDG_CONFIG_HOME/zsh/.zprofile
          'rm' $XDG_CONFIG_HOME/zsh/.zshrc
-      fi
-
-      # ranger
-      if [[ $1 == add ]]
-      then
-         if mkdir -p $XDG_CONFIG_HOME/ranger
-         then
-            ln -sf $REPOS_BASE/config/ranger/rc.conf $XDG_CONFIG_HOME/ranger
-         fi
-      else
-         'rm' $XDG_CONFIG_HOME/ranger/rc.conf
+         'rm' $XDG_CONFIG_HOME/zsh/autoload
       fi
    else
-      print -P 'links(nvim, zsh, ranger): %F{red}XDG setup needed%f' >&2
+      print -P 'links(nvim, zsh): %F{red}XDG setup needed%f' >&2
    fi
 
    local config
@@ -246,7 +229,7 @@ links() {
    do
       if [[ $1 == add ]]
       then
-         ln -sf $REPOS_BASE/bash/$config ~
+         ln -srf $REPOS_BASE/bash/$config ~
       else
          'rm' ~/$config
       fi
@@ -280,7 +263,7 @@ links() {
    do
       if [[ $1 == add ]]
       then
-         ln -sf $REPOS_BASE/config/dotfiles/$config ~
+         ln -srf $REPOS_BASE/config/dotfiles/$config ~
       else
          'rm' ~/$config
       fi
@@ -288,8 +271,8 @@ links() {
 
    if [[ $1 == add ]]
    then
-      ln -sf $REPOS_BASE/config/ctags/.ctags ~
-      ln -sf $REPOS_BASE/config/tmux/.tmux.conf ~
+      ln -srf $REPOS_BASE/config/ctags/.ctags ~
+      ln -srf $REPOS_BASE/config/tmux/.tmux.conf ~
    else
       'rm' ~/.ctags
       'rm' ~/.tmux.conf

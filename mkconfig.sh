@@ -21,14 +21,18 @@ then
    export REPOS_BASE=~/github
 fi
 
+if [[ ! -d $REPOS_BASE ]]
+then
+   echo "Missing ${_red}$REPOS_BASE${_res} directory. Quiting!" 1>&2
+   exit 1
+fi
+
+# XDG setup
+. "$REPOS_BASE"/zsh/.zshenv
+
 initial_setup() {
    mkdir -p "$REPOS_BASE"
-
-   # XDG setup
-   . "$REPOS_BASE"/zsh/.zshenv
-
-   mkdir -p "$XDG_CONFIG_HOME"
-   mkdir -p "$XDG_DATA_HOME"
+   mkdir -p {"$XDG_CONFIG_HOME","$XDG_DATA_HOME"}/zsh
 
    echo '* Linking dot files'
    links add
@@ -41,8 +45,8 @@ links() {
    # vim
    if [[ $1 == add ]]
    then
-      ln -sfT "$REPOS_BASE"/vim        ~/.vim
-      ln -sf  "$REPOS_BASE"/vim/.vimrc ~
+      ln -srfT "$REPOS_BASE"/vim ~/.vim
+      ln -srf "$REPOS_BASE"/vim/.vimrc ~
    else
       'rm' ~/.vim
       'rm' ~/.vimrc
@@ -55,9 +59,27 @@ links() {
    do
       if [[ $1 == add ]]
       then
-         ln -sf "$REPOS_BASE"/bash/"$config" ~
+         ln -srf "$REPOS_BASE"/bash/"$config" ~
       else
          'rm' ~/"$config"
+      fi
+   done
+
+   # zsh
+   if [[ $1 == add ]]
+   then
+      ln -srf "$REPOS_BASE"/zsh/.zshenv ~
+   else
+      'rm' ~/.zshenv
+   fi
+
+   for config in .zprofile .zshrc autoload
+   do
+      if [[ $1 == add ]]
+      then
+         ln -s "$REPOS_BASE"/zsh/"$config" "$XDG_CONFIG_HOME"/zsh
+      else
+         'rm' "$XDG_CONFIG_HOME"/zsh/"$config"
       fi
    done
 }
@@ -67,7 +89,13 @@ if (($# == 0))
 then
    echo 'Initial setup...'
    initial_setup
-   exec bash
+   if [[ $SHELL == *bash ]]
+   then
+      exec bash
+   elif [[ $SHELL == *zsh ]]
+   then
+      exec zsh
+   fi
 fi
 
 _help() {
