@@ -13,13 +13,10 @@
 # -l: Make links
 # -L: Remove links
 
+export REPOS_BASE=~/github
+
 _red="$(tput setaf 1 || tput AF 1)"
 _res="$(tput sgr0 || tput me)"
-
-if [[ -z $REPOS_BASE ]]
-then
-   export REPOS_BASE=~/github
-fi
 
 if [[ ! -d $REPOS_BASE ]]
 then
@@ -28,7 +25,8 @@ then
 fi
 
 # XDG setup
-. "$REPOS_BASE"/zsh/.zshenv
+export XDG_CONFIG_HOME=~/.config
+export   XDG_DATA_HOME=~/.local/share
 
 initial_setup() {
    mkdir -p "$REPOS_BASE"
