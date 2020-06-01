@@ -1,16 +1,16 @@
 #! /usr/bin/env perl
 
-# Move camera shots to timestamped folders
+# Sort pictures into timestamped folders
 #
 # Usage: pics [-n|-s[v]|-i|-I]
 
 use strict;
 use warnings;
 use feature 'say';
-use Time::Piece;
-use File::Path 'make_path';
 use lib '/usr/local/Cellar/exiftool/11.85/libexec/lib';
 use Image::ExifTool ':Public';
+use Time::Piece;
+use File::Path 'make_path';
 use Term::ANSIColor ':constants';
 use Getopt::Long qw/GetOptions :config no_ignore_case/;
 
@@ -50,9 +50,9 @@ say 'verbose' if $verbose;
 
 if ($sync)
 {
-   foreach my $upload (glob "$uploads/*")
+   foreach (glob "$uploads/*")
    {
-      system qw(rsync -aiPn), $upload, $pics if -d $upload;
+      system qw(rsync -aiPn), $_, $pics if -d $_;
    }
 }
 
