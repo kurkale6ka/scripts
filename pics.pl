@@ -55,122 +55,58 @@ if ($sync)
    }
 }
 
-my @tags = ('CreateDate');
-
-if ($info)
-{
-   # TODO: *...*
-   # exiftool -G -S -a -'*keyword*' -subject -title -'*comment*' -make -model -createdate -datetimeoriginal
-   @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
-}
-elsif ($Info)
-{
-   @tags = ('All'); # exiftool -G -S -a
-}
-
 my $image = shift;
-my ($filename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
+my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
 
 my $exifTool = new Image::ExifTool;
 
 $exifTool->Options(
    Sort => 'Group1',
-   DateFormat => '%e %b, %H:%M',
+   DateFormat => '%e %B, %H:%M',
 );
 
-$exifTool->ImageInfo($image, \@tags);
-
-# TODO: change display to
-# Group1
-#   tag1: val1
-#   tag2: val2
-# Group2
-#   tag: ...
-foreach my $tag (@tags)
+# Info
+if ($info or $Info)
 {
-   next unless $exifTool->GetValue($tag);
-   printf "[%s] %24s: %s\n", $exifTool->GetGroup($tag, 0), $tag, GREEN.$exifTool->GetValue($tag).RESET;
+   my @tags;
+
+   if ($info)
+   {
+      # TODO: *...*
+      # exiftool -G -S -a -'*keyword*' -subject -title -'*comment*' -make -model -createdate -datetimeoriginal
+      @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
+   } else {
+      # exiftool -G -S -a
+      @tags = ('All');
+   }
+
+   $exifTool->ImageInfo($image, \@tags);
+
+   # TODO: change display to
+   # Group1
+   #   tag1: val1
+   #   tag2: val2
+   # Group2
+   #   tag: ...
+   foreach my $tag (@tags)
+   {
+      next unless $exifTool->GetValue($tag);
+      printf "[%s] %24s: %s\n", $exifTool->GetGroup($tag, 0), $tag, GREEN.$exifTool->GetValue($tag).RESET;
+   }
 }
 
 say YELLOW.'Sort camera shots into timestamped folders'.RESET, ':';
 
+my $filename = 'testname';
+
 if ($exifTool->GetValue('Make'))
 {
-   $exifTool->SetNewValuesFromFile($image, 'testname<${createdate#;DateFmt("%Y/%B/%e %Hh%Mm%S")} ${make;}'.lc($suffix));
+   $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%e-%b-%Y %Hh%Mm%S")} ${make;}'.lc($suffix));
 } else {
-   $exifTool->SetNewValuesFromFile($image, 'testname<${createdate#;DateFmt("%Y/%B/%e %Hh%Mm%S")}'.lc($suffix));
+   $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%e-%b-%Y %Hh%Mm%S")}'.lc($suffix));
 }
 
 my $result = $exifTool->WriteInfo($image);
 
 my $errorMessage = $exifTool->GetValue('Error');
 say $errorMessage if $errorMessage;
-
-# The last valid '-filename<$createdate' supersedes the others:
-# $make will be used only if it exists!
-# exiftool -$nametag'<$createdate.%le'          -d $uploads'/%Y/%B/%Y-%m-%d %H.%M.%S%%-c' \
-#          -$nametag'<$createdate ${make;}.%le' -d $uploads'/%Y/%B/%Y-%m-%d %H.%M.%S%%-c' \
-#          $uploads
-
-__DATA__
-
-## Actions
-# TODO: re-enable dates_ok
-# local dates_ok=1 # success: $createdate == $datetimeoriginal
-
-date_cmp() {
-   touch /tmp/pics_compare
-   print -P '%F{yellow}Files with different -createdate and -datetimeoriginal%f:'
-   exiftool -p '"$directory/$filename": $createdate - $datetimeoriginal' -if '$createdate !~ $datetimeoriginal' $uploads # global variable
-   # dates_ok=$? # global variable!
-}
-
-local nametag=filename # renaming will happen unless -n supplied
-
-case $action in
-
-   (dry_run)
-      nametag=testname
-      [[ ! -e /tmp/pics_compare ]] && date_cmp
-      ;;
-
-   (sync)
-      [[ ! -d $pics ]] && { print -P '%F{red}Pictures folder not defined%f' 1>&2; return 2 }
-
-      # dry runs
-      if ((verbose))
-      then
-         rsync -ain $uploads/*(/) $pics
-      else
-         rsync -ain $uploads/*(/) $pics | grep -v 'f+++++++++'
-      fi
-
-      # commit
-      if (($? == 0)) then
-         read '?apply? (y/n) '
-         if [[ $REPLY == (y|yes) ]]
-         then
-            if rsync -a $uploads/*(/) $pics
-            then
-               rm -r $uploads/*(/)
-            fi
-         fi
-      fi
-      return
-
-## Manage media files
-[[ ! -e /tmp/pics_compare ]] && date_cmp
-
-# if ((dates_ok)) || [[ $nametag == testname ]]
-# then
-
-# The last valid '-filename<$createdate' supersedes the others:
-# $make will be used only if it exists!
-print -P '%F{yellow}Manage media files%f:'
-exiftool -$nametag'<$createdate.%le'          -d $uploads'/%Y/%B/%Y-%m-%d %H.%M.%S%%-c' \
-         -$nametag'<$createdate ${make;}.%le' -d $uploads'/%Y/%B/%Y-%m-%d %H.%M.%S%%-c' \
-         $uploads
-
-[[ $nametag == filename && -w /tmp/pics_compare ]] && rm /tmp/pics_compare
-
-# fi
