@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-# Sort pictures into timestamped folders
+# Sort camera shots into timestamped folders
 #
 # Usage: pics [-n|-s[v]|-i|-I]
 
@@ -9,8 +9,7 @@ use warnings;
 use feature 'say';
 use lib '/usr/local/Cellar/exiftool/11.85/libexec/lib';
 use Image::ExifTool ':Public';
-use Time::Piece;
-use File::Path 'make_path';
+use File::Basename 'fileparse';
 use Term::ANSIColor ':constants';
 use Getopt::Long qw/GetOptions :config no_ignore_case/;
 
@@ -70,38 +69,45 @@ elsif ($Info)
 }
 
 my $image = shift;
+my ($filename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
 
 my $exifTool = new Image::ExifTool;
 
 $exifTool->Options(
    Sort => 'Group1',
-   DateFormat => '%Y/%B/%e-%b-%Y %H.%M.%S%%-c.%le',
+   DateFormat => '%e %b, %H:%M',
 );
 
 $exifTool->ImageInfo($image, \@tags);
 
-# TODO:
-# Group
+# TODO: change display to
+# Group1
 #   tag1: val1
 #   tag2: val2
+# Group2
+#   tag: ...
 foreach my $tag (@tags)
 {
+   next unless $exifTool->GetValue($tag);
    printf "[%s] %24s: %s\n", $exifTool->GetGroup($tag, 0), $tag, GREEN.$exifTool->GetValue($tag).RESET;
 }
 
-say YELLOW.'Manage media files'.RESET, ':';
+say YELLOW.'Sort camera shots into timestamped folders'.RESET, ':';
 
-my $time = Time::Piece->new;
-make_path $time->strftime('%Y/%B');
+if ($exifTool->GetValue('Make'))
+{
+   $exifTool->SetNewValuesFromFile($image, 'testname<${createdate#;DateFmt("%Y/%B/%e %Hh%Mm%S")} ${make;}'.lc($suffix));
+} else {
+   $exifTool->SetNewValuesFromFile($image, 'testname<${createdate#;DateFmt("%Y/%B/%e %Hh%Mm%S")}'.lc($suffix));
+}
 
-# $exifTool->SetNewValue('FileName', $createdate);
-my $result = $exifTool->WriteInfo($image, "");
+my $result = $exifTool->WriteInfo($image);
+
 my $errorMessage = $exifTool->GetValue('Error');
-say $errorMessage;
+say $errorMessage if $errorMessage;
 
 # The last valid '-filename<$createdate' supersedes the others:
 # $make will be used only if it exists!
-# my $result = $exifTool->SetFileName($image, 'FileName<CreateDate', 'Test');
 # exiftool -$nametag'<$createdate.%le'          -d $uploads'/%Y/%B/%Y-%m-%d %H.%M.%S%%-c' \
 #          -$nametag'<$createdate ${make;}.%le' -d $uploads'/%Y/%B/%Y-%m-%d %H.%M.%S%%-c' \
 #          $uploads
