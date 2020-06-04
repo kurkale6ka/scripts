@@ -23,7 +23,7 @@ my $pics = glob '~/Dropbox/pics';
 
 sub help
 {
-say <<HELP;
+   say << 'HELP';
    pics [-n (dry run)]           : manage media files
    pics -s[v(erbose)]            : sync
    pics -i|I {file...|directory} : get info
@@ -38,8 +38,8 @@ GetOptions (
    'dry|n'   => \$dry,
    'sync'    => \$sync,
    'verbose' => \$verbose,
-   'info'    => \$info,
-   'Info'    => \$Info,
+   'info=s'  => \$info,
+   'Info=s'  => \$Info,
    'help'    => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
@@ -49,38 +49,37 @@ say 'verbose' if $verbose;
 
 if ($sync)
 {
-   foreach (glob "$uploads/*")
+   foreach (glob "'$uploads/*'")
    {
       system qw(rsync -aiPn), $_, $pics if -d $_;
    }
 }
 
-my $image = shift;
-my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
-
 my $exifTool = new Image::ExifTool;
 
 $exifTool->Options(
    Sort => 'Group1',
-   DateFormat => '%e %B, %H:%M',
+   DateFormat => '%d %B, %H:%M',
 );
 
 # Info
 if ($info or $Info)
 {
-   my @tags;
+   my ($img, @tags);
 
    if ($info)
    {
       # TODO: *...*
       # exiftool -G -S -a -'*keyword*' -subject -title -'*comment*' -make -model -createdate -datetimeoriginal
+      $img = $info;
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
    } else {
       # exiftool -G -S -a
+      $img = $Info;
       @tags = ('All');
    }
 
-   $exifTool->ImageInfo($image, \@tags);
+   $exifTool->ImageInfo($img, \@tags);
 
    # TODO: change display to
    # Group1
@@ -95,18 +94,29 @@ if ($info or $Info)
    }
 }
 
-say YELLOW.'Sort camera shots into timestamped folders'.RESET, ':';
-
-my $filename = 'testname';
-
-if ($exifTool->GetValue('Make'))
+unless ($info or $Info or $sync)
 {
-   $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%e-%b-%Y %Hh%Mm%S")} ${make;}'.lc($suffix));
-} else {
-   $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%e-%b-%Y %Hh%Mm%S")}'.lc($suffix));
+   say YELLOW.'Sort camera shots into timestamped folders'.RESET, ':';
+
+   my $filename = 'testname';
+
+   foreach my $image (glob "'$uploads/*'")
+   {
+      if (-f $image)
+      {
+         my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
+
+         if ($exifTool->GetValue('Make'))
+         {
+            $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.lc($suffix));
+         } else {
+            $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.lc($suffix));
+         }
+
+         my $result = $exifTool->WriteInfo($image);
+      }
+   }
+
+   my $errorMessage = $exifTool->GetValue('Error');
+   say $errorMessage if $errorMessage;
 }
-
-my $result = $exifTool->WriteInfo($image);
-
-my $errorMessage = $exifTool->GetValue('Error');
-say $errorMessage if $errorMessage;
