@@ -2,7 +2,7 @@
 
 # Sort camera shots into timestamped folders
 #
-# Usage: pics [-n|-s[v]|-i|-I]
+# Usage: pics.pl [-n|-s[v]|-i|-I]
 
 use strict;
 use warnings;
@@ -13,18 +13,20 @@ use File::Basename 'fileparse';
 use Term::ANSIColor ':constants';
 use Getopt::Long qw/GetOptions :config no_ignore_case/;
 
-# Source folder where pictures get uploaded
-my $uploads = glob '"~/Dropbox/Camera Uploads"';
+my $description = 'sort camera shots into timestamped folders';
 
-# Destination folder
-my $pics = glob '~/Dropbox/pics';
+# Folder where pictures get uploaded
+my $source = glob '"~/Dropbox/Camera Uploads"';
+
+# Images library folder
+my $destination = glob '~/Dropbox/pics';
 
 sub help
 {
-   say << 'HELP';
-   pics [-n (dry run)]           : manage media files
-   pics -s[v(erbose)]            : sync
-   pics -i|I {file...|directory} : get info
+   say <<HELP;
+   pics.pl [-n (dry run)]           : $description
+   pics.pl -s[v(erbose)]            : sync
+   pics.pl -i|I {file...|directory} : get info
 HELP
    exit; # TODO: die if $? != 0
 }
@@ -33,14 +35,14 @@ HELP
 my ($dry, $sync, $verbose, $info, $Info);
 
 GetOptions (
-   'source|uploads=s'       => \$uploads,
-   'destination|pictures=s' => \$pics,
-   'dry|n'                  => \$dry,
-   'sync'                   => \$sync,
-   'verbose'                => \$verbose,
-   'info=s'                 => \$info,
-   'Info=s'                 => \$Info,
-   'help'                   => \&help
+   'source=s'      => \$source,
+   'destination=s' => \$destination,
+   'dry|n'         => \$dry,
+   'move|sync'     => \$sync,
+   'verbose'       => \$verbose,
+   'info=s'        => \$info,
+   'Info=s'        => \$Info,
+   'help'          => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Checks
@@ -48,19 +50,32 @@ GetOptions (
 # warn if incompatible options
 unless ($info or $Info)
 {
-   -d $uploads or die RED.'Uploads folder missing'.RESET, "\n";
+   -d $source or die RED.'Uploads folder missing'.RESET, "\n";
 }
 
 # Sync
-# TODO:
-# - rsync all pics in bulk vs loop
 if ($sync)
 {
-   -d $pics or die RED.'Destination folder missing'.RESET, "\n";
+   -d $destination or die RED.'Destination folder missing'.RESET, "\n";
 
-   foreach (glob "'$uploads/*'")
+   my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
+
+   system qw/rsync --remove-source-files --partial -ai/, @years, $destination;
+
+   # delete source years + months after a successful transfer
+   if ($? == 0)
    {
-      system qw(rsync -aiPn), $_, $pics if -d $_;
+      foreach my $year (@years)
+      {
+         foreach (glob "$year/{January,February,March,April,May,June,July,August,September,October,November,December}")
+         {
+            if (-d $_)
+            {
+               rmdir $_ or die "$_: $!\n";
+            }
+         }
+         rmdir $year or die "$year: $!\n";
+      }
    }
 }
 
@@ -110,27 +125,52 @@ if ($info or $Info)
 # - dry run by default?
 unless ($info or $Info or $sync)
 {
-   say YELLOW.'Sort camera shots into timestamped folders'.RESET, ':';
+   say GREEN, ucfirst $description, RESET;
+   say '-' x length $description;
 
    my $filename = 'testname';
 
-   foreach my $image (glob "'$uploads/*'")
+   foreach my $image (glob "'$source/*'")
    {
       if (-f $image)
       {
          my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
-         my $info;
+         my ($info, $result);
 
          if ($exifTool->GetValue('Make'))
          {
-            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.lc($suffix));
+            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.lc($suffix));
          } else {
-            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.lc($suffix));
+            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.lc($suffix));
          }
 
-         say "$image: ", RED.$info->{Error}.RESET if exists $info->{Error};
+         # errors occurred
+         unless (exists $info->{Warning} or exists $info->{Error})
+         {
+            $result = $exifTool->WriteInfo($image);
 
-         my $result = $exifTool->WriteInfo($image);
+            # errors occurred
+            unless ($result == 1)
+            {
+               if ($exifTool->GetValue('Error'))
+               {
+                  warn "Error writing $image: ", RED, $exifTool->GetValue('Error'), RESET."\n";
+               }
+               if ($exifTool->GetValue('Warning'))
+               {
+                  warn "Error writing $image: ", YELLOW, $exifTool->GetValue('Warning'), RESET."\n";
+               }
+            }
+         } else {
+            if (exists $info->{Warning})
+            {
+               warn "Error moving $image: ", YELLOW.$info->{Warning}.RESET."\n";
+            }
+            if (exists $info->{Error})
+            {
+               warn "Error moving $image: ", RED.$info->{Error}.RESET."\n";
+            }
+         }
       }
    }
 }
