@@ -19,8 +19,6 @@ my $uploads = glob '"~/Dropbox/Camera Uploads"';
 # Destination folder
 my $pics = glob '~/Dropbox/pics';
 
--d $uploads or die RED.'Uploads folder not defined'.RESET, "\n";
-
 sub help
 {
    say << 'HELP';
@@ -35,20 +33,31 @@ HELP
 my ($dry, $sync, $verbose, $info, $Info);
 
 GetOptions (
-   'dry|n'   => \$dry,
-   'sync'    => \$sync,
-   'verbose' => \$verbose,
-   'info=s'  => \$info,
-   'Info=s'  => \$Info,
-   'help'    => \&help
+   'source|uploads=s'       => \$uploads,
+   'destination|pictures=s' => \$pics,
+   'dry|n'                  => \$dry,
+   'sync'                   => \$sync,
+   'verbose'                => \$verbose,
+   'info=s'                 => \$info,
+   'Info=s'                 => \$Info,
+   'help'                   => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-# Arguments
-say 'dry' if $dry;
-say 'verbose' if $verbose;
+# Checks
+# TODO:
+# warn if incompatible options
+unless ($info or $Info)
+{
+   -d $uploads or die RED.'Uploads folder missing'.RESET, "\n";
+}
 
+# Sync
+# TODO:
+# - rsync all pics in bulk vs loop
 if ($sync)
 {
+   -d $pics or die RED.'Destination folder missing'.RESET, "\n";
+
    foreach (glob "'$uploads/*'")
    {
       system qw(rsync -aiPn), $_, $pics if -d $_;
@@ -59,17 +68,19 @@ my $exifTool = new Image::ExifTool;
 
 $exifTool->Options(
    Sort => 'Group1',
-   DateFormat => '%d %B, %H:%M',
+   DateFormat => '%d %b %Y, %H:%M',
 );
 
 # Info
+# TODO:
+# allow folder or . as an arg
 if ($info or $Info)
 {
    my ($img, @tags);
 
    if ($info)
    {
-      # TODO: *...*
+      # TODO: check *keyword* *comment* work
       # exiftool -G -S -a -'*keyword*' -subject -title -'*comment*' -make -model -createdate -datetimeoriginal
       $img = $info;
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
@@ -83,8 +94,7 @@ if ($info or $Info)
 
    # TODO: change display to
    # Group1
-   #   tag1: val1
-   #   tag2: val2
+   #   tag: ...
    # Group2
    #   tag: ...
    foreach my $tag (@tags)
@@ -94,6 +104,10 @@ if ($info or $Info)
    }
 }
 
+# Main
+# TODO:
+# - fix %c
+# - dry run by default?
 unless ($info or $Info or $sync)
 {
    say YELLOW.'Sort camera shots into timestamped folders'.RESET, ':';
@@ -105,18 +119,18 @@ unless ($info or $Info or $sync)
       if (-f $image)
       {
          my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
+         my $info;
 
          if ($exifTool->GetValue('Make'))
          {
-            $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.lc($suffix));
+            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.lc($suffix));
          } else {
-            $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.lc($suffix));
+            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.lc($suffix));
          }
+
+         say "$image: ", RED.$info->{Error}.RESET if exists $info->{Error};
 
          my $result = $exifTool->WriteInfo($image);
       }
    }
-
-   my $errorMessage = $exifTool->GetValue('Error');
-   say $errorMessage if $errorMessage;
 }
