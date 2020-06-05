@@ -43,20 +43,20 @@ GetOptions (
    'info=s'        => \$info,
    'Info=s'        => \$Info,
    'help'          => \&help
-) or die RED.'Error in command line arguments'.RESET, "\n";
+) or die RED."Error in command line arguments\n".RESET;
 
 # Checks
 # TODO:
 # warn if incompatible options
 unless ($info or $Info)
 {
-   -d $source or die RED.'Uploads folder missing'.RESET, "\n";
+   -d $source or die RED."Uploads folder missing\n".RESET;
 }
 
 # Sync
 if ($sync)
 {
-   -d $destination or die RED.'Destination folder missing'.RESET, "\n";
+   -d $destination or die RED."Destination folder missing\n".RESET;
 
    my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
 
@@ -115,7 +115,7 @@ if ($info or $Info)
    foreach my $tag (@tags)
    {
       next unless $exifTool->GetValue($tag);
-      printf "[%s] %24s: %s\n", $exifTool->GetGroup($tag, 0), $tag, GREEN.$exifTool->GetValue($tag).RESET;
+      printf "[%s] %24s: %s\n", $exifTool->GetGroup($tag, 0), $tag, GREEN, $exifTool->GetValue($tag), RESET;
    }
 }
 
@@ -154,21 +154,21 @@ unless ($info or $Info or $sync)
             {
                if ($exifTool->GetValue('Error'))
                {
-                  warn "Error writing $image: ", RED, $exifTool->GetValue('Error'), RESET."\n";
+                  warn "Error writing $image: ", RED, $exifTool->GetValue('Error'), RESET, "\n";
                }
                if ($exifTool->GetValue('Warning'))
                {
-                  warn "Error writing $image: ", YELLOW, $exifTool->GetValue('Warning'), RESET."\n";
+                  warn "Error writing $image: ", YELLOW, $exifTool->GetValue('Warning'), RESET, "\n";
                }
             }
          } else {
             if (exists $info->{Warning})
             {
-               warn "Error moving $image: ", YELLOW.$info->{Warning}.RESET."\n";
+               warn "Error moving $image: ", YELLOW, $info->{Warning}, RESET, "\n";
             }
             if (exists $info->{Error})
             {
-               warn "Error moving $image: ", RED.$info->{Error}.RESET."\n";
+               warn "Error moving $image: ", RED, $info->{Error}, RESET, "\n";
             }
          }
       }
