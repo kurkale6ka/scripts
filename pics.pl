@@ -2,7 +2,10 @@
 
 # Sort camera shots into timestamped folders
 #
-# Usage: pics.pl [-n|-s[v]|-i|-I]
+# Usage: pics.pl [-n|-s|-d|-i[v]|-t]
+#
+# TODO: import sub, y/n after main
+#       images in pink if err/warn
 
 use strict;
 use warnings;
@@ -26,39 +29,38 @@ sub help
 {
    print <<HELP;
 Usage:
-   pics.pl [-n (dry run)]           : $description
-   pics.pl -s source                : set source
-   pics.pl -d destination           : set destination
-   pics.pl -m[v(erbose)]            : move from upload location to the images library
-   pics.pl -i|I {file...|directory} : get info
+   pics.pl [-n (dry run)]         : $description
+   pics.pl -s source              : set source
+   pics.pl -d destination         : set destination
+   pics.pl -i[v(erbose)]          : import into the images library
+   pics.pl -t {file...|directory} : show tags
 HELP
    exit; # TODO: die if $? != 0
 }
 
 # Options
-my ($dry, $move, $verbose, $info, $Info);
+my ($dry, $import, $verbose, $tags);
 
 GetOptions (
    'n'             => \$dry,
    'source=s'      => \$source,
    'destination=s' => \$destination,
-   'move'          => \$move,
+   'import'        => \$import,
    'verbose'       => \$verbose,
-   'info=s'        => \$info,
-   'Info=s'        => \$Info,
+   'tags:s'        => \$tags,
    'help'          => \&help
 ) or die RED."Error in command line arguments\n".RESET;
 
 # Checks
 # TODO:
 # warn if incompatible options
-unless ($info or $Info)
+unless (defined $tags)
 {
    -d $source or die RED."Uploads folder missing\n".RESET;
 }
 
-# Move
-if ($move)
+# Import
+if ($import)
 {
    -d $destination or die RED."Destination folder missing\n".RESET;
 
@@ -90,26 +92,27 @@ $exifTool->Options(
    DateFormat => '%d %b %Y, %H:%M',
 );
 
-# Info
+# Show tags
 # TODO:
 # allow folder or . as an arg
-if ($info or $Info)
+if (defined $tags)
 {
-   my ($img, @tags);
+   my $img = shift;
+   my @tags;
 
-   if ($info)
+   if ($tags eq '')
    {
       # TODO: check *keyword* *comment* work
       # exiftool -G -S -a -'*keyword*' -subject -title -'*comment*' -make -model -createdate -datetimeoriginal
-      $img = $info;
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
    } else {
-      # exiftool -G -S -a
-      $img = $Info;
-      @tags = ('All');
+      # TODO: coma separated?
+      # if all <=> exiftool -G -S -a
+      @tags = ($tags);
    }
 
    $exifTool->ImageInfo($img, \@tags);
+   say "* $_:" for @tags;
 
    # TODO: change display to
    # Group1
@@ -127,12 +130,13 @@ if ($info or $Info)
 # TODO:
 # - fix %c
 # - dry run by default?
-unless ($info or $Info or $move)
+unless (defined $tags or $import)
 {
    say GREEN, ucfirst $description, RESET;
    say '-' x length $description;
 
    my $filename = 'testname';
+   my %dates;
 
    # TODO: ask on forum about efficiency compared to exiftool on dir
    foreach my $image (glob "'$source/*'")
@@ -142,14 +146,25 @@ unless ($info or $Info or $move)
          my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
          my ($info, $result);
 
-         my $date = $exifTool->ImageInfo($image, 'CreateDate', {DateFormat => '%d-%b-%Y %Hh%Mm%S'});
-         say $date->{CreateDate};
+         my $date;
+         my $date_ref = $exifTool->ImageInfo($image, 'CreateDate', {DateFormat => '%d-%b-%Y %Hh%Mm%S'});
+
+         my $suf = '';
+         if ($date = $date_ref->{CreateDate})
+         {
+            $dates{$date}++;
+            if ($dates{$date} > 1)
+            {
+               $suf = $dates{$date} - 1;
+               $suf = "-$suf";
+            }
+         }
 
          if ($exifTool->GetValue('Make'))
          {
-            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.lc($suffix));
+            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.$suf.lc($suffix));
          } else {
-            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.lc($suffix));
+            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.$suf.lc($suffix));
          }
 
          # Errors while sorting images
@@ -160,23 +175,23 @@ unless ($info or $Info or $move)
             # Errors while writing
             unless ($result == 1)
             {
-               if ($exifTool->GetValue('Error'))
-               {
-                  warn "Error writing $image: ", RED, $exifTool->GetValue('Error'), RESET, "\n";
-               }
                if ($exifTool->GetValue('Warning'))
                {
-                  warn "Error writing $image: ", YELLOW, $exifTool->GetValue('Warning'), RESET, "\n";
+                  warn "Warning writing $basename ", YELLOW, $exifTool->GetValue('Warning'), RESET, "\n";
+               }
+               if ($exifTool->GetValue('Error'))
+               {
+                  warn "Error writing $basename ", RED, $exifTool->GetValue('Error'), RESET, "\n";
                }
             }
          } else {
             if (exists $info->{Warning})
             {
-               warn "Error moving $image: ", YELLOW, $info->{Warning}, RESET, "\n";
+               warn "Warning moving $basename ", YELLOW, $info->{Warning}, RESET, "\n";
             }
             if (exists $info->{Error})
             {
-               warn "Error moving $image: ", RED, $info->{Error}, RESET, "\n";
+               warn "Error moving $basename ", RED, $info->{Error}, RESET, "\n";
             }
          }
       }
