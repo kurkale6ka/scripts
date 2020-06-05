@@ -7,6 +7,7 @@
 use strict;
 use warnings;
 use feature 'say';
+# TODO: get rid of this
 use lib '/usr/local/Cellar/exiftool/11.85/libexec/lib';
 use Image::ExifTool ':Public';
 use File::Basename 'fileparse';
@@ -23,22 +24,25 @@ my $destination = glob '~/Dropbox/pics';
 
 sub help
 {
-   say <<HELP;
+   print <<HELP;
+Usage:
    pics.pl [-n (dry run)]           : $description
-   pics.pl -s[v(erbose)]            : sync
+   pics.pl -s source                : set source
+   pics.pl -d destination           : set destination
+   pics.pl -m[v(erbose)]            : move from upload location to the images library
    pics.pl -i|I {file...|directory} : get info
 HELP
    exit; # TODO: die if $? != 0
 }
 
 # Options
-my ($dry, $sync, $verbose, $info, $Info);
+my ($dry, $move, $verbose, $info, $Info);
 
 GetOptions (
+   'n'             => \$dry,
    'source=s'      => \$source,
    'destination=s' => \$destination,
-   'dry|n'         => \$dry,
-   'move|sync'     => \$sync,
+   'move'          => \$move,
    'verbose'       => \$verbose,
    'info=s'        => \$info,
    'Info=s'        => \$Info,
@@ -53,8 +57,8 @@ unless ($info or $Info)
    -d $source or die RED."Uploads folder missing\n".RESET;
 }
 
-# Sync
-if ($sync)
+# Move
+if ($move)
 {
    -d $destination or die RED."Destination folder missing\n".RESET;
 
@@ -123,19 +127,23 @@ if ($info or $Info)
 # TODO:
 # - fix %c
 # - dry run by default?
-unless ($info or $Info or $sync)
+unless ($info or $Info or $move)
 {
    say GREEN, ucfirst $description, RESET;
    say '-' x length $description;
 
    my $filename = 'testname';
 
+   # TODO: ask on forum about efficiency compared to exiftool on dir
    foreach my $image (glob "'$source/*'")
    {
       if (-f $image)
       {
          my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
          my ($info, $result);
+
+         my $date = $exifTool->ImageInfo($image, 'CreateDate', {DateFormat => '%d-%b-%Y %Hh%Mm%S'});
+         say $date->{CreateDate};
 
          if ($exifTool->GetValue('Make'))
          {
@@ -144,12 +152,12 @@ unless ($info or $Info or $sync)
             $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.lc($suffix));
          }
 
-         # errors occurred
+         # Errors while sorting images
          unless (exists $info->{Warning} or exists $info->{Error})
          {
             $result = $exifTool->WriteInfo($image);
 
-            # errors occurred
+            # Errors while writing
             unless ($result == 1)
             {
                if ($exifTool->GetValue('Error'))
