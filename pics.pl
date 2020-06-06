@@ -30,10 +30,21 @@ sub help
 {
    print <<HELP;
 Usage:
-   pics.pl [-n (dry run)]         : $description
-   pics.pl -s src -d dst
-   pics.pl -i[v(erbose)]          : import into the images library
-   pics.pl -t {file...|directory} : show tags
+
+   pics    [-s src] [-d dst] [-n] [-v] : $description
+   pics -i [-s src] [-d dst] [-n] [-v] : import into the images library
+
+   pics                 [img ...|dir] : show tags
+   pics -t [tag [,...]] [img ...|dir] :
+
+options long names
+
+   --source,      -s
+   --destination, -d
+                  -n (dry-run)
+   --verbose,     -v
+   --import,      -i
+   --tags,        -t
 HELP
    exit; # TODO: die if $? != 0
 }
@@ -59,7 +70,7 @@ unless (defined $tags)
    -d $source or die RED."Uploads folder missing\n".RESET;
 }
 
-sub import {
+sub lib_import {
    -d $destination or die RED."Destination folder missing\n".RESET;
 
    my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
@@ -86,7 +97,7 @@ sub import {
 # Import
 if ($import)
 {
-   import;
+   lib_import;
 }
 
 my $exifTool = new Image::ExifTool;
@@ -202,5 +213,5 @@ unless (defined $tags or $import)
       }
    }
 
-   # import ?
+   # lib_import ?
 }
