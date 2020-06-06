@@ -2,11 +2,10 @@
 
 # Sort camera shots into timestamped folders
 #
-# Usage: pics.pl [-n|-s|-d|-i[v]|-t]
-#
-# TODO: import sub, y/n after main
-#       images in pink if err/warn
+# TODO: images in pink if err/warn
 #       arg img or folder, use -t
+#       -w for warnings but disable by default?
+#       global $dry used inside lib_import. fix?
 
 use strict;
 use warnings;
@@ -18,7 +17,10 @@ use File::Basename 'fileparse';
 use Term::ANSIColor ':constants';
 use Getopt::Long qw/GetOptions :config no_ignore_case/;
 
-my $description = 'sort camera shots into timestamped folders';
+my %messages = (
+   title  => 'sort camera shots into timestamped folders',
+   import => 'import into the images library',
+);
 
 # Folder where pictures get uploaded
 my $source = glob '"~/Dropbox/Camera Uploads"';
@@ -29,21 +31,21 @@ my $destination = glob '~/Dropbox/pics';
 sub help
 {
    print <<HELP;
-Usage:
+Usage
 
-   pics    [-s src] [-d dst] [-n] [-v] : $description
-   pics -i [-s src] [-d dst] [-n] [-v] : import into the images library
+   pics    [-s src] [-d dst] [-n] [-v] : $messages{title}
+   pics -i [-s src] [-d dst] [-n] [-v] : $messages{import}
 
    pics                 [img ...|dir] : show tags
    pics -t [tag [,...]] [img ...|dir] :
 
-options long names
+Options
 
    --source,      -s
    --destination, -d
                   -n (dry-run)
    --verbose,     -v
-   --import,      -i
+   --(no-)import, -i
    --tags,        -t
 HELP
    exit; # TODO: die if $? != 0
@@ -56,7 +58,7 @@ GetOptions (
    'n'             => \$dry,
    'source=s'      => \$source,
    'destination=s' => \$destination,
-   'import'        => \$import,
+   'import!'       => \$import,
    'verbose'       => \$verbose,
    'tags:s'        => \$tags,
    'help'          => \&help
@@ -67,18 +69,30 @@ GetOptions (
 # warn if incompatible options
 unless (defined $tags)
 {
-   -d $source or die RED."Uploads folder missing\n".RESET;
+   # implicit --tags with files/folders
+   if (@ARGV > 0)
+   {
+      $tags = '';
+   } else {
+      -d $source or die RED."Uploads folder missing\n".RESET;
+   }
 }
 
-sub lib_import {
+# Import
+sub lib_import
+{
    -d $destination or die RED."Destination folder missing\n".RESET;
 
    my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
 
-   system qw/rsync --remove-source-files --partial -ai/, @years, $destination;
+   my $options = 'a';
+   $options .= 'i' if $dry or $verbose;
+   $options .= 'n' if $dry;
+
+   system qw/rsync --remove-source-files --partial/, "-$options", @years, $destination;
 
    # delete source years + months after a successful transfer
-   if ($? == 0)
+   if ($? == 0 and not $dry)
    {
       foreach my $year (@years)
       {
@@ -94,11 +108,7 @@ sub lib_import {
    }
 }
 
-# Import
-if ($import)
-{
-   lib_import;
-}
+lib_import if $import;
 
 my $exifTool = new Image::ExifTool;
 
@@ -112,9 +122,6 @@ $exifTool->Options(
 # allow folder or . as an arg
 if (defined $tags)
 {
-   @ARGV > 0 or die "You need images with --tags\n";
-
-   my $img = shift;
    my @tags;
 
    if ($tags eq '')
@@ -128,6 +135,15 @@ if (defined $tags)
       @tags = ($tags);
    }
 
+   # if (@ARGV == 0)
+   # {
+   #    foreach (glob './*')
+   #    {
+   #    }
+   # }
+   #    or die "You need images with --tags\n";
+
+   my $img = shift;
    $exifTool->ImageInfo($img, \@tags);
 
    # TODO: change display to
@@ -148,10 +164,18 @@ if (defined $tags)
 # - dry run by default?
 unless (defined $tags or $import)
 {
-   say GREEN, ucfirst $description, RESET;
-   say '-' x length $description;
+   say GREEN, ucfirst $messages{title}, RESET;
+   say '-' x length $messages{title};
 
-   my $filename = 'testname';
+   my $filename;
+
+   unless ($dry)
+   {
+      $filename = 'filename';
+   } else {
+      $filename = 'testname';
+   }
+
    my %dates;
 
    # TODO: ask on forum about efficiency compared to exiftool on dir
@@ -213,5 +237,15 @@ unless (defined $tags or $import)
       }
    }
 
-   # lib_import ?
+   # Import unless --no-import
+   unless (defined $import or $dry)
+   {
+      print "\n", GREEN, ucfirst $messages{import}, RESET, ' (y/n)? ';
+
+      if (<STDIN> =~ /y(es)?/in)
+      {
+         say '-' x length $messages{import} if $verbose;
+         lib_import;
+      }
+   }
 }
