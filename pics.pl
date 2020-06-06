@@ -6,6 +6,7 @@
 #
 # TODO: import sub, y/n after main
 #       images in pink if err/warn
+#       arg img or folder, use -t
 
 use strict;
 use warnings;
@@ -30,8 +31,7 @@ sub help
    print <<HELP;
 Usage:
    pics.pl [-n (dry run)]         : $description
-   pics.pl -s source              : set source
-   pics.pl -d destination         : set destination
+   pics.pl -s src -d dst
    pics.pl -i[v(erbose)]          : import into the images library
    pics.pl -t {file...|directory} : show tags
 HELP
@@ -52,16 +52,14 @@ GetOptions (
 ) or die RED."Error in command line arguments\n".RESET;
 
 # Checks
-# TODO:
+# TODO: move to main/import?
 # warn if incompatible options
 unless (defined $tags)
 {
    -d $source or die RED."Uploads folder missing\n".RESET;
 }
 
-# Import
-if ($import)
-{
+sub import {
    -d $destination or die RED."Destination folder missing\n".RESET;
 
    my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
@@ -85,6 +83,12 @@ if ($import)
    }
 }
 
+# Import
+if ($import)
+{
+   import;
+}
+
 my $exifTool = new Image::ExifTool;
 
 $exifTool->Options(
@@ -97,6 +101,8 @@ $exifTool->Options(
 # allow folder or . as an arg
 if (defined $tags)
 {
+   @ARGV > 0 or die "You need images with --tags\n";
+
    my $img = shift;
    my @tags;
 
@@ -112,7 +118,6 @@ if (defined $tags)
    }
 
    $exifTool->ImageInfo($img, \@tags);
-   say "* $_:" for @tags;
 
    # TODO: change display to
    # Group1
@@ -122,7 +127,7 @@ if (defined $tags)
    foreach my $tag (@tags)
    {
       next unless $exifTool->GetValue($tag);
-      printf "[%s] %24s: %s\n", $exifTool->GetGroup($tag, 0), $tag, GREEN, $exifTool->GetValue($tag), RESET;
+      printf "[%s] %24s: %s\n", $exifTool->GetGroup($tag, 0), $tag, GREEN.$exifTool->GetValue($tag).RESET;
    }
 }
 
@@ -196,4 +201,6 @@ unless (defined $tags or $import)
          }
       }
    }
+
+   # import ?
 }
