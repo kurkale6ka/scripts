@@ -3,7 +3,6 @@
 # Sort camera shots into timestamped folders
 #
 # TODO: images in pink if err/warn
-#       arg img or folder, use -t
 #       -w for warnings but disable by default?
 #       global $dry used inside lib_import. fix?
 
@@ -17,16 +16,16 @@ use File::Basename 'fileparse';
 use Term::ANSIColor ':constants';
 use Getopt::Long qw/GetOptions :config no_ignore_case/;
 
-my %messages = (
-   title  => 'sort camera shots into timestamped folders',
-   import => 'import into the images library',
-);
-
 # Folder where pictures get uploaded
 my $source = glob '"~/Dropbox/Camera Uploads"';
 
 # Images library folder
 my $destination = glob '~/Dropbox/pics';
+
+my %messages = (
+   title  => 'sort camera shots into timestamped folders',
+   import => 'import into the images library',
+);
 
 sub help
 {
@@ -52,36 +51,46 @@ HELP
 }
 
 # Options
-my ($dry, $import, $verbose, $tags);
+my ($dry, $src, $dst, $import, $verbose, $tags);
 
 GetOptions (
    'n'             => \$dry,
-   'source=s'      => \$source,
-   'destination=s' => \$destination,
+   'source=s'      => \$src,
+   'destination=s' => \$dst,
    'import!'       => \$import,
    'verbose'       => \$verbose,
    'tags:s'        => \$tags,
    'help'          => \&help
-) or die RED."Error in command line arguments\n".RESET;
+) or die RED.'Error in command line arguments'.RESET, "\n";
+
+$src and $source = $src;
+$dst and $destination = $dst;
 
 # Checks
-# TODO: move to main/import?
-# warn if incompatible options
 unless (defined $tags)
 {
    # implicit --tags with files/folders
    if (@ARGV > 0)
    {
       $tags = '';
+      if ($dry or $src or $dst or $verbose)
+      {
+         die RED.'When showing tags, no options are allowed'.RESET, "\n";
+      }
    } else {
-      -d $source or die RED."Uploads folder missing\n".RESET;
+      -d $source or die RED.'Source folder missing'.RESET, "\n";
+   }
+} else {
+   if ($dry or $src or $dst or $verbose)
+   {
+      die RED.'When showing tags, no options are allowed'.RESET, "\n";
    }
 }
 
 # Import
 sub lib_import
 {
-   -d $destination or die RED."Destination folder missing\n".RESET;
+   -d $destination or die RED.'Destination folder missing'.RESET, "\n";
 
    my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
 
@@ -112,8 +121,8 @@ lib_import if $import;
 
 my $exifTool = new Image::ExifTool;
 
-$exifTool->Options(
-   Sort => 'Group1',
+$exifTool->Options (
+   Sort       => 'Group1',
    DateFormat => '%d %b %Y, %H:%M',
 );
 
@@ -144,7 +153,19 @@ if (defined $tags)
    #    or die "You need images with --tags\n";
 
    my $img = shift;
-   $exifTool->ImageInfo($img, \@tags);
+
+   if (-e $img)
+   {
+      my $info = $exifTool->ImageInfo($img, \@tags);
+
+      if (exists $info->{Error})
+      {
+         warn RED, $info->{Error}, RESET, "\n";
+      }
+
+   } else {
+      warn RED."File not found: $img".RESET, "\n";
+   }
 
    # TODO: change display to
    # Group1
