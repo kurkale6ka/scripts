@@ -183,17 +183,9 @@ if (defined $tags)
 unless (defined $tags or $import)
 {
    say GREEN, ucfirst $messages{title}, RESET;
-   say '-' x length $messages{title};
+   say   '-' x length $messages{title};
 
-   my $filename;
-
-   unless ($dry)
-   {
-      $filename = 'filename';
-   } else {
-      $filename = 'testname';
-   }
-
+   my $filename = $dry ? 'testname' : 'filename';
    my %cdates;
 
    # TODO: ask on forum about efficiency compared to exiftool on dir
@@ -201,13 +193,11 @@ unless (defined $tags or $import)
    {
       if (-f $image)
       {
-         my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
-         my ($info, $result);
+         # Compare CreateDate and DateTimeOriginal
+         my $dates = $exifTool->ImageInfo($image, qw/CreateDate DateTimeOriginal/, {DateFormat => '%d-%b-%Y %Hh%Mm%S'});
 
-         my $dates_ref = $exifTool->ImageInfo($image, qw/CreateDate DateTimeOriginal/, {DateFormat => '%d-%b-%Y %Hh%Mm%S'});
-
-         my $cdate = $dates_ref->{CreateDate};
-         my $ddate = $dates_ref->{DateTimeOriginal};
+         my $cdate = $dates->{CreateDate};
+         my $ddate = $dates->{DateTimeOriginal};
          $cdate //= '';
          $ddate //= '';
 
@@ -216,29 +206,28 @@ unless (defined $tags or $import)
             warn YELLOW."CreateDate ($cdate) differs from DateTimeOriginal ($ddate)".RESET, "\n";
          }
 
-         # %-c
-         my $suf = '';
+         # Add -num (%c) before extension for images having the same Createdate
+         my $num = '';
          if ($cdate)
          {
             $cdates{$cdate}++;
-            if ($cdates{$cdate} > 1)
-            {
-               $suf = $cdates{$cdate} - 1;
-               $suf = "-$suf";
-            }
+            $num = '-'.($cdates{$cdate}-1) if $cdates{$cdate} > 1;
          }
+
+         my $info;
+         my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
 
          if ($exifTool->GetValue('Make'))
          {
-            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.$suf.lc($suffix));
+            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.$num.lc($suffix));
          } else {
-            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.$suf.lc($suffix));
+            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.$num.lc($suffix));
          }
 
          # Errors while sorting images
          unless (exists $info->{Warning} or exists $info->{Error})
          {
-            $result = $exifTool->WriteInfo($image);
+            my $result = $exifTool->WriteInfo($image);
 
             # Errors while writing
             unless ($result == 1)
