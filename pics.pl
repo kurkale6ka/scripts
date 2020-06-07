@@ -180,9 +180,6 @@ if (defined $tags)
 }
 
 # Main
-# TODO:
-# - fix %c
-# - dry run by default?
 unless (defined $tags or $import)
 {
    say GREEN, ucfirst $messages{title}, RESET;
