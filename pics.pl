@@ -197,7 +197,7 @@ unless (defined $tags or $import)
       $filename = 'testname';
    }
 
-   my %dates;
+   my %cdates;
 
    # TODO: ask on forum about efficiency compared to exiftool on dir
    foreach my $image (glob "'$source/*'")
@@ -207,16 +207,26 @@ unless (defined $tags or $import)
          my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
          my ($info, $result);
 
-         my $date;
-         my $date_ref = $exifTool->ImageInfo($image, 'CreateDate', {DateFormat => '%d-%b-%Y %Hh%Mm%S'});
+         my $dates_ref = $exifTool->ImageInfo($image, qw/CreateDate DateTimeOriginal/, {DateFormat => '%d-%b-%Y %Hh%Mm%S'});
 
-         my $suf = '';
-         if ($date = $date_ref->{CreateDate})
+         my $cdate = $dates_ref->{CreateDate};
+         my $ddate = $dates_ref->{DateTimeOriginal};
+         $cdate //= '';
+         $ddate //= '';
+
+         if ($cdate ne $ddate)
          {
-            $dates{$date}++;
-            if ($dates{$date} > 1)
+            warn YELLOW."CreateDate ($cdate) differs from DateTimeOriginal ($ddate)".RESET, "\n";
+         }
+
+         # %-c
+         my $suf = '';
+         if ($cdate)
+         {
+            $cdates{$cdate}++;
+            if ($cdates{$cdate} > 1)
             {
-               $suf = $dates{$date} - 1;
+               $suf = $cdates{$cdate} - 1;
                $suf = "-$suf";
             }
          }
