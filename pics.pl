@@ -9,8 +9,7 @@
 use strict;
 use warnings;
 use feature 'say';
-# TODO: get rid of this
-use lib '/usr/local/Cellar/exiftool/11.85/libexec/lib';
+use lib '/usr/local/Cellar/exiftool/11.85/libexec/lib'; # TODO: get rid of this
 use Image::ExifTool ':Public';
 use File::Basename 'fileparse';
 use Term::ANSIColor ':constants';
@@ -47,7 +46,7 @@ Options
    --(no-)import, -i
    --tags,        -t
 HELP
-   exit; # TODO: die if $? != 0
+   exit;
 }
 
 # Options
@@ -63,7 +62,7 @@ GetOptions (
    'help'          => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-$src and $source = $src;
+$src and      $source = $src;
 $dst and $destination = $dst;
 
 # Checks
@@ -72,19 +71,17 @@ unless (defined $tags)
    # implicit --tags with files/folders
    if (@ARGV > 0)
    {
-      $tags = '';
       if ($dry or $src or $dst or $verbose)
       {
          die RED.'When showing tags, no options are allowed'.RESET, "\n";
+      } else {
+         $tags = '';
       }
    } else {
       -d $source or die RED.'Source folder missing'.RESET, "\n";
    }
-} else {
-   if ($dry or $src or $dst or $verbose)
-   {
-      die RED.'When showing tags, no options are allowed'.RESET, "\n";
-   }
+} elsif ($dry or $src or $dst or $verbose) {
+   die RED.'When showing tags, no options are allowed'.RESET, "\n";
 }
 
 # Import
@@ -204,6 +201,7 @@ unless (defined $tags or $import)
          if ($cdate ne $ddate)
          {
             warn YELLOW."CreateDate ($cdate) differs from DateTimeOriginal ($ddate)".RESET, "\n";
+            # TODO: next;
          }
 
          # Add -num (%c) before extension for images having the same Createdate
@@ -214,6 +212,7 @@ unless (defined $tags or $import)
             $num = '-'.($cdates{$cdate}-1) if $cdates{$cdate} > 1;
          }
 
+         # Sort camera shots
          my $info;
          my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
 
@@ -224,7 +223,7 @@ unless (defined $tags or $import)
             $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.$num.lc($suffix));
          }
 
-         # Errors while sorting images
+         # Errors while sorting
          unless (exists $info->{Warning} or exists $info->{Error})
          {
             my $result = $exifTool->WriteInfo($image);
