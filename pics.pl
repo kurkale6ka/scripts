@@ -39,8 +39,8 @@ ${BOLD}SYNOPSIS${RESET}
    pics    [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{title}${RESET}
    pics -i [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{import}${RESET}
 
-   pics                 [img ...|${BLUE}dir${RESET}] : ${GREEN}show tags${RESET}
-   pics -t [tag [,...]] [img ...|${BLUE}dir${RESET}] :
+   pics                [img ...|${BLUE}dir${RESET}] : ${GREEN}show tags${RESET}
+   pics -t [tag[,...]] [img ...|${BLUE}dir${RESET}] :
 
 ${BOLD}OPTIONS${RESET}
 
@@ -139,9 +139,9 @@ if (defined $tags)
       # exiftool -G -S -a -'*keyword*' -subject -title -'*comment*' -make -model -createdate -datetimeoriginal
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
    } else {
-      # TODO: coma separated?
+      # TODO:
       # if all <=> exiftool -G -S -a
-      @tags = ($tags);
+      @tags = split /\s*,\s*/, $tags;
    }
 
    # if (@ARGV == 0)
