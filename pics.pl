@@ -12,13 +12,13 @@ use feature 'say';
 use lib '/usr/local/Cellar/exiftool/11.85/libexec/lib'; # TODO: get rid of this
 use Image::ExifTool ':Public';
 use File::Basename 'fileparse';
-use Term::ANSIColor ':constants';
+use Term::ANSIColor qw/:constants color/;
 use Getopt::Long qw/GetOptions :config no_ignore_case/;
 
-# Folder where pictures get uploaded
+# Location where pictures get uploaded
 my $source = glob '"~/Dropbox/Camera Uploads"';
 
-# Images library folder
+# Images library
 my $destination = glob '~/Dropbox/pics';
 
 my %messages = (
@@ -26,18 +26,23 @@ my %messages = (
    import => 'import into the images library',
 );
 
+my $BLUE  = color('ansi69');
+my $GREEN = color('green');
+my $BOLD  = color('bold');
+my $RESET = color('reset');
+
 sub help
 {
    print <<HELP;
-Usage
+${BOLD}Usage${RESET}
 
-   pics    [-s src] [-d dst] [-n] [-v] : $messages{title}
-   pics -i [-s src] [-d dst] [-n] [-v] : $messages{import}
+   pics    [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{title}${RESET}
+   pics -i [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{import}${RESET}
 
-   pics                 [img ...|dir] : show tags
-   pics -t [tag [,...]] [img ...|dir] :
+   pics                 [img ...|${BLUE}dir${RESET}] : ${GREEN}show tags${RESET}
+   pics -t [tag [,...]] [img ...|${BLUE}dir${RESET}] :
 
-Options
+${BOLD}Options${RESET}
 
    --source,      -s
    --destination, -d
@@ -68,7 +73,7 @@ $dst and $destination = $dst;
 # Checks
 unless (defined $tags)
 {
-   # implicit --tags with files/folders
+   # pics img ..., pics dir => implicit --tags
    if (@ARGV > 0)
    {
       if ($dry or $src or $dst or $verbose)
@@ -78,7 +83,7 @@ unless (defined $tags)
          $tags = '';
       }
    } else {
-      -d $source or die RED.'Source folder missing'.RESET, "\n";
+      -d $source or die RED."Source missing: ${BLUE}$source".RESET, "\n";
    }
 } elsif ($dry or $src or $dst or $verbose) {
    die RED.'When showing tags, no options are allowed'.RESET, "\n";
@@ -87,7 +92,7 @@ unless (defined $tags)
 # Import
 sub lib_import
 {
-   -d $destination or die RED.'Destination folder missing'.RESET, "\n";
+   -d $destination or die RED."Destination missing: ${BLUE}$destination".RESET, "\n";
 
    my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
 
@@ -102,12 +107,10 @@ sub lib_import
    {
       foreach my $year (@years)
       {
-         foreach (glob "$year/{January,February,March,April,May,June,July,August,September,October,November,December}")
+         foreach (glob "'$year/{January,February,March,April,May,June,July,August,September,October,November,December}'")
          {
-            if (-d $_)
-            {
-               rmdir $_ or die "$_: $!\n";
-            }
+            next unless -d $_;
+            rmdir $_ or die "$_: $!\n";
          }
          rmdir $year or die "$year: $!\n";
       }
@@ -143,7 +146,7 @@ if (defined $tags)
 
    # if (@ARGV == 0)
    # {
-   #    foreach (glob './*')
+   #    foreach (glob '"./*"')
    #    {
    #    }
    # }
