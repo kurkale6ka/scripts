@@ -34,7 +34,7 @@ my $RESET = color('reset');
 sub help
 {
    print <<HELP;
-${BOLD}Usage${RESET}
+${BOLD}SYNOPSIS${RESET}
 
    pics    [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{title}${RESET}
    pics -i [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{import}${RESET}
@@ -42,7 +42,7 @@ ${BOLD}Usage${RESET}
    pics                 [img ...|${BLUE}dir${RESET}] : ${GREEN}show tags${RESET}
    pics -t [tag [,...]] [img ...|${BLUE}dir${RESET}] :
 
-${BOLD}Options${RESET}
+${BOLD}OPTIONS${RESET}
 
    --source,      -s
    --destination, -d
