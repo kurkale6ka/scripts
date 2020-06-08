@@ -139,8 +139,7 @@ if (defined $tags)
       # exiftool -G -S -a -'*keyword*' -subject -title -'*comment*' -make -model -createdate -datetimeoriginal
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
    } else {
-      # TODO:
-      # if all <=> exiftool -G -S -a
+      # exiftool -G -S -a -tag1 ... -tagn
       @tags = split /\s*,\s*/, $tags;
    }
 
@@ -150,7 +149,6 @@ if (defined $tags)
    #    {
    #    }
    # }
-   #    or die "You need images with --tags\n";
 
    my $img = shift;
 
