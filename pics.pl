@@ -95,6 +95,7 @@ sub lib_import
    -d $destination or die RED."Destination missing: ${BLUE}$destination".RESET, "\n";
 
    my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
+   @years or return;
 
    my $options = 'a';
    $options .= 'i' if $dry or $verbose;
