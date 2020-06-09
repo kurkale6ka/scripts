@@ -216,13 +216,13 @@ unless (defined $tags or $import)
 
          # Sort camera shots
          my $info;
-         my ($basename, $dirs, $suffix) = fileparse($image, qr/\.[^.]+$/);
+         my ($basename, $dirs, $ext) = fileparse($image, qr/\.[^.]+$/);
 
          if ($exifTool->GetValue('Make'))
          {
-            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.$num.lc($suffix));
+            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.$num.lc($ext));
          } else {
-            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.$num.lc($suffix));
+            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.$num.lc($ext));
          }
 
          # Errors while sorting
@@ -235,21 +235,21 @@ unless (defined $tags or $import)
             {
                if ($exifTool->GetValue('Warning'))
                {
-                  warn "Warning writing $basename ", YELLOW, $exifTool->GetValue('Warning'), RESET, "\n";
+                  warn "Warning writing ${basename}$ext ", YELLOW, $exifTool->GetValue('Warning'), RESET, "\n";
                }
                if ($exifTool->GetValue('Error'))
                {
-                  warn "Error writing $basename ", RED, $exifTool->GetValue('Error'), RESET, "\n";
+                  warn "Error writing ${basename}$ext ", RED, $exifTool->GetValue('Error'), RESET, "\n";
                }
             }
          } else {
             if (exists $info->{Warning})
             {
-               warn "Warning moving $basename ", YELLOW, $info->{Warning}, RESET, "\n";
+               warn "Warning moving ${basename}$ext ", YELLOW, $info->{Warning}, RESET, "\n";
             }
             if (exists $info->{Error})
             {
-               warn "Error moving $basename ", RED, $info->{Error}, RESET, "\n";
+               warn "Error moving ${basename}$ext ", RED, $info->{Error}, RESET, "\n";
             }
          }
       }
