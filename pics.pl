@@ -120,6 +120,7 @@ sub lib_import
 
 lib_import if $import;
 
+# ExifTool object
 my $exifTool = new Image::ExifTool;
 
 $exifTool->Options (
@@ -178,7 +179,7 @@ if (defined $tags)
    }
 }
 
-# Main
+# Sort camera shots
 unless (defined $tags or $import)
 {
    say GREEN, ucfirst $messages{title}, RESET;
