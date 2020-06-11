@@ -142,6 +142,7 @@ if (defined $tags)
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
    } else {
       # exiftool -G -S -a -tag1 ... -tagn
+      # system qw/exiftool -G -S -a/, map ("-$_", @tags), $img;
       @tags = split /\s*,\s*/, $tags;
    }
 
@@ -186,6 +187,13 @@ unless (defined $tags or $import)
    say   '-' x length $messages{title};
 
    my $filename = $dry ? 'testname' : 'filename';
+
+# exiftool -p '"$directory/$filename": $createdate - $datetimeoriginal' -if '$createdate !~ $datetimeoriginal' \
+#          -d $source'/%Y/%B/%Y-%m-%d %H.%M.%S%%-c' \
+#          -$filename'<$createdate.%le' \
+#          -$filename'<$createdate ${make;}.%le' \
+#          $source
+
    my %cdates;
 
    # TODO: ask on forum about efficiency compared to exiftool on dir
