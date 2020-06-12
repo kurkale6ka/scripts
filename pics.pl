@@ -188,9 +188,9 @@ unless (defined $tags or $import)
 
    my $filename = $dry ? 'testname' : 'filename';
 
-   # # the last valid -$filename<$createdate supersedes the others:
+   # # the last valid -$filename<$createdate supersedes the others
    # system ('exiftool', '-q', '-q',
-   #    # '-p', '"$directory/$filename": $createdate - $datetimeoriginal', '-if', '$createdate !~ $datetimeoriginal',
+   #    '-if', '$createdate eq $datetimeoriginal',
    #    '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
    #    "-$filename<\$createdate.%le",
    #    "-$filename<\$createdate \${make;}.%le",
