@@ -188,11 +188,14 @@ unless (defined $tags or $import)
 
    my $filename = $dry ? 'testname' : 'filename';
 
-# exiftool -p '"$directory/$filename": $createdate - $datetimeoriginal' -if '$createdate !~ $datetimeoriginal' \
-#          -d $source'/%Y/%B/%Y-%m-%d %H.%M.%S%%-c' \
-#          -$filename'<$createdate.%le' \
-#          -$filename'<$createdate ${make;}.%le' \
-#          $source
+   # # the last valid -$filename<$createdate supersedes the others:
+   # system ('exiftool', '-q', '-q',
+   #    # '-p', '"$directory/$filename": $createdate - $datetimeoriginal', '-if', '$createdate !~ $datetimeoriginal',
+   #    '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
+   #    "-$filename<\$createdate.%le",
+   #    "-$filename<\$createdate \${make;}.%le",
+   #    $source
+   # );
 
    my %cdates;
 
