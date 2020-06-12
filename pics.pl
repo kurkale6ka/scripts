@@ -214,7 +214,7 @@ unless (defined $tags or $import)
 
          if ($cdate ne $ddate)
          {
-            warn YELLOW."CreateDate ($cdate) differs from DateTimeOriginal ($ddate)".RESET, "\n";
+            warn "$image ", YELLOW."CreateDate ($cdate) differs from DateTimeOriginal ($ddate)".RESET, "\n";
             # TODO: next;
          }
 
