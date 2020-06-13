@@ -2,8 +2,8 @@
 
 # Sort camera shots into timestamped folders
 #
-# TODO: images in pink if err/warn
-#       -w for warnings but disable by default?
+# TODO: -w for warnings but disable by default?
+#       show img --> img1 if verbose (like testname)
 #       global $dry used inside lib_import. fix?
 
 use strict;
@@ -134,8 +134,7 @@ if (defined $tags)
 
    if (@ARGV > 1 or grep -d $_, @ARGV)
    {
-      # TODO: date format to '%d/%b/%Y, %H:%M' + green?
-      # --no-tag: exiftool arg1
+      # TODO: GREEN?
       system qw/exiftool -G -S -a/, map ("-$_", @tags), @ARGV;
       exit;
    }
@@ -145,7 +144,7 @@ if (defined $tags)
 
    $exifTool->Options (
       Sort       => 'Group1',
-      DateFormat => '%d %b %Y, %H:%M',
+      DateFormat => '%d/%b/%Y, %H:%M',
    );
 
    my $img = shift;
@@ -157,11 +156,6 @@ if (defined $tags)
       warn RED."File not found: $img".RESET, "\n";
    }
 
-   # TODO: change display to
-   # Group1
-   #   tag: ...
-   # Group2
-   #   tag: ...
    foreach my $tag (@tags)
    {
       next unless $exifTool->GetValue($tag);
