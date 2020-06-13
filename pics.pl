@@ -47,7 +47,7 @@ ${BOLD}OPTIONS${RESET}
    --source,      -s
    --destination, -d
                   -n (dry-run)
-   --verbose,     -v
+   --verbose,     -v (2nd -v allowed)
    --(no-)import, -i
    --tags,        -t
 HELP
@@ -62,7 +62,7 @@ GetOptions (
    'source=s'      => \$src,
    'destination=s' => \$dst,
    'import!'       => \$import,
-   'verbose'       => \$verbose,
+   'verbose+'      => \$verbose,
    'tags:s'        => \$tags,
    'help'          => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
@@ -120,50 +120,39 @@ sub lib_import
 
 lib_import if $import;
 
-# ExifTool object
-my $exifTool = new Image::ExifTool;
-
-$exifTool->Options (
-   Sort       => 'Group1',
-   DateFormat => '%d %b %Y, %H:%M',
-);
-
 # Show tags
-# TODO:
-# allow folder or . as an arg
 if (defined $tags)
 {
    my @tags;
 
    if ($tags eq '')
    {
-      # TODO: check *keyword* *comment* work
-      # exiftool -G -S -a -'*keyword*' -subject -title -'*comment*' -make -model -createdate -datetimeoriginal
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
    } else {
-      # exiftool -G -S -a -tag1 ... -tagn
-      # system qw/exiftool -G -S -a/, map ("-$_", @tags), $img;
       @tags = split /\s*,\s*/, $tags;
    }
 
-   # if (@ARGV == 0)
-   # {
-   #    foreach (glob '"./*"')
-   #    {
-   #    }
-   # }
+   if (@ARGV > 1 or grep -d $_, @ARGV)
+   {
+      # TODO: date format to '%d/%b/%Y, %H:%M' + green?
+      # --no-tag: exiftool arg1
+      system qw/exiftool -G -S -a/, map ("-$_", @tags), @ARGV;
+      exit;
+   }
+
+   # ExifTool object
+   my $exifTool = new Image::ExifTool;
+
+   $exifTool->Options (
+      Sort       => 'Group1',
+      DateFormat => '%d %b %Y, %H:%M',
+   );
 
    my $img = shift;
 
    if (-e $img)
    {
       my $info = $exifTool->ImageInfo($img, \@tags);
-
-      if (exists $info->{Error})
-      {
-         warn RED, $info->{Error}, RESET, "\n";
-      }
-
    } else {
       warn RED."File not found: $img".RESET, "\n";
    }
@@ -188,84 +177,22 @@ unless (defined $tags or $import)
 
    my $filename = $dry ? 'testname' : 'filename';
 
-   # # the last valid -$filename<$createdate supersedes the others
-   # system ('exiftool', '-q', '-q',
-   #    '-if', '$createdate eq $datetimeoriginal',
-   #    '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
-   #    "-$filename<\$createdate.%le",
-   #    "-$filename<\$createdate \${make;}.%le",
-   #    $source
-   # );
-
-   my %cdates;
-
-   # TODO: ask on forum about efficiency compared to exiftool on dir
-   foreach my $image (glob "'$source/*'")
+   my @quiet;
+   unless ($verbose)
    {
-      if (-f $image)
-      {
-         # Compare CreateDate and DateTimeOriginal
-         my $dates = $exifTool->ImageInfo($image, qw/CreateDate DateTimeOriginal/, {DateFormat => '%d-%b-%Y %Hh%Mm%S'});
-
-         my $cdate = $dates->{CreateDate};
-         my $ddate = $dates->{DateTimeOriginal};
-         $cdate //= '';
-         $ddate //= '';
-
-         if ($cdate ne $ddate)
-         {
-            warn "$image ", YELLOW."CreateDate ($cdate) differs from DateTimeOriginal ($ddate)".RESET, "\n";
-            # TODO: next;
-         }
-
-         # Add -num (%c) before extension for images having the same Createdate
-         my $num = '';
-         if ($cdate)
-         {
-            $cdates{$cdate}++;
-            $num = '-'.($cdates{$cdate}-1) if $cdates{$cdate} > 1;
-         }
-
-         # Sort camera shots
-         my $info;
-         my ($basename, $dirs, $ext) = fileparse($image, qr/\.[^.]+$/);
-
-         if ($exifTool->GetValue('Make'))
-         {
-            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")} ${make;}'.$num.lc($ext));
-         } else {
-            $info = $exifTool->SetNewValuesFromFile($image, $filename.'<${createdate#;DateFmt("'.$source.'/%Y/%B/%d-%b-%Y %Hh%Mm%S")}'.$num.lc($ext));
-         }
-
-         # Errors while sorting
-         unless (exists $info->{Warning} or exists $info->{Error})
-         {
-            my $result = $exifTool->WriteInfo($image);
-
-            # Errors while writing
-            unless ($result == 1)
-            {
-               if ($exifTool->GetValue('Warning'))
-               {
-                  warn "Warning writing ${basename}$ext ", YELLOW, $exifTool->GetValue('Warning'), RESET, "\n";
-               }
-               if ($exifTool->GetValue('Error'))
-               {
-                  warn "Error writing ${basename}$ext ", RED, $exifTool->GetValue('Error'), RESET, "\n";
-               }
-            }
-         } else {
-            if (exists $info->{Warning})
-            {
-               warn "Warning moving ${basename}$ext ", YELLOW, $info->{Warning}, RESET, "\n";
-            }
-            if (exists $info->{Error})
-            {
-               warn "Error moving ${basename}$ext ", RED, $info->{Error}, RESET, "\n";
-            }
-         }
-      }
+      @quiet = qw/-q -q/;
+   } elsif ($verbose == 1) {
+      @quiet = ('-q');
    }
+
+   # the last valid -$filename<$createdate supersedes the others
+   system ('exiftool', @quiet,
+      '-if', 'not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)',
+      '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
+      "-$filename<\$createdate.%le",
+      "-$filename<\$createdate \${make;}.%le",
+      $source
+   );
 
    # Import unless --no-import
    unless (defined $import or $dry)
