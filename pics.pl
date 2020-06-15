@@ -5,6 +5,7 @@
 # TODO: -w for warnings but disable by default?
 #       show img --> img1 if verbose (like testname)
 #       global $dry used inside lib_import. fix?
+#       --checks?
 
 use strict;
 use warnings;
@@ -24,9 +25,9 @@ my %messages = (
    import => 'import into the images library',
 );
 
+my $BOLD  = color('bold');
 my $BLUE  = color('ansi69');
 my $GREEN = color('green');
-my $BOLD  = color('bold');
 my $RESET = color('reset');
 
 sub help
@@ -156,6 +157,7 @@ unless (defined $tags or $import)
       @quiet = ('-q');
    }
 
+   # see 'RENAMING EXAMPLES' in 'man exiftool'
    # the last valid -$filename<$createdate supersedes the others
    system ('exiftool', @quiet,
       '-if', 'not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)',
@@ -164,6 +166,8 @@ unless (defined $tags or $import)
       "-$filename<\$createdate \${make;}.%le",
       $source
    );
+
+   die RED.'Encountered errors while sorting camera shots'.RESET, "\n" if $? != 0;
 
    # Import unless --no-import
    unless (defined $import or $dry)
