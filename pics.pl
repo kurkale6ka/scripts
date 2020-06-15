@@ -9,8 +9,6 @@
 use strict;
 use warnings;
 use feature 'say';
-use lib '/usr/local/Cellar/exiftool/11.85/libexec/lib'; # TODO: get rid of this
-use Image::ExifTool ':Public';
 use File::Basename 'fileparse';
 use Term::ANSIColor qw/:constants color/;
 use Getopt::Long qw/GetOptions :config no_ignore_case/;
@@ -127,39 +125,18 @@ if (defined $tags)
 
    if ($tags eq '')
    {
+      # list of tags I am mostly interested in
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
    } else {
       @tags = split /\s*,\s*/, $tags;
    }
 
-   if (@ARGV > 1 or grep -d $_, @ARGV)
+   # very short (-S) output format for a single tag, short (-s) otherwise
+   if (@tags == 1 and $tags[0] !~ /all/i)
    {
-      # TODO: GREEN?
-      system qw/exiftool -G -S -a/, map ("-$_", @tags), @ARGV;
-      exit;
-   }
-
-   # ExifTool object
-   my $exifTool = new Image::ExifTool;
-
-   $exifTool->Options (
-      Sort       => 'Group1',
-      DateFormat => '%d/%b/%Y, %H:%M',
-   );
-
-   my $img = shift;
-
-   if (-e $img)
-   {
-      my $info = $exifTool->ImageInfo($img, \@tags);
+      system qw/exiftool -G -S -a/, map ("-$_", @tags), @ARGV > 0 ? @ARGV : '.';
    } else {
-      warn RED."File not found: $img".RESET, "\n";
-   }
-
-   foreach my $tag (@tags)
-   {
-      next unless $exifTool->GetValue($tag);
-      printf "[%s] %24s: %s\n", $exifTool->GetGroup($tag, 0), $tag, GREEN.$exifTool->GetValue($tag).RESET;
+      system qw/exiftool -G -s -a/, map ("-$_", @tags), @ARGV > 0 ? @ARGV : '.';
    }
 }
 
