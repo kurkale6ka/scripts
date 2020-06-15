@@ -12,7 +12,7 @@ use warnings;
 use feature 'say';
 use File::Basename 'fileparse';
 use Term::ANSIColor qw/:constants color/;
-use Getopt::Long qw/GetOptions :config no_ignore_case/;
+use Getopt::Long qw/GetOptions :config bundling/;
 
 # Location where pictures get uploaded
 my $source = glob '"~/Dropbox/Camera Uploads"';
@@ -45,8 +45,8 @@ ${BOLD}OPTIONS${RESET}
 
    --source,      -s
    --destination, -d
-                  -n (dry-run)
-   --verbose,     -v (2nd -v allowed)
+   --dry,         -n
+   --verbose,     -v (-vv for more details)
    --(no-)import, -i
    --tags,        -t
 HELP
@@ -57,13 +57,13 @@ HELP
 my ($dry, $src, $dst, $import, $verbose, $tags);
 
 GetOptions (
-   'n'             => \$dry,
-   'source=s'      => \$src,
-   'destination=s' => \$dst,
-   'import!'       => \$import,
-   'verbose+'      => \$verbose,
-   'tags:s'        => \$tags,
-   'help'          => \&help
+   'n|dry'           => \$dry,
+   's|source=s'      => \$src,
+   'd|destination=s' => \$dst,
+   'i|import!'       => \$import,
+   'v|verbose+'      => \$verbose,
+   't|tags:s'        => \$tags,
+   'help'            => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 $src and      $source = $src;
