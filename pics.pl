@@ -63,7 +63,7 @@ GetOptions (
    'i|import!'       => \$import,
    'v|verbose+'      => \$verbose,
    't|tags:s'        => \$tags,
-   'help'            => \&help
+   'h|help'          => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 $src and      $source = $src;
