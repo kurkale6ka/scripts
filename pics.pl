@@ -45,7 +45,7 @@ ${BOLD}OPTIONS${RESET}
 
    --source,      -s
    --destination, -d
-   --dry,         -n
+   --dry-run,     -n
    --verbose,     -v (-vv for more details)
    --(no-)import, -i
    --tags,        -t
@@ -57,7 +57,7 @@ HELP
 my ($dry, $src, $dst, $import, $verbose, $tags);
 
 GetOptions (
-   'n|dry'           => \$dry,
+   'n|dry-run'       => \$dry,
    's|source=s'      => \$src,
    'd|destination=s' => \$dst,
    'i|import!'       => \$import,
