@@ -164,6 +164,8 @@ unless (defined $tags or $import)
       '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
       "-$filename<\$createdate.%le",
       "-$filename<\$createdate \${make;}.%le",
+      "-$filename<\$datetimeoriginal.%le",
+      "-$filename<\$datetimeoriginal \${make;}.%le",
       $source
    );
 
