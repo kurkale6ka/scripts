@@ -128,6 +128,8 @@ if (defined $tags)
    {
       # list of tags I am mostly interested in
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
+   } elsif ($tags =~ /dates?/i) {
+      @tags = ('alldates');
    } else {
       @tags = split /\s*,\s*/, $tags;
    }
@@ -160,12 +162,13 @@ unless (defined $tags or $import)
    # see 'RENAMING EXAMPLES' in 'man exiftool'
    # the last valid -$filename<$createdate supersedes the others
    system ('exiftool', @quiet,
+      # dates match or a single one only set
       '-if', 'not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)',
       '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
-      "-$filename<\$createdate.%le",
-      "-$filename<\$createdate \${make;}.%le",
       "-$filename<\$datetimeoriginal.%le",
       "-$filename<\$datetimeoriginal \${make;}.%le",
+      "-$filename<\$createdate.%le",
+      "-$filename<\$createdate \${make;}.%le",
       $source
    );
 
