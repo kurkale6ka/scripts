@@ -2,10 +2,7 @@
 
 # Sort camera shots into timestamped folders
 #
-# TODO: -w for warnings but disable by default?
-#       show img --> img1 if verbose (like testname)
-#       global $dry used inside lib_import. fix?
-#       --checks?
+# TODO: --checks?
 
 use strict;
 use warnings;
@@ -36,7 +33,7 @@ sub help
 ${BOLD}SYNOPSIS${RESET}
 
    pics    [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{title}${RESET}
-   pics -i [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{import}${RESET}
+   pics -i [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n]      : ${GREEN}$messages{import}${RESET}
 
    pics                [img ...|${BLUE}dir${RESET}] : ${GREEN}show tags${RESET}
    pics -t [tag[,...]] [img ...|${BLUE}dir${RESET}] :
@@ -96,8 +93,9 @@ sub lib_import
    my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
    @years or return;
 
-   say "\n", GREEN, ucfirst $messages{import}, RESET;
-   say         '-' x length $messages{import};
+   print "\n" unless $import;
+   say GREEN, ucfirst $messages{import}, RESET;
+   say   '-' x length $messages{import};
 
    system qw/rsync --remove-source-files --partial -ain/, @years, $destination;
    return unless $? == 0 and not $dry;
@@ -156,12 +154,11 @@ unless (defined $tags or $import)
    say GREEN, ucfirst $messages{title}, RESET;
    say   '-' x length $messages{title};
 
-   my @quiet;
-   unless ($verbose)
+   my @quiet = qw/-q -q/;
+
+   if ($verbose)
    {
-      @quiet = qw/-q -q/;
-   } elsif ($verbose == 1) {
-      @quiet = ('-q');
+      pop @quiet while $verbose--;
    }
 
    # test run
@@ -178,7 +175,7 @@ unless (defined $tags or $import)
    unless ($dry)
    {
       # see 'RENAMING EXAMPLES' in 'man exiftool'
-      system ('exiftool', @quiet,
+      system ('exiftool', '-q', '-q',
          # dates match or a single one only set
          '-if', 'not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)',
          '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
