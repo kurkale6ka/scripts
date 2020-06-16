@@ -48,7 +48,7 @@ ${BOLD}OPTIONS${RESET}
    --dry-run,     -n
    --verbose,     -v (-vv for more details)
    --(no-)import, -i
-   --tags,        -t
+   --tags,        -t (-td[ates], -ta[ll])
 HELP
    exit;
 }
@@ -162,11 +162,11 @@ unless (defined $tags or $import)
    }
 
    # see 'RENAMING EXAMPLES' in 'man exiftool'
-   # the last valid -$filename<$createdate supersedes the others
    system ('exiftool', @quiet,
       # dates match or a single one only set
       '-if', 'not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)',
       '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
+      # the last valid -filename<$createdate supersedes the others
       "-$filename<\$datetimeoriginal.%le",
       "-$filename<\$datetimeoriginal \${make;}.%le",
       "-$filename<\$createdate.%le",
