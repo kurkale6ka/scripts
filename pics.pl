@@ -128,8 +128,10 @@ if (defined $tags)
    {
       # list of tags I am mostly interested in
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
-   } elsif ($tags =~ /dates?/i) {
+   } elsif ($tags =~ /^d(ates)?$/in) {
       @tags = ('alldates');
+   } elsif ($tags =~ /^a$/in) {
+      @tags = ('all');
    } else {
       @tags = split /\s*,\s*/, $tags;
    }
