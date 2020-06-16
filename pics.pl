@@ -25,8 +25,8 @@ my %messages = (
    import => 'import into the images library',
 );
 
-my $BOLD  = color('bold');
-my $BLUE  = color('ansi69');
+my  $BOLD = color('bold');
+my  $BLUE = color('ansi69');
 my $GREEN = color('green');
 my $RESET = color('reset');
 
@@ -96,15 +96,20 @@ sub lib_import
    my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
    @years or return;
 
-   my $options = 'a';
-   $options .= 'i' if $dry or $verbose;
-   $options .= 'n' if $dry;
+   say "\n", GREEN, ucfirst $messages{import}, RESET;
+   say         '-' x length $messages{import};
 
-   system qw/rsync --remove-source-files --partial/, "-$options", @years, $destination;
+   system qw/rsync --remove-source-files --partial -ain/, @years, $destination;
+   return unless $? == 0 and not $dry;
 
-   # delete source years + months after a successful transfer
-   if ($? == 0 and not $dry)
+   print "\nConfirm (y/n)? ";
+
+   if (<STDIN> =~ /y(es)?/in)
    {
+      system qw/rsync --remove-source-files --partial -a/, @years, $destination;
+      return unless $? == 0;
+
+      # delete source years + months after a successful transfer
       foreach my $year (@years)
       {
          foreach (glob "'$year/{January,February,March,April,May,June,July,August,September,October,November,December}'")
@@ -151,8 +156,6 @@ unless (defined $tags or $import)
    say GREEN, ucfirst $messages{title}, RESET;
    say   '-' x length $messages{title};
 
-   my $filename = $dry ? 'testname' : 'filename';
-
    my @quiet;
    unless ($verbose)
    {
@@ -161,30 +164,35 @@ unless (defined $tags or $import)
       @quiet = ('-q');
    }
 
-   # see 'RENAMING EXAMPLES' in 'man exiftool'
+   # test run
    system ('exiftool', @quiet,
-      # dates match or a single one only set
       '-if', 'not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)',
       '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
-      # the last valid -filename<$createdate supersedes the others
-      "-$filename<\$datetimeoriginal.%le",
-      "-$filename<\$datetimeoriginal \${make;}.%le",
-      "-$filename<\$createdate.%le",
-      "-$filename<\$createdate \${make;}.%le",
+      '-testname<$datetimeoriginal.%le',
+      '-testname<$datetimeoriginal ${make;}.%le',
+      '-testname<$createdate.%le',
+      '-testname<$createdate ${make;}.%le',
       $source
    );
 
-   die RED.'Encountered errors while sorting camera shots'.RESET, "\n" if $? != 0;
-
-   # Import unless --no-import
-   unless (defined $import or $dry)
+   unless ($dry)
    {
-      print "\n", GREEN, ucfirst $messages{import}, RESET, ' (y/n)? ';
+      # see 'RENAMING EXAMPLES' in 'man exiftool'
+      system ('exiftool', @quiet,
+         # dates match or a single one only set
+         '-if', 'not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)',
+         '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
+         # the last valid -filename<$createdate supersedes the others
+         '-filename<$datetimeoriginal.%le',
+         '-filename<$datetimeoriginal ${make;}.%le',
+         '-filename<$createdate.%le',
+         '-filename<$createdate ${make;}.%le',
+         $source
+      );
 
-      if (<STDIN> =~ /y(es)?/in)
-      {
-         say '-' x length $messages{import} if $verbose;
-         lib_import;
-      }
+      die RED.'Encountered errors while sorting camera shots'.RESET, "\n" if $? != 0;
+
+      # Import unless --no-import
+      lib_import unless defined $import;
    }
 }
