@@ -24,6 +24,7 @@ my %messages = (
 
 my   $RED = color('red');
 my  $BLUE = color('ansi69');
+my  $GRAY = color('ansi242');
 my $GREEN = color('green');
 my  $BOLD = color('bold');
 my $RESET = color('reset');
@@ -99,14 +100,14 @@ sub lib_import
    say   '-' x length $messages{import};
 
    # list images being imported
-   open my $sync, '-|', qw/rsync --remove-source-files --partial -ain/, @years, $destination;;
+   open my $sync, '-|', qw/rsync --remove-source-files --partial -ain/, @years, $destination;
 
    while (<$sync>)
    {
       chomp;
 
       # display dirs in blue
-      s@(?<=^.{9}\s).*/@${BLUE}$&${RESET}@;
+      s@^.........\s(.*/)@${BLUE}$1${RESET}@;
 
       # warn if the size has changed
       s/^...s...../${RED}$&${RESET}/;
@@ -179,7 +180,7 @@ unless (defined $tags or $import)
    }
 
    # test run
-   system ('exiftool', @quiet,
+   open (my $sort, '-|', 'exiftool', @quiet,
       '-if', 'not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)',
       '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
       '-testname<$datetimeoriginal.%le',
@@ -188,6 +189,13 @@ unless (defined $tags or $import)
       '-testname<$createdate ${make;}.%le',
       $source
    );
+
+   while (<$sort>)
+   {
+      chomp;
+      s@^'(.*?/)(.+)'\s(-->)\s'(.*/)@'${BLUE}$1${RESET}$2' ${GRAY}$3${RESET} '${BLUE}$4${RESET}@;
+      say;
+   }
 
    # commit
    unless ($dry)
