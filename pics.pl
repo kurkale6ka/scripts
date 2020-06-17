@@ -176,7 +176,7 @@ unless (defined $tags or $import)
 
    if ($verbose)
    {
-      pop @quiet while $verbose--;
+      pop @quiet for 1..$verbose;
    }
 
    # test run
