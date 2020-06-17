@@ -22,9 +22,10 @@ my %messages = (
    import => 'import into the images library',
 );
 
-my  $BOLD = color('bold');
+my   $RED = color('red');
 my  $BLUE = color('ansi69');
 my $GREEN = color('green');
+my  $BOLD = color('bold');
 my $RESET = color('reset');
 
 sub help
@@ -97,9 +98,25 @@ sub lib_import
    say GREEN, ucfirst $messages{import}, RESET;
    say   '-' x length $messages{import};
 
-   system qw/rsync --remove-source-files --partial -ain/, @years, $destination;
+   # list images being imported
+   open my $sync, '-|', qw/rsync --remove-source-files --partial -ain/, @years, $destination;;
+
+   while (<$sync>)
+   {
+      chomp;
+
+      # display dirs in blue
+      s@(?<=^.{9}\s).*/@${BLUE}$&${RESET}@;
+
+      # warn if the size has changed
+      s/^...s...../${RED}$&${RESET}/;
+
+      say;
+   }
+
    return unless $? == 0 and not $dry;
 
+   # commit the import
    print "\nConfirm (y/n)? ";
 
    if (<STDIN> =~ /y(es)?/in)
@@ -172,6 +189,7 @@ unless (defined $tags or $import)
       $source
    );
 
+   # commit
    unless ($dry)
    {
       # see 'RENAMING EXAMPLES' in 'man exiftool'
