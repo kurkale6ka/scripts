@@ -90,7 +90,8 @@ unless (defined $tags)
 # Import
 sub lib_import
 {
-   -d $destination or die RED."Destination missing: ${BLUE}$destination".RESET, "\n";
+   -d $destination or
+   die RED."Destination missing: ${BLUE}$destination".RESET, "\n";
 
    my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
    @years or return;
@@ -100,7 +101,9 @@ sub lib_import
    say   '-' x length $messages{import};
 
    # list images being imported
-   open my $sync, '-|', qw/rsync --remove-source-files --partial -ain/, @years, $destination;
+   open my $sync, '-|',
+   qw/rsync --remove-source-files --partial -ain/, @years, $destination
+      or die RED.'Test import failed'.RESET, "\n";
 
    while (<$sync>)
    {
@@ -115,7 +118,7 @@ sub lib_import
       say;
    }
 
-   return unless $? == 0 and not $dry;
+   $dry and return;
 
    # commit the import
    print "\nConfirm (y/n)? ";
@@ -123,7 +126,7 @@ sub lib_import
    if (<STDIN> =~ /y(es)?/in)
    {
       system qw/rsync --remove-source-files --partial -a/, @years, $destination;
-      return unless $? == 0;
+      $? == 0 or return;
 
       # delete source years + months after a successful transfer
       foreach my $year (@years)
@@ -188,7 +191,7 @@ unless (defined $tags or $import)
       '-testname<$createdate.%le',
       '-testname<$createdate ${make;}.%le',
       $source
-   );
+   ) or die RED.'Test sorting of camera shots failed'.RESET, "\n";
 
    while (<$sort>)
    {
@@ -212,8 +215,7 @@ unless (defined $tags or $import)
          '-filename<$createdate ${make;}.%le',
          $source
       );
-
-      die RED.'Encountered errors while sorting camera shots'.RESET, "\n" if $? != 0;
+      $? == 0 or die RED.'Sorting of camera shots failed'.RESET, "\n";
 
       # Import unless --no-import
       lib_import unless defined $import;
