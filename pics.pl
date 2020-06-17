@@ -107,7 +107,7 @@ sub lib_import
       chomp;
 
       # display dirs in blue
-      s@^.........\s(.*/)@${BLUE}$1${RESET}@;
+      s@^(.........)\s(.*/)@$1 ${BLUE}$2${RESET}@;
 
       # warn if the size has changed
       s/^...s...../${RED}$&${RESET}/;
