@@ -3,62 +3,74 @@
 use strict;
 use warnings;
 use feature 'say';
+use File::Path 'make_path';
 use File::Basename 'basename';
+use Term::ANSIColor qw/color :constants/;
+
+my $BLUE = color('ansi69');
 
 sub links ($)
 {
    my $action = shift;
-   my  $repos = $ENV{REPOS_BASE};
-   my $config = $ENV{XDG_CONFIG_HOME};
 
+   unless ($ENV{XDG_CONFIG_HOME})
+   {
+      warn RED.'XDG setup needed'.RESET, "\n";
+      return;
+   }
+
+   make_path "$ENV{XDG_CONFIG_HOME}/zsh", "$ENV{HOME}/bin";
+
+   # ln -sfT ~/repos/vim ~/.config/nvim
    my @symlinks = (
       # vim
-      ['sfT',  'vim',         "$config/nvim"   ],
-      ['srfT', 'vim',         "$ENV{HOME}/.vim"],
-      ['srf',  'vim/.vimrc',   $ENV{HOME}      ],
-      ['srf',  'vim/.gvimrc',  $ENV{HOME}      ],
+      [qw( sfT  vim         ~/.config/nvim )],
+      [qw( srfT vim         ~/.vim         )],
+      [qw( srf  vim/.vimrc  ~              )],
+      [qw( srf  vim/.gvimrc ~              )],
       # zsh
-      ['srf', 'zsh/.zshenv',    $ENV{HOME}  ],
-      ['sf',  'zsh/.zprofile', "$config/zsh"],
-      ['sf',  'zsh/.zshrc',    "$config/zsh"],
-      ['sf',  'zsh/autoload',  "$config/zsh"],
+      [qw( srf zsh/.zshenv   ~             )],
+      [qw( sf  zsh/.zprofile ~/.config/zsh )],
+      [qw( sf  zsh/.zshrc    ~/.config/zsh )],
+      [qw( sf  zsh/autoload  ~/.config/zsh )],
       # bash
-      ['srf', 'bash/.bash_profile', $ENV{HOME}],
-      ['srf', 'bash/.bashrc',       $ENV{HOME}],
-      ['srf', 'bash/.bash_logout',  $ENV{HOME}],
+      [qw( srf bash/.bash_profile ~ )],
+      [qw( srf bash/.bashrc       ~ )],
+      [qw( srf bash/.bash_logout  ~ )],
       # scripts
-      ['sf', 'scripts/mkconfig.pl',      "$ENV{HOME}/bin/mkconfig"],
-      ['sf', 'scripts/pics.pl',          "$ENV{HOME}/bin/pics"    ],
-      ['sf', 'scripts/colors_term.bash', "$ENV{HOME}/bin"         ],
-      ['sf', 'scripts/colors_tmux.bash', "$ENV{HOME}/bin"         ],
+      [qw( sf scripts/mkconfig.pl      ~/bin/mkconfig )],
+      [qw( sf scripts/pics.pl          ~/bin/pics     )],
+      [qw( sf scripts/colors_term.bash ~/bin          )],
+      [qw( sf scripts/colors_tmux.bash ~/bin          )],
       # config
-      ['sf',  'config/tmux/lay',             "$ENV{HOME}/bin"],
-      ['srf', 'config/dotfiles/.gitignore',   $ENV{HOME}     ],
-      ['srf', 'config/dotfiles/.irbrc',       $ENV{HOME}     ],
-      ['srf', 'config/dotfiles/.pyrc',        $ENV{HOME}     ],
-      ['srf', 'config/dotfiles/.Xresources',  $ENV{HOME}     ],
-      ['srf', 'config/ctags/.ctags',          $ENV{HOME}     ],
-      ['srf', 'config/tmux/.tmux.conf',       $ENV{HOME}     ],
+      [qw( sf  config/tmux/lay             ~/bin )],
+      [qw( srf config/dotfiles/.gitignore  ~     )],
+      [qw( srf config/dotfiles/.irbrc      ~     )],
+      [qw( srf config/dotfiles/.pyrc       ~     )],
+      [qw( srf config/dotfiles/.Xresources ~     )],
+      [qw( srf config/ctags/.ctags         ~     )],
+      [qw( srf config/tmux/.tmux.conf      ~     )],
    );
 
    foreach (@symlinks)
    {
       my ($opts, $target, $name) = @$_;
 
+      $name =~ s@~/\.config@$ENV{XDG_CONFIG_HOME}@;
+      $name =~ s/~/$ENV{HOME}/;
+
       # create symlink
       if ($action eq 'add')
       {
-         system 'ln', "-v$opts", "$repos/$target", $name;
+         system 'ln', "-$opts", "$ENV{REPOS_BASE}/$target", $name;
          next;
       }
 
       # delete symlink
-      if (-d $name)
+      if (-d $name and not -l $name)
       {
-         say "Del dir: $name/", basename $target;
-         unlink "$name/", basename $target;
-      } elsif (-f $name or -l $name) {
-         say "Del: $name";
+         unlink "$name/". basename $target;
+      } else {
          unlink $name;
       }
    }

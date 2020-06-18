@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use feature 'say';
 use File::Basename 'fileparse';
-use Term::ANSIColor qw/:constants color/;
+use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
 # Location where pictures get uploaded
