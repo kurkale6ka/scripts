@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use feature 'say';
 use File::Path 'make_path';
-use File::Basename 'basename';
+use File::Basename qw/dirname basename/;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 
@@ -12,8 +12,24 @@ my $BLUE = color('ansi69');
 my $CYAN = color('ansi45');
 my $RESET = color('reset');
 
-sub help
+unless ($ENV{REPOS_BASE})
 {
+   warn RED.'REPOS_BASE empty'.RESET, "\n";
+   print "define or accept default [$BLUE~/github$RESET]: ";
+
+   chomp ($ENV{REPOS_BASE} = <STDIN>);
+   unless ($ENV{REPOS_BASE})
+   {
+      $ENV{REPOS_BASE} = glob '~/github';
+   } else {
+      $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
+      -d dirname $ENV{REPOS_BASE} or die RED."parent folder doesn't exist".RESET, "\n";
+   }
+
+   print "\n";
+}
+
+sub help() {
    print <<MSG;
 -i: Initial setup
 -s: Check repositories statuses
@@ -25,34 +41,69 @@ sub help
 MSG
 }
 
-sub init;
+sub init();
 sub repos($); # status|update
-sub mktags;
+sub mktags();
 sub links($); # add|del
 
 # Options
-my ($links, $del_links);
+my ($status, $init, $update, $links, $del_links);
 
 GetOptions (
-   's|status'    => sub { repos 'status'; exit },
-   'i|init'      => sub {          &init; exit },
-   'u|update'    => \&repos ('update'),
-   't|tags'      => \&mktags,
-   'c|gen-c-db'  => \&db_create,
+   's|status'    => \$status,
+   'i|init'      => \$init,
+   'u|update'    => \$update,
+   't|tags'      => \&mktags(),
+   'c|gen-c-db'  => \&db_create(),
    'l|links'     => \$links,
    'L|del-links' => \$del_links,
    'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
+# Checks
 if ($links and $del_links)
 {
    die RED.'--links and --del-links are mutually exclusive'.RESET, "\n";
 }
+
+# Flow
 $links     and links 'add';
 $del_links and links 'del';
 
-sub init
+# Subroutines
+sub init()
 {
+   make_path $ENV{REPOS_BASE};
+
+   # Clone repos
+   if (chdir $ENV{REPOS_BASE})
+   {
+      say "$CYAN*$RESET Cloning repositories in $BLUE~/", basename ($ENV{REPOS_BASE}), "$RESET...";
+      foreach my $repo (qw/zsh bash help config scripts vim/)
+      {
+         unless (-d $repo)
+         {
+            system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
+            print "\n";
+         }
+      }
+   }
+
+   say "$CYAN*$RESET Configuring git";
+   # . $REPOS_BASE/config/git.bash
+
+   # XDG setup
+   # . $REPOS_BASE/zsh/.zshenv
+
+   say "$CYAN*$RESET Linking dot files";
+   links 'add';
+
+   say "$CYAN*$RESET Generating tags";
+   mktags;
+
+   say "$CYAN*$RESET Creating fuzzy cd database";
+   # . $REPOS_BASE/scripts/db-create
+
    if ($^O ne 'darwin')
    {
       my @formulae = qw(
@@ -92,43 +143,13 @@ sub init
       # push @formulae, 'slhck/moreutils/moreutils --without-parallel';
       # push @formulae, 'parallel --force';
    }
-
-   make_path $ENV{REPOS_BASE};
-
-   # Clone repos
-   if (chdir $ENV{REPOS_BASE})
-   {
-      say "$CYAN*$RESET Cloning repositories in $BLUE~/", basename ($ENV{REPOS_BASE}), "$RESET...";
-      foreach my $repo (qw/zsh bash help config scripts vim/)
-      {
-         unless (-d $repo)
-         {
-            system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
-            print "\n";
-         }
-      }
-   }
-
-   say "$CYAN*$RESET Configuring git";
-   # . $REPOS_BASE/config/git.bash
-
-   # XDG setup
-   # . $REPOS_BASE/zsh/.zshenv
-
-   say "$CYAN*$RESET Linking dot files";
-   links 'add';
-
-   say "$CYAN*$RESET Generating tags";
-   mktags;
-
-   say "$CYAN*$RESET Creating fuzzy cd database";
-   # . $REPOS_BASE/scripts/db-create
 }
 
 sub repos($)
 {
    my $action = shift;
 
+   say "Repos: $ENV{REPOS_BASE}";
    foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
    {
       next unless -d $repo;
@@ -136,24 +157,24 @@ sub repos($)
       {
          if ($action eq 'status')
          {
-            # if [[ -n $(git status --porcelain) ]] || git status -sb | grep -qE ']$'
-            # then
-            #    print -nP "%F{45}${repo:t}%f: "
-            #    git status -sb
-            # fi
+            if (`git status --porcelain`) # or git status -sb | grep -qE ']$'
+            {
+               print $CYAN. basename ($repo). "$RESET: ";
+               system qw/git status -sb/;
+            }
          } else {
-            # git fetch -q
-            # if [[ $(git symbolic-ref --short HEAD) == master ]] && git status -sb | grep -q behind
-            # then
-            #    print -nP "%F{45}${repo:t}%f: "
-            #    git pull
-            # fi
+            system qw/git fetch -q/;
+            if (`git symbolic-ref --short HEAD` eq 'master') # && git status -sb | grep -q behind
+            {
+               print $CYAN. basename ($repo), "$RESET: \n";
+               system qw/git pull/;
+            }
          }
       }
    }
 }
 
-sub mktags
+sub mktags()
 {
    unless ($ENV{XDG_CONFIG_HOME})
    {
