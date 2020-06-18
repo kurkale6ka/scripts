@@ -7,7 +7,6 @@
 use strict;
 use warnings;
 use feature 'say';
-use File::Basename 'fileparse';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
@@ -22,7 +21,6 @@ my %messages = (
    import => 'import into the images library',
 );
 
-my   $RED = color('red');
 my  $BLUE = color('ansi69');
 my  $GRAY = color('ansi242');
 my $GREEN = color('green');
@@ -31,7 +29,7 @@ my $RESET = color('reset');
 
 sub help
 {
-   print <<HELP;
+   print <<MSG;
 ${BOLD}SYNOPSIS${RESET}
 
    pics    [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{title}${RESET}
@@ -48,7 +46,7 @@ ${BOLD}OPTIONS${RESET}
    --verbose,     -v (-vv for more details)
    --(no-)import, -i
    --tags,        -t (-td[ates], -ta[ll])
-HELP
+MSG
    exit;
 }
 
