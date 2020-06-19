@@ -167,7 +167,7 @@ sub init()
 sub repos($)
 {
    my $action = shift;
-   $action eq 'status' and say 'Updating repos...';
+   $action eq 'update' and say 'Updating repos...';
 
    foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
    {
