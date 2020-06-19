@@ -21,6 +21,7 @@ my %messages = (
    import => 'import into the images library',
 );
 
+my   $RED = color('red');
 my  $BLUE = color('ansi69');
 my  $GRAY = color('ansi242');
 my $GREEN = color('green');
