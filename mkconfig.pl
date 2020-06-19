@@ -7,6 +7,7 @@ use File::Path 'make_path';
 use File::Basename qw/dirname basename/;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
+use List::Util 'any';
 
 my $BLUE = color('ansi69');
 my $CYAN = color('ansi45');
@@ -31,13 +32,13 @@ unless ($ENV{REPOS_BASE})
 
 sub help() {
    print <<MSG;
--i: Initial setup
--s: Check repositories statuses
--u: Update repositories
--t: Generate tags
--c: Create fuzzy cd database
--l: Make links
--L: Remove links
+--init,      -i: Initial setup
+--status,    -s: Check repositories statuses
+--update,    -u: Update repositories
+--tags,      -t: Generate tags
+--cd-db,     -c: Create fuzzy cd database
+--links,     -l: Make links
+--del-links, -L: Remove links
 MSG
 }
 
@@ -47,20 +48,25 @@ sub mktags();
 sub links($); # add|del
 
 # Options
-my ($status, $init, $update, $links, $del_links);
+my ($status, $init, $update, $tags, $cd_db, $links, $del_links);
 
 GetOptions (
    's|status'    => \$status,
    'i|init'      => \$init,
    'u|update'    => \$update,
-   't|tags'      => \&mktags(),
-   'c|gen-c-db'  => \&db_create(),
+   't|tags'      => \$tags,
+   'c|cd-db'     => \$cd_db,
    'l|links'     => \$links,
    'L|del-links' => \$del_links,
    'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Checks
+if ($init and any {defined} ($status, $update, $tags, $cd_db, $links, $del_links))
+{
+   die RED.'--init must be used on its own'.RESET, "\n";
+}
+
 if ($links and $del_links)
 {
    die RED.'--links and --del-links are mutually exclusive'.RESET, "\n";
