@@ -44,7 +44,7 @@ MSG
 
 sub init();
 sub repos($); # status|update
-sub mktags();
+sub tags();
 sub links($); # add|del
 
 # Options
@@ -85,7 +85,7 @@ if ($links and $del_links)
 $status    and repos 'status';
 $init      and init;
 $update    and repos 'update';
-$tags      and mktags;
+$tags      and tags;
 $links     and links 'add';
 $del_links and links 'del';
 
@@ -118,7 +118,7 @@ sub init()
    links 'add';
 
    say "$CYAN*$RESET Generating tags";
-   mktags;
+   tags;
 
    say "$CYAN*$RESET Creating fuzzy cd database";
    # . $REPOS_BASE/scripts/db-create
@@ -167,24 +167,25 @@ sub init()
 sub repos($)
 {
    my $action = shift;
+   $action eq 'status' and say 'Updating repos...';
 
-   say 'Updating repos...';
    foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
    {
       next unless -d $repo;
       if (chdir $repo)
       {
-         print $CYAN. basename ($repo), "$RESET: \n";
          if ($action eq 'status')
          {
-            if (`git status --porcelain`) # or git status -sb | grep -qE ']$'
+            if (`git status --porcelain` or any {/]$/} `git status -sb`)
             {
+               print $CYAN. basename ($repo), "$RESET: ";
                system qw/git status -sb/;
             }
          } else {
             system qw/git fetch -q/;
-            if (`git symbolic-ref --short HEAD` eq 'master') # && git status -sb | grep -q behind
+            if (`git symbolic-ref --short HEAD` eq 'master' and any {/behind/} `git status -sb`)
             {
+               print $CYAN. basename ($repo), "$RESET: ";
                system qw/git pull/;
             }
          }
@@ -192,7 +193,7 @@ sub repos($)
    }
 }
 
-sub mktags()
+sub tags()
 {
    unless ($ENV{XDG_CONFIG_HOME})
    {
