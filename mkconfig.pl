@@ -50,6 +50,8 @@ sub links($); # add|del
 # Options
 my ($status, $init, $update, $tags, $cd_db, $links, $del_links);
 
+@ARGV or $update = 1;
+
 GetOptions (
    's|status'    => \$status,
    'i|init'      => \$init,
@@ -62,9 +64,16 @@ GetOptions (
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Checks
-if ($init and any {defined} ($status, $update, $tags, $cd_db, $links, $del_links))
+# TODO: help alone
+if ($init and any {defined} $status, $update, $tags, $cd_db, $links, $del_links)
 {
    die RED.'--init must be used on its own'.RESET, "\n";
+}
+
+if ($status and $update)
+{
+   $update = 0;
+   warn YELLOW.'--status and --update (ignored) are mutually exclusive'.RESET, "\n";
 }
 
 if ($links and $del_links)
@@ -72,7 +81,11 @@ if ($links and $del_links)
    die RED.'--links and --del-links are mutually exclusive'.RESET, "\n";
 }
 
-# Flow
+# Actions
+$status    and repos 'status';
+$init      and init;
+$update    and repos 'update';
+$tags      and mktags;
 $links     and links 'add';
 $del_links and links 'del';
 
@@ -155,24 +168,23 @@ sub repos($)
 {
    my $action = shift;
 
-   say "Repos: $ENV{REPOS_BASE}";
+   say 'Updating repos...';
    foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
    {
       next unless -d $repo;
       if (chdir $repo)
       {
+         print $CYAN. basename ($repo), "$RESET: \n";
          if ($action eq 'status')
          {
             if (`git status --porcelain`) # or git status -sb | grep -qE ']$'
             {
-               print $CYAN. basename ($repo). "$RESET: ";
                system qw/git status -sb/;
             }
          } else {
             system qw/git fetch -q/;
             if (`git symbolic-ref --short HEAD` eq 'master') # && git status -sb | grep -q behind
             {
-               print $CYAN. basename ($repo), "$RESET: \n";
                system qw/git pull/;
             }
          }
