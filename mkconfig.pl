@@ -18,8 +18,9 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 use List::Util 'any';
 
-my $BLUE = color('ansi69');
-my $CYAN = color('ansi45');
+my  $BLUE = color('ansi69');
+my  $CYAN = color('ansi45');
+my  $BOLD = color('bold');
 my $RESET = color('reset');
 
 unless ($ENV{REPOS_BASE})
@@ -32,12 +33,21 @@ unless ($ENV{REPOS_BASE})
    $ENV{REPOS_BASE} ||= '~/github';
    $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
 
-   -d dirname $ENV{REPOS_BASE} or die RED."parent folder doesn't exist".RESET, "\n";
+   if (-d dirname $ENV{REPOS_BASE})
+   {
+      make_path $ENV{REPOS_BASE};
+   } else {
+      die RED."parent folder doesn't exist".RESET, "\n";
+   }
+
    print "\n";
 }
 
 sub help() {
    print <<MSG;
+${BOLD}SYNOPSIS${RESET}
+mkconfig
+${BOLD}OPTIONS${RESET}
 --init,      -i: Initial setup
 --status,    -s: Check repositories statuses
 --update,    -u: Update repositories
@@ -48,7 +58,6 @@ sub help() {
 MSG
 }
 
-sub xdg();
 sub init();
 sub repos($); # status|update
 sub tags();
@@ -90,6 +99,10 @@ if ($links and $del_links)
    die RED.'--links and --del-links are mutually exclusive'.RESET, "\n";
 }
 
+# XDG setup
+make_path ($ENV{XDG_CONFIG_HOME} //= "$ENV{HOME}/.config");
+make_path (  $ENV{XDG_DATA_HOME} //= "$ENV{HOME}/.local/share");
+
 # Actions
 $status    and repos 'status';
 $init      and init;
@@ -99,15 +112,9 @@ $links     and links 'add';
 $del_links and links 'del';
 
 # Subroutines
-sub xdg()
-{
-   $ENV{XDG_CONFIG_HOME} //= "$ENV{HOME}/.config";
-}
 
 sub init()
 {
-   make_path $ENV{REPOS_BASE};
-
    # Clone repos
    if (chdir $ENV{REPOS_BASE})
    {
@@ -123,10 +130,7 @@ sub init()
    }
 
    say "$CYAN*$RESET Configuring git";
-   # . $ENV{REPOS_BASE}/config/git.bash
-
-   # XDG setup
-   # . $ENV{REPOS_BASE}/zsh/.zshenv
+   system "$ENV{REPOS_BASE}/config/git.bash";
 
    say "$CYAN*$RESET Linking dot files";
    links 'add';
@@ -135,7 +139,7 @@ sub init()
    tags;
 
    say "$CYAN*$RESET Creating fuzzy cd database";
-   # . $ENV{REPOS_BASE}/scripts/db-create
+   system "$ENV{REPOS_BASE}/scripts/db-create";
 
    if ($^O eq 'darwin')
    {
@@ -215,8 +219,6 @@ sub repos($)
 
 sub tags()
 {
-   xdg;
-
    # Notes:
    #   repos/zsh/autoload can't be added since the function names are 'missing'
    #   cheat by treating zsh files as sh
@@ -247,7 +249,6 @@ sub links($)
 {
    my $action = shift;
 
-   xdg;
    make_path "$ENV{XDG_CONFIG_HOME}/zsh", "$ENV{HOME}/bin";
 
    # ln -sfT ~/repos/vim ~/.config/nvim
