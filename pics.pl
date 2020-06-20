@@ -194,9 +194,9 @@ unless (defined $tags or $import)
 
    while (<$sort>)
    {
-      chomp;
-      s@^'(.*?/)(.+)'\s(-->)\s'(.*/)@'${BLUE}$1${RESET}$2' ${GRAY}$3${RESET} '${BLUE}$4${RESET}@;
-      say;
+      s@$source/?@@g;
+      s@--> '(.*/)@$GRAY-->$RESET '${BLUE}$1${RESET}@;
+      print;
    }
 
    # commit
