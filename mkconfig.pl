@@ -28,14 +28,11 @@ unless ($ENV{REPOS_BASE})
    print "define or accept default [$BLUE~/github$RESET]: ";
 
    chomp ($ENV{REPOS_BASE} = <STDIN>);
-   unless ($ENV{REPOS_BASE})
-   {
-      $ENV{REPOS_BASE} = glob '~/github';
-   } else {
-      $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
-      -d dirname $ENV{REPOS_BASE} or die RED."parent folder doesn't exist".RESET, "\n";
-   }
 
+   $ENV{REPOS_BASE} ||= '~/github';
+   $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
+
+   -d dirname $ENV{REPOS_BASE} or die RED."parent folder doesn't exist".RESET, "\n";
    print "\n";
 }
 
@@ -51,6 +48,7 @@ sub help() {
 MSG
 }
 
+sub xdg();
 sub init();
 sub repos($); # status|update
 sub tags();
@@ -101,6 +99,11 @@ $links     and links 'add';
 $del_links and links 'del';
 
 # Subroutines
+sub xdg()
+{
+   $ENV{XDG_CONFIG_HOME} //= "$ENV{HOME}/.config";
+}
+
 sub init()
 {
    make_path $ENV{REPOS_BASE};
@@ -171,9 +174,9 @@ sub init()
       );
 
       system qw/brew install/, @formulae;
-      # push @formulae, '--HEAD neovim';
-      # push @formulae, 'slhck/moreutils/moreutils --without-parallel';
-      # push @formulae, 'parallel --force';
+      system qw/brew install/, '--HEAD neovim';
+      system qw/brew install/, 'slhck/moreutils/moreutils --without-parallel';
+      system qw/brew install/, 'parallel --force';
 
       # Fix Homebrew PATHs
       # path=("$(brew --prefix coreutils)"/libexec/gnubin $path)
@@ -212,11 +215,7 @@ sub repos($)
 
 sub tags()
 {
-   unless ($ENV{XDG_CONFIG_HOME})
-   {
-      warn RED.'XDG setup needed'.RESET, "\n";
-      return;
-   }
+   xdg;
 
    # Notes:
    #   repos/zsh/autoload can't be added since the function names are 'missing'
@@ -248,12 +247,7 @@ sub links($)
 {
    my $action = shift;
 
-   unless ($ENV{XDG_CONFIG_HOME})
-   {
-      warn RED.'XDG setup needed'.RESET, "\n";
-      return;
-   }
-
+   xdg;
    make_path "$ENV{XDG_CONFIG_HOME}/zsh", "$ENV{HOME}/bin";
 
    # ln -sfT ~/repos/vim ~/.config/nvim
