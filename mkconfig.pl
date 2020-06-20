@@ -1,5 +1,14 @@
 #! /usr/bin/env perl
 
+# run this script with:
+# ---------------------
+# perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.pl)
+#
+# vim-plug (after cloning):
+# -------------------------
+# curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+# :PlugInstall
+
 use strict;
 use warnings;
 use feature 'say';
@@ -65,6 +74,8 @@ GetOptions (
 
 # Checks
 # TODO: help alone
+# speed: parallel, open...
+# test with git, brew, not installed
 if ($init and any {defined} $status, $update, $tags, $cd_db, $links, $del_links)
 {
    die RED.'--init must be used on its own'.RESET, "\n";
@@ -109,10 +120,10 @@ sub init()
    }
 
    say "$CYAN*$RESET Configuring git";
-   # . $REPOS_BASE/config/git.bash
+   # . $ENV{REPOS_BASE}/config/git.bash
 
    # XDG setup
-   # . $REPOS_BASE/zsh/.zshenv
+   # . $ENV{REPOS_BASE}/zsh/.zshenv
 
    say "$CYAN*$RESET Linking dot files";
    links 'add';
@@ -121,10 +132,12 @@ sub init()
    tags;
 
    say "$CYAN*$RESET Creating fuzzy cd database";
-   # . $REPOS_BASE/scripts/db-create
+   # . $ENV{REPOS_BASE}/scripts/db-create
 
-   if ($^O ne 'darwin')
+   if ($^O eq 'darwin')
    {
+      say "$CYAN*$RESET Installing Homebrew formulae...";
+
       my @formulae = qw(
       bash
       zsh
@@ -161,6 +174,10 @@ sub init()
       # push @formulae, '--HEAD neovim';
       # push @formulae, 'slhck/moreutils/moreutils --without-parallel';
       # push @formulae, 'parallel --force';
+
+      # Fix Homebrew PATHs
+      # path=("$(brew --prefix coreutils)"/libexec/gnubin $path)
+      # typeset -Ug path
    }
 }
 
