@@ -52,26 +52,28 @@ ${BOLD}SYNOPSIS${RESET}
 
 mkconfig               : ${YELLOW}update${RESET}
 mkconfig -i            : ${YELLOW}install${RESET}
-mkconfig -(s|u)tc(l|L)
+mkconfig -[u|s][l|L]tc
 
 ${BOLD}OPTIONS${RESET}
 
 --init,      -i: Initial setup
---status,    -s: Check repositories statuses
 --update,    -u: Update repositories
---tags,      -t: Generate tags
---cd-db,     -c: Create fuzzy cd database
+--status,    -s: Check repositories statuses
 --links,     -l: Make links
 --del-links, -L: Remove links
+--tags,      -t: Generate tags
+--cd-db,     -c: Create fuzzy cd database
 MSG
 exit;
 }
 
 # Declarations
 sub init();
-sub repos($); # status|update
-sub tags();
+sub clone();
+sub update();
+sub status();
 sub links($); # add|del
+sub tags();
 
 # Options
 my ($status, $init, $update, $tags, $cd_db, $links, $del_links);
@@ -79,18 +81,19 @@ my ($status, $init, $update, $tags, $cd_db, $links, $del_links);
 @ARGV or $update = 1; # update repos if no arguments
 
 GetOptions (
-   's|status'    => \$status,
    'i|init'      => \$init,
    'u|update'    => \$update,
-   't|tags'      => \$tags,
-   'c|cd-db'     => \$cd_db,
+   's|status'    => \$status,
    'l|links'     => \$links,
    'L|del-links' => \$del_links,
+   't|tags'      => \$tags,
+   'c|cd-db'     => \$cd_db,
    'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Checks
 # TODO: fix -sh when -s sub { say "hi" }
+# add --git?
 # tags(): chdir failed, propagate?
 # speed: parallel, open...
 # test with git, brew, not installed
@@ -115,32 +118,19 @@ make_path ($ENV{XDG_CONFIG_HOME} //= "$ENV{HOME}/.config");
 make_path (  $ENV{XDG_DATA_HOME} //= "$ENV{HOME}/.local/share");
 
 # Actions
-$status    and repos 'status';
 $init      and init;
-$update    and repos 'update';
-$tags      and tags;
+$update    and update;
+$status    and status;
 $links     and links 'add';
 $del_links and links 'del';
+$tags      and tags;
 
 # Subroutines
 sub init()
 {
    # Clone repos
-   if (chdir $ENV{REPOS_BASE})
-   {
-      say "$CYAN*$RESET Cloning repositories in $BLUE~/", basename ($ENV{REPOS_BASE}), "$RESET...";
-      foreach my $repo (qw/zsh bash help config scripts vim/)
-      {
-         unless (-d $repo)
-         {
-            system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
-            print "\n";
-         }
-      }
-   }
-
-   say "$CYAN*$RESET Configuring git";
-   system "$ENV{REPOS_BASE}/config/git.bash";
+   say "$CYAN*$RESET Cloning repositories in $BLUE~/", basename ($ENV{REPOS_BASE}), "$RESET...";
+   clone;
 
    say "$CYAN*$RESET Linking dot files";
    links 'add';
@@ -149,9 +139,12 @@ sub init()
    tags;
 
    say "$CYAN*$RESET Creating fuzzy cd database";
-   system "$ENV{REPOS_BASE}/scripts/db-create";
+   system 'bash', "$ENV{REPOS_BASE}/scripts/db-create";
 
-   if ($^O eq 'darwin')
+   say "$CYAN*$RESET Configuring git";
+   system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
+
+   if ($^O ne 'darwin')
    {
       say "$CYAN*$RESET Installing Homebrew formulae...";
 
@@ -195,60 +188,50 @@ sub init()
    }
 }
 
-sub repos($)
+sub clone()
 {
-   my $action = shift;
-   $action eq 'update' and say 'Updating repos...';
+   chdir $ENV{REPOS_BASE} or return;
 
-   foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
+   foreach my $repo (qw/zsh bash help config scripts vim/)
    {
-      next unless -d $repo;
-      if (chdir $repo)
+      unless (-d $repo)
       {
-         if ($action eq 'status')
-         {
-            if (`git status --porcelain` or any {/]$/} `git status -sb`)
-            {
-               print $CYAN. basename ($repo), "$RESET: ";
-               system qw/git status -sb/;
-            }
-         } else {
-            system qw/git fetch -q/;
-            if (`git symbolic-ref --short HEAD` eq 'master' and any {/behind/} `git status -sb`)
-            {
-               print $CYAN. basename ($repo), "$RESET: ";
-               system qw/git pull/;
-            }
-         }
+         system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
+         print "\n";
       }
    }
 }
 
-sub tags()
+sub update()
 {
-   # Notes:
-   #   repos/zsh/autoload can't be added since the function names are 'missing'
-   #   cheat by treating zsh files as sh
-   chdir $ENV{REPOS_BASE} or return;
+   my $action = shift;
+   say 'Updating repos...';
 
-   open (my $tags, '-|', 'ctags', '-R',
-      "--langmap=vim:+.vimrc,sh:+.after",
-      "--exclude='*~ '",
-      "--exclude='.*~'",
-      "--exclude=plugged",
-      "--exclude=colors",
-      "--exclude=keymap",
-      "--exclude=plug.vim",
-      "$ENV{XDG_CONFIG_HOME}/zsh",
-      "$ENV{REPOS_BASE}/scripts",
-      "$ENV{REPOS_BASE}/vim",
-      "$ENV{REPOS_BASE}/vim/plugged/vsearch",
-      "$ENV{REPOS_BASE}/vim/plugged/vim-blockinsert",
-      "$ENV{REPOS_BASE}/vim/plugged/vim-chess",
-      "$ENV{REPOS_BASE}/vim/plugged/vim-desertEX",
-      "$ENV{REPOS_BASE}/vim/plugged/vim-pairs",
-      "$ENV{REPOS_BASE}/vim/plugged/vim-swap",
-   ) or die RED.'failed to generate tags'.RESET, "\n";
+   foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
+   {
+      next unless -d $repo and chdir $repo;
+
+      system qw/git fetch -q/;
+      if (`git symbolic-ref --short HEAD` eq 'master' and any {/behind/} `git status -sb`)
+      {
+         print $CYAN. basename ($repo), "$RESET: ";
+         system qw/git pull/;
+      }
+   }
+}
+
+sub status()
+{
+   foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
+   {
+      next unless -d $repo and chdir $repo;
+
+      if (`git status --porcelain` or any {/]$/} `git status -sb`)
+      {
+         print $CYAN. basename ($repo), "$RESET: ";
+         system qw/git status -sb/;
+      }
+   }
 }
 
 sub links($)
@@ -310,4 +293,31 @@ sub links($)
          unlink $name;
       }
    }
+}
+
+sub tags()
+{
+   # Notes:
+   #   repos/zsh/autoload can't be added since the function names are 'missing'
+   #   cheat by treating zsh files as sh
+   chdir $ENV{REPOS_BASE} or return;
+
+   open (my $tags, '-|', 'ctags', '-R',
+      "--langmap=vim:+.vimrc,sh:+.after",
+      "--exclude='*~ '",
+      "--exclude='.*~'",
+      "--exclude=plugged",
+      "--exclude=colors",
+      "--exclude=keymap",
+      "--exclude=plug.vim",
+      "$ENV{XDG_CONFIG_HOME}/zsh",
+      "$ENV{REPOS_BASE}/scripts",
+      "$ENV{REPOS_BASE}/vim",
+      "$ENV{REPOS_BASE}/vim/plugged/vsearch",
+      "$ENV{REPOS_BASE}/vim/plugged/vim-blockinsert",
+      "$ENV{REPOS_BASE}/vim/plugged/vim-chess",
+      "$ENV{REPOS_BASE}/vim/plugged/vim-desertEX",
+      "$ENV{REPOS_BASE}/vim/plugged/vim-pairs",
+      "$ENV{REPOS_BASE}/vim/plugged/vim-swap",
+   ) or die RED.'failed to generate tags'.RESET, "\n";
 }
