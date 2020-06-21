@@ -18,11 +18,13 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 use List::Util 'any';
 
-my  $BLUE = color('ansi69');
-my  $CYAN = color('ansi45');
-my  $BOLD = color('bold');
-my $RESET = color('reset');
+my   $BLUE = color('ansi69');
+my   $CYAN = color('ansi45');
+my $YELLOW = color('yellow');
+my   $BOLD = color('bold');
+my  $RESET = color('reset');
 
+# Repos root folder setup
 unless ($ENV{REPOS_BASE})
 {
    warn RED.'REPOS_BASE empty'.RESET, "\n";
@@ -43,11 +45,17 @@ unless ($ENV{REPOS_BASE})
    print "\n";
 }
 
+# Help
 sub help() {
    print <<MSG;
 ${BOLD}SYNOPSIS${RESET}
-mkconfig
+
+mkconfig               : ${YELLOW}update${RESET}
+mkconfig -i            : ${YELLOW}install${RESET}
+mkconfig -(s|u)tc(l|L)
+
 ${BOLD}OPTIONS${RESET}
+
 --init,      -i: Initial setup
 --status,    -s: Check repositories statuses
 --update,    -u: Update repositories
@@ -58,6 +66,7 @@ ${BOLD}OPTIONS${RESET}
 MSG
 }
 
+# Declarations
 sub init();
 sub repos($); # status|update
 sub tags();
@@ -66,7 +75,7 @@ sub links($); # add|del
 # Options
 my ($status, $init, $update, $tags, $cd_db, $links, $del_links);
 
-@ARGV or $update = 1;
+@ARGV or $update = 1; # update repos if no arguments
 
 GetOptions (
    's|status'    => \$status,
@@ -112,7 +121,6 @@ $links     and links 'add';
 $del_links and links 'del';
 
 # Subroutines
-
 sub init()
 {
    # Clone repos
