@@ -186,14 +186,11 @@ sub init()
       wgetpaste
       );
 
-      system qw/brew install/, @formulae;
-      system qw/brew install/, '--HEAD neovim';
-      system qw/brew install/, 'slhck/moreutils/moreutils --without-parallel';
-      system qw/brew install/, 'parallel --force';
+      system qw/env HOMEBREW_NO_AUTO_UPDATE=1 brew install/, @formulae;
 
-      # Fix Homebrew PATHs
-      # path=("$(brew --prefix coreutils)"/libexec/gnubin $path)
-      # typeset -Ug path
+      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install --HEAD neovim};
+      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install slhck/moreutils/moreutils --without-parallel};
+      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install parallel --force};
    }
 }
 
