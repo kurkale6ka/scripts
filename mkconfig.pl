@@ -144,7 +144,7 @@ sub init()
    say "$CYAN*$RESET Configuring git";
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
 
-   if ($^O ne 'darwin')
+   if ($^O eq 'darwin')
    {
       say "$CYAN*$RESET Installing Homebrew formulae...";
 
@@ -180,8 +180,7 @@ sub init()
       wgetpaste
       );
 
-      system qw/env HOMEBREW_NO_AUTO_UPDATE=1 brew install/, @formulae;
-
+      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install}, @formulae;
       system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install --HEAD neovim};
       system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install slhck/moreutils/moreutils --without-parallel};
       system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install parallel --force};
