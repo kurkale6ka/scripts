@@ -106,15 +106,13 @@ sub lib_import
 
    while (<$sync>)
    {
-      chomp;
-
       # display dirs in blue
-      s@^(.........)\s(.*/)@$1 ${BLUE}$2${RESET}@;
+      s@(?<=\s).*/@${BLUE}$&${RESET}@;
 
       # warn if the size has changed
       s/^...s...../${RED}$&${RESET}/;
 
-      say;
+      print;
    }
 
    $dry and return;
