@@ -211,7 +211,7 @@ sub update()
       next unless -d $repo and chdir $repo;
 
       system qw/git fetch -q/;
-      if (`git symbolic-ref --short HEAD` eq 'master' and any {/behind/} `git status -sb`)
+      if (`git symbolic-ref --short HEAD` eq 'master' and any {/behind/} `git status -b --porcelain`)
       {
          print $CYAN. basename ($repo), "$RESET: ";
          system qw/git pull/;
@@ -225,7 +225,8 @@ sub status()
    {
       next unless -d $repo and chdir $repo;
 
-      if (`git status --porcelain` or any {/]$/} `git status -sb`)
+      my @status = `git status -b --show-stash --porcelain`;
+      if (@status > 1 or any {/ahead|behind/} @status)
       {
          print $CYAN. basename ($repo), "$RESET: ";
          system qw/git status -sb/;
