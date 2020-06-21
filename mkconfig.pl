@@ -64,6 +64,7 @@ ${BOLD}OPTIONS${RESET}
 --links,     -l: Make links
 --del-links, -L: Remove links
 MSG
+exit;
 }
 
 # Declarations
@@ -89,7 +90,7 @@ GetOptions (
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Checks
-# TODO: help alone
+# TODO: fix -sh when -s sub { say "hi" }
 # speed: parallel, open...
 # test with git, brew, not installed
 if ($init and any {defined} $status, $update, $tags, $cd_db, $links, $del_links)
