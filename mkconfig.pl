@@ -91,6 +91,7 @@ GetOptions (
 
 # Checks
 # TODO: fix -sh when -s sub { say "hi" }
+# tags(): chdir failed, propagate?
 # speed: parallel, open...
 # test with git, brew, not installed
 if ($init and any {defined} $status, $update, $tags, $cd_db, $links, $del_links)
@@ -228,27 +229,26 @@ sub tags()
    # Notes:
    #   repos/zsh/autoload can't be added since the function names are 'missing'
    #   cheat by treating zsh files as sh
-   if (chdir $ENV{REPOS_BASE})
-   {
-      open (my $tags, '-|', 'ctags', '-R',
-         "--langmap=vim:+.vimrc,sh:+.after",
-         "--exclude='*~ '",
-         "--exclude='.*~'",
-         "--exclude=plugged",
-         "--exclude=colors",
-         "--exclude=keymap",
-         "--exclude=plug.vim",
-         "$ENV{XDG_CONFIG_HOME}/zsh",
-         "$ENV{REPOS_BASE}/scripts",
-         "$ENV{REPOS_BASE}/vim",
-         "$ENV{REPOS_BASE}/vim/plugged/vsearch",
-         "$ENV{REPOS_BASE}/vim/plugged/vim-blockinsert",
-         "$ENV{REPOS_BASE}/vim/plugged/vim-chess",
-         "$ENV{REPOS_BASE}/vim/plugged/vim-desertEX",
-         "$ENV{REPOS_BASE}/vim/plugged/vim-pairs",
-         "$ENV{REPOS_BASE}/vim/plugged/vim-swap",
-      ) or die RED.'failed to generate tags'.RESET, "\n";
-   }
+   chdir $ENV{REPOS_BASE} or return;
+
+   open (my $tags, '-|', 'ctags', '-R',
+      "--langmap=vim:+.vimrc,sh:+.after",
+      "--exclude='*~ '",
+      "--exclude='.*~'",
+      "--exclude=plugged",
+      "--exclude=colors",
+      "--exclude=keymap",
+      "--exclude=plug.vim",
+      "$ENV{XDG_CONFIG_HOME}/zsh",
+      "$ENV{REPOS_BASE}/scripts",
+      "$ENV{REPOS_BASE}/vim",
+      "$ENV{REPOS_BASE}/vim/plugged/vsearch",
+      "$ENV{REPOS_BASE}/vim/plugged/vim-blockinsert",
+      "$ENV{REPOS_BASE}/vim/plugged/vim-chess",
+      "$ENV{REPOS_BASE}/vim/plugged/vim-desertEX",
+      "$ENV{REPOS_BASE}/vim/plugged/vim-pairs",
+      "$ENV{REPOS_BASE}/vim/plugged/vim-swap",
+   ) or die RED.'failed to generate tags'.RESET, "\n";
 }
 
 sub links($)
