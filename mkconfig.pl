@@ -193,11 +193,9 @@ sub clone()
 
    foreach my $repo (qw/zsh bash help config scripts vim/)
    {
-      unless (-d $repo)
-      {
-         system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
-         print "\n";
-      }
+      next if -d $repo;
+      system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
+      print "\n";
    }
 }
 
