@@ -1,5 +1,7 @@
 #! /usr/bin/env perl
 
+# Dot files setup
+#
 # run this script with:
 # ---------------------
 # perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.pl)
@@ -8,6 +10,10 @@
 # -------------------------
 # curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 # :PlugInstall
+
+# TODO:
+# - test create db
+# - test pull
 
 use strict;
 use warnings;
@@ -76,9 +82,9 @@ sub links($); # add|del
 sub tags();
 
 # Options
-my ($status, $init, $update, $tags, $cd_db, $links, $del_links);
+my ($init, $update, $status, $links, $del_links, $tags, $cd_db);
 
-@ARGV or $update = 1; # update repos if no arguments
+@ARGV or $update = 1;
 
 GetOptions (
    'i|init'      => \$init,
@@ -93,9 +99,8 @@ GetOptions (
 
 # Checks
 # TODO: fix -sh when -s sub { say "hi" }
-# add --git?
 # tags(): chdir failed, propagate?
-if ($init and any {defined} $status, $update, $tags, $cd_db, $links, $del_links)
+if ($init and any {defined} $update, $status, $links, $del_links, $tags, $cd_db)
 {
    die RED.'--init must be used on its own'.RESET, "\n";
 }
@@ -141,7 +146,7 @@ sub init()
    say "$CYAN*$RESET Configuring git";
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
 
-   # macOS only
+   # macOS
    $^O eq 'darwin' or return;
 
    say "$CYAN*$RESET Installing Homebrew formulae...";
