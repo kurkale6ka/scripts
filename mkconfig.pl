@@ -12,9 +12,10 @@
 # :PlugInstall
 
 # TODO:
-# - test create db
+# - test create db during init
 # - test pull
 # - test init without git
+# - tags(): chdir failed, propagate?
 
 use strict;
 use warnings;
@@ -57,9 +58,9 @@ sub help() {
    print <<MSG;
 ${BOLD}SYNOPSIS${RESET}
 
-mkconfig               : ${YELLOW}update${RESET}
-mkconfig -i            : ${YELLOW}install${RESET}
-mkconfig -[u|s][l|L]tc
+mkconfig              : ${YELLOW}update${RESET}
+mkconfig -i           : ${YELLOW}install${RESET}
+mkconfig -[u|s][l|L]t
 
 ${BOLD}OPTIONS${RESET}
 
@@ -69,7 +70,6 @@ ${BOLD}OPTIONS${RESET}
 --links,     -l: Make links
 --del-links, -L: Remove links
 --tags,      -t: Generate tags
---cd-db,     -c: Create fuzzy cd database
 MSG
 exit;
 }
@@ -83,7 +83,7 @@ sub links($); # add|del
 sub tags();
 
 # Options
-my ($init, $update, $status, $links, $del_links, $tags, $cd_db);
+my ($init, $update, $status, $links, $del_links, $tags);
 
 @ARGV or $update = 1;
 
@@ -94,14 +94,17 @@ GetOptions (
    'l|links'     => \$links,
    'L|del-links' => \$del_links,
    't|tags'      => \$tags,
-   'c|cd-db'     => \$cd_db,
    'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Checks
-# TODO: fix -sh when -s sub { say "hi" }
-# tags(): chdir failed, propagate?
-if ($init and any {defined} $update, $status, $links, $del_links, $tags, $cd_db)
+if (@ARGV)
+{
+   warn RED.'Non-option arguments not allowed'.RESET, "\n";
+   help;
+}
+
+if ($init and any {defined} $update, $status, $links, $del_links, $tags)
 {
    die RED.'--init must be used on its own'.RESET, "\n";
 }
