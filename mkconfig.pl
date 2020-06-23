@@ -243,9 +243,9 @@ sub update()
 
       if (any {/^##\smaster.*behind/} `git status -b --porcelain`)
       {
-         open my $fh, '-|', qw/git -c color.pull=always pull/;
+         open my $pull, '-|', qw/git -c color.pull=always pull/;
 
-         while (<$fh>)
+         while (<$pull>)
          {
             print $CYAN. basename ($repo), "$RESET: " if /^##/;
             print;
@@ -280,9 +280,9 @@ sub status()
       my @status = `git status -b --show-stash --porcelain`;
       if (@status > 1 or any {/ahead|behind/} @status)
       {
-         open my $fh, '-|', qw/git -c color.status=always status -sb/;
+         open my $st, '-|', qw/git -c color.status=always status -sb/;
 
-         while (<$fh>)
+         while (<$st>)
          {
             print $CYAN. basename ($repo), "$RESET: " if /^##/;
             print;
