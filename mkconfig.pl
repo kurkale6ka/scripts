@@ -13,7 +13,6 @@
 
 # TODO:
 # - test create db during init
-# - test pull
 # - test init without git
 # - tags(): chdir failed, propagate?
 
