@@ -246,7 +246,7 @@ sub update()
 
          while (<$pull>)
          {
-            print $CYAN. basename ($repo), "$RESET: " if /^##/;
+            print $CYAN. basename ($repo), "$RESET: " if 1..1;
             print;
          }
       }
@@ -283,7 +283,7 @@ sub status()
 
          while (<$st>)
          {
-            print $CYAN. basename ($repo), "$RESET: " if /^##/;
+            print $CYAN. basename ($repo), "$RESET: " if 1..1;
             print;
          }
       }
