@@ -14,6 +14,7 @@
 # TODO:
 # - test create db
 # - test pull
+# - test init without git
 
 use strict;
 use warnings;
