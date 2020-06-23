@@ -243,7 +243,7 @@ sub update()
 
       if (any {/^##\smaster.*behind/} `git status -b --porcelain`)
       {
-         open my $pull, '-|', qw/git -c color.pull=always pull/;
+         open my $pull, '-|', qw/git -c color.ui=always pull/;
 
          while (<$pull>)
          {
@@ -380,5 +380,5 @@ sub tags()
       "$ENV{REPOS_BASE}/vim/plugged/vim-desertEX",
       "$ENV{REPOS_BASE}/vim/plugged/vim-pairs",
       "$ENV{REPOS_BASE}/vim/plugged/vim-swap",
-   ) or die RED.'failed to generate tags'.RESET, "\n";
+   ) or warn RED.'failed to generate tags'.RESET, "\n";
 }
