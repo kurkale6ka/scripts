@@ -17,6 +17,7 @@ use File::Basename qw/dirname basename/;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 use List::Util 'any';
+use IPC::Cmd 'can_run';
 
 my   $BLUE = color('ansi69');
 my   $CYAN = color('ansi45');
@@ -43,6 +44,14 @@ unless ($ENV{REPOS_BASE})
    }
 
    print "\n";
+}
+
+# Install required software
+can_run('git') or die RED.'Please install git before proceeding'.RESET, "\n";
+
+if ($^O eq 'darwin')
+{
+   can_run('brew') or die RED.'Please install Homebrew'.RESET, "\n";
 }
 
 # Help
@@ -95,8 +104,6 @@ GetOptions (
 # TODO: fix -sh when -s sub { say "hi" }
 # add --git?
 # tags(): chdir failed, propagate?
-# speed: parallel, open...
-# test with git, brew, not installed
 if ($init and any {defined} $status, $update, $tags, $cd_db, $links, $del_links)
 {
    die RED.'--init must be used on its own'.RESET, "\n";
@@ -144,47 +151,47 @@ sub init()
    say "$CYAN*$RESET Configuring git";
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
 
-   if ($^O eq 'darwin')
-   {
-      say "$CYAN*$RESET Installing Homebrew formulae...";
+   # Mac OS only
+   $^O eq 'darwin' or return;
 
-      my @formulae = qw(
-      bash
-      zsh
-      shellcheck
-      ed
-      gnu-sed
-      gawk
-      vim
-      fd
-      findutils
-      coreutils
-      grep
-      ripgrep
-      mariadb
-      sqlite
-      colordiff
-      bat
-      git
-      ctags
-      gnu-tar
-      iproute2mac
-      tcpdump
-      telnet
-      tmux
-      weechat
-      tree
-      gcal
-      nmap
-      dos2unix
-      wgetpaste
-      );
+   say "$CYAN*$RESET Installing Homebrew formulae...";
 
-      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install}, @formulae;
-      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install --HEAD neovim};
-      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install slhck/moreutils/moreutils --without-parallel};
-      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install parallel --force};
-   }
+   my @formulae = qw(
+   bash
+   zsh
+   shellcheck
+   ed
+   gnu-sed
+   gawk
+   vim
+   fd
+   findutils
+   coreutils
+   grep
+   ripgrep
+   mariadb
+   sqlite
+   colordiff
+   bat
+   git
+   ctags
+   gnu-tar
+   iproute2mac
+   tcpdump
+   telnet
+   tmux
+   weechat
+   tree
+   gcal
+   nmap
+   dos2unix
+   wgetpaste
+   );
+
+   system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install}, @formulae;
+   system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install --HEAD neovim};
+   system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install slhck/moreutils/moreutils --without-parallel};
+   system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install parallel --force};
 }
 
 sub clone()
