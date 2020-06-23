@@ -204,32 +204,77 @@ sub update()
    my $action = shift;
    say 'Updating repos...';
 
+   my @children;
+
    foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
    {
       next unless -d $repo and chdir $repo;
 
-      system qw/git fetch -q/;
-      if (`git symbolic-ref --short HEAD` eq 'master' and any {/behind/} `git status -b --porcelain`)
+      # parent
+      my $pid = fork;
+      defined $pid or die "failed to fork: $!";
+
+      if ($pid)
       {
-         print $CYAN. basename ($repo), "$RESET: ";
-         system qw/git pull/;
+         push @children, $pid;
+         next;
       }
+
+      # kid
+      system (qw/git fetch -q/) == 0 or exit;
+
+      if (any {/^##\smaster.*behind/} `git status -b --porcelain`)
+      {
+         open my $fh, '-|', qw/git -c color.pull=always pull/;
+
+         while (<$fh>)
+         {
+            print $CYAN. basename ($repo), "$RESET: " if /^##/;
+            print;
+         }
+      }
+
+      exit;
    }
+
+   waitpid $_, 0 foreach @children;
 }
 
 sub status()
 {
+   my @children;
+
    foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
    {
       next unless -d $repo and chdir $repo;
 
+      # parent
+      my $pid = fork;
+      defined $pid or die "failed to fork: $!";
+
+      if ($pid)
+      {
+         push @children, $pid;
+         next;
+      }
+
+      # kid
       my @status = `git status -b --show-stash --porcelain`;
       if (@status > 1 or any {/ahead|behind/} @status)
       {
-         print $CYAN. basename ($repo), "$RESET: ";
-         system qw/git status -sb/;
+         open my $fh, '-|', qw/git -c color.status=always status -sb/;
+
+         while (<$fh>)
+         {
+            print $CYAN. basename ($repo), "$RESET: " if /^##/;
+            print;
+         }
       }
+
+      exit;
    }
+
+   waitpid $_, 0 foreach @children;
 }
 
 sub links($)
