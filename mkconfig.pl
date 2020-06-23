@@ -17,7 +17,6 @@ use File::Basename qw/dirname basename/;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 use List::Util 'any';
-use IPC::Cmd 'can_run';
 
 my   $BLUE = color('ansi69');
 my   $CYAN = color('ansi45');
@@ -44,14 +43,6 @@ unless ($ENV{REPOS_BASE})
    }
 
    print "\n";
-}
-
-# Install required software
-can_run('git') or die RED.'Please install git before proceeding'.RESET, "\n";
-
-if ($^O eq 'darwin')
-{
-   can_run('brew') or die RED.'Please install Homebrew'.RESET, "\n";
 }
 
 # Help
@@ -135,7 +126,6 @@ $tags      and tags;
 # Subroutines
 sub init()
 {
-   # Clone repos
    say "$CYAN*$RESET Cloning repositories in $BLUE~/", basename ($ENV{REPOS_BASE}), "$RESET...";
    clone;
 
@@ -151,7 +141,7 @@ sub init()
    say "$CYAN*$RESET Configuring git";
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
 
-   # Mac OS only
+   # macOS only
    $^O eq 'darwin' or return;
 
    say "$CYAN*$RESET Installing Homebrew formulae...";
@@ -188,12 +178,18 @@ sub init()
    wgetpaste
    );
 
-   system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install}, @formulae;
    system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install --HEAD neovim};
+   unless ($? == 0) {
+      warn "$!";
+      return;
+   }
+
    system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install slhck/moreutils/moreutils --without-parallel};
    system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install parallel --force};
+   system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install}, @formulae;
 }
 
+# private
 sub clone()
 {
    chdir $ENV{REPOS_BASE} or return;
@@ -201,7 +197,13 @@ sub clone()
    foreach my $repo (qw/zsh bash help config scripts vim/)
    {
       next if -d $repo;
+
       system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
+      unless ($? == 0) {
+         warn "$!";
+         return;
+      }
+
       print "\n";
    }
 }
