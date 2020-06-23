@@ -148,6 +148,7 @@ sub init()
 
    say "$CYAN*$RESET Configuring git";
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
+   $? == 0 or warn RED.'failed. is git installed?'.RESET, "\n";
 
    # macOS
    $^O eq 'darwin' or return;
