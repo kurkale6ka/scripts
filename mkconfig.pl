@@ -84,7 +84,7 @@ sub tags();
 # Options
 my ($init, $update, $status, $links, $del_links, $tags);
 
-@ARGV or $update = 1;
+@ARGV or $update = 1; # default action
 
 GetOptions (
    'i|init'      => \$init,
@@ -148,7 +148,6 @@ sub init()
 
    say "$CYAN*$RESET Configuring git";
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
-   $? == 0 or warn RED.'failed. is git installed?'.RESET, "\n";
 
    # macOS
    $^O eq 'darwin' or return;
