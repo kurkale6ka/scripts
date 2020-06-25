@@ -239,8 +239,8 @@ sub update()
 
       if (any {/^##\smaster.*behind/} `git status -b --porcelain`)
       {
-         my $status = $CYAN. basename ($repo). "$RESET: ";
-         print $status .= `git -c color.ui=always pull`;
+         print $CYAN, basename ($repo), "$RESET: ",
+         `git -c color.ui=always pull`;
       }
 
       exit;
@@ -271,8 +271,8 @@ sub status()
 
       if (@status > 1 or any {/ahead|behind/} @status)
       {
-         my $status = $CYAN. basename ($repo). "$RESET: ";
-         print $status .= `git -c color.status=always status -sb`;
+         print $CYAN, basename ($repo), "$RESET: ",
+         `git -c color.status=always status -sb`;
       }
 
       exit;
