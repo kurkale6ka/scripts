@@ -1,20 +1,10 @@
 #! /usr/bin/env perl
 
 # Dot files setup
+# ---------------
 #
 # run this script with:
-# ---------------------
 # perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.pl)
-#
-# vim-plug (after cloning):
-# -------------------------
-# curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-# :PlugInstall
-
-# TODO:
-# - test create db during init
-# - test init without git
-# - tags(): chdir failed, propagate?
 
 use strict;
 use warnings;
@@ -23,7 +13,7 @@ use File::Path 'make_path';
 use File::Basename qw/dirname basename/;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
-use List::Util 'any';
+use List::Util qw/any all/;
 
 my   $BLUE = color('ansi69');
 my   $CYAN = color('ansi45');
@@ -199,6 +189,8 @@ sub clone()
 {
    chdir $ENV{REPOS_BASE} or return;
 
+   my @statuses = (-1);
+
    foreach my $repo (qw/zsh bash help config scripts vim/)
    {
       next if -d $repo;
@@ -206,7 +198,17 @@ sub clone()
       system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
       $? == 0 or return;
 
+      push @statuses, $?;
       print "\n";
+   }
+
+   if (all {$_ == 0} @statuses)
+   {
+      say <<VIM
+${YELLOW}Now install a vim plugin manager, vim-plug${RESET}:
+curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+:PlugInstall
+VIM
    }
 
    return 1;
@@ -239,7 +241,6 @@ sub update()
       if (any {/^##\smaster.*behind/} `git status -b --porcelain`)
       {
          open my $pull, '-|', qw/git -c color.ui=always pull/;
-
          while (<$pull>)
          {
             print $CYAN. basename ($repo), "$RESET: " if 1..1;
@@ -273,10 +274,10 @@ sub status()
 
       # kid
       my @status = `git status -b --show-stash --porcelain`;
+
       if (@status > 1 or any {/ahead|behind/} @status)
       {
          open my $st, '-|', qw/git -c color.status=always status -sb/;
-
          while (<$st>)
          {
             print $CYAN. basename ($repo), "$RESET: " if 1..1;
