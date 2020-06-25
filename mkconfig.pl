@@ -226,8 +226,7 @@ sub update()
       next unless -d $repo and chdir $repo;
 
       # parent
-      my $pid = fork;
-      defined $pid or die "failed to fork: $!";
+      my $pid = fork // die "failed to fork: $!";
 
       if ($pid)
       {
@@ -240,12 +239,8 @@ sub update()
 
       if (any {/^##\smaster.*behind/} `git status -b --porcelain`)
       {
-         open my $pull, '-|', qw/git -c color.ui=always pull/;
-         while (<$pull>)
-         {
-            print $CYAN. basename ($repo), "$RESET: " if 1..1;
-            print;
-         }
+         my $status = $CYAN. basename ($repo). "$RESET: ";
+         print $status .= `git -c color.ui=always pull`;
       }
 
       exit;
@@ -263,8 +258,7 @@ sub status()
       next unless -d $repo and chdir $repo;
 
       # parent
-      my $pid = fork;
-      defined $pid or die "failed to fork: $!";
+      my $pid = fork // die "failed to fork: $!";
 
       if ($pid)
       {
@@ -277,12 +271,8 @@ sub status()
 
       if (@status > 1 or any {/ahead|behind/} @status)
       {
-         open my $st, '-|', qw/git -c color.status=always status -sb/;
-         while (<$st>)
-         {
-            print $CYAN. basename ($repo), "$RESET: " if 1..1;
-            print;
-         }
+         my $status = $CYAN. basename ($repo). "$RESET: ";
+         print $status .= `git -c color.status=always status -sb`;
       }
 
       exit;
