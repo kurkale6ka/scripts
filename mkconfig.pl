@@ -187,10 +187,7 @@ sub init()
    );
 
    system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install --HEAD neovim};
-   unless ($? == 0) {
-      warn "$!";
-      return;
-   }
+   $? == 0 or return;
 
    system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install slhck/moreutils/moreutils --without-parallel};
    system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install parallel --force};
@@ -207,10 +204,7 @@ sub clone()
       next if -d $repo;
 
       system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
-      unless ($? == 0) {
-         warn "$!";
-         return 0;
-      }
+      $? == 0 or return;
 
       print "\n";
    }
