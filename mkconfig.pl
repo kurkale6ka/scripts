@@ -135,7 +135,7 @@ $tags      and tags;
 sub init()
 {
    say "$CYAN*$RESET Cloning repositories in $BLUE~/", basename ($ENV{REPOS_BASE}), "$RESET...";
-   clone;
+   clone or return;
 
    say "$CYAN*$RESET Linking dot files";
    links 'add';
@@ -209,11 +209,13 @@ sub clone()
       system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
       unless ($? == 0) {
          warn "$!";
-         return;
+         return 0;
       }
 
       print "\n";
    }
+
+   return 1;
 }
 
 sub update()
