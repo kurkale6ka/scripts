@@ -144,7 +144,7 @@ lib_import if $import;
 # Show tags
 if (defined $tags)
 {
-   my @tags;
+   my (@tags, @options);
 
    # tags I am mostly interested in
    if ($tags eq '') {
@@ -169,13 +169,11 @@ if (defined $tags)
       }
    }
 
-   my @options = ('-s');
-
-   # very short (-S) output format for a single tag
-   #      short (-s) otherwise
+   # short or shortest output format
+   @options = ('-s');
    @options = ('-S') if @tags == 1 and $tags[0] !~ /all/i;
 
-   # recurse
+   # recurse in dirs
    push @options, '-r' if all {-d $_} @ARGV;
 
    # show command
