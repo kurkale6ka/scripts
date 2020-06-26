@@ -9,6 +9,7 @@ use warnings;
 use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
+use List::Util 'all';
 
 # Location where pictures get uploaded
 my $source = glob '"~/Dropbox/Camera Uploads"';
@@ -21,10 +22,10 @@ my %messages = (
    import => 'import into the images library',
 );
 
-my   $RED = color('red');
 my  $BLUE = color('ansi69');
 my  $GRAY = color('ansi242');
 my $GREEN = color('green');
+my   $RED = color('red');
 my  $BOLD = color('bold');
 my $RESET = color('reset');
 
@@ -73,7 +74,7 @@ unless (defined $tags)
    # pics img ..., pics dir => implicit --tags
    if (@ARGV > 0)
    {
-      if ($dry or $src or $dst or $verbose)
+      if ($dry or $src or $dst)
       {
          die RED.'When showing tags, no options are allowed'.RESET, "\n";
       } else {
@@ -82,7 +83,7 @@ unless (defined $tags)
    } else {
       -d $source or die RED."Source missing: ${BLUE}$source".RESET, "\n";
    }
-} elsif ($dry or $src or $dst or $verbose) {
+} elsif ($dry or $src or $dst) {
    die RED.'When showing tags, no options are allowed'.RESET, "\n";
 }
 
@@ -145,25 +146,48 @@ if (defined $tags)
 {
    my @tags;
 
-   if ($tags eq '')
-   {
-      # list of tags I am mostly interested in
+   # tags I am mostly interested in
+   if ($tags eq '') {
       @tags = qw/*keyword* subject title *comment* make model createdate datetimeoriginal/;
-   } elsif ($tags =~ /^d(ates)?$/in) {
+   }
+   # -td
+   elsif ($tags =~ /^d(ates)?$/in) {
       @tags = ('alldates');
-   } elsif ($tags =~ /^a$/in) {
+   }
+   # -ta
+   elsif ($tags =~ /^a$/in) {
       @tags = ('all');
-   } else {
+   }
+   else {
       @tags = split /\s*,\s*/, $tags;
+
+      # check for 'invalid' (1 letter) tags
+      if (my @bad_tags = map "-$_", grep {/^.$/} @tags)
+      {
+         die RED.'Invalid tag', @bad_tags == 1 ? ': ' : 's: ',
+         join (', ', @bad_tags), RESET, "\n";
+      }
    }
 
-   # very short (-S) output format for a single tag, short (-s) otherwise
-   if (@tags == 1 and $tags[0] !~ /all/i)
+   my @options = ('-s');
+
+   # very short (-S) output format for a single tag
+   #      short (-s) otherwise
+   @options = ('-S') if @tags == 1 and $tags[0] !~ /all/i;
+
+   # recurse
+   push @options, '-r' if all {-d $_} @ARGV;
+
+   # show command
+   if ($verbose)
    {
-      system qw/exiftool -G -S -a/, map ("-$_", @tags), @ARGV > 0 ? @ARGV : '.';
-   } else {
-      system qw/exiftool -G -s -a/, map ("-$_", @tags), @ARGV > 0 ? @ARGV : '.';
+      my   @tg = map {/\*/ ? "-'$_'" : "-$_"} @tags;
+      my @args = map {/\s/ ?  "'$_'" :   $_ } @ARGV;
+
+      say YELLOW."exiftool -a -G @options @tg ", @ARGV > 0 ? "@args" : '.', RESET;
    }
+
+   system qw/exiftool -a -G/, @options, map ("-$_", @tags), @ARGV > 0 ? @ARGV : '.';
 }
 
 # Sort camera shots
