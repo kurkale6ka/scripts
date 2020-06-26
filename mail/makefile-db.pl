@@ -9,27 +9,33 @@ use warnings;
 use feature 'say';
 use File::Basename 'fileparse';
 
-# chdir '/etc/postfix' or die;
+chdir '/etc/postfix' or die;
 
 my @dbs = glob "'*.db'" or die "No dbs found\n";
 
-# open my $makefile, '>>', 'Makefile' or die "Can't open >> Makefile: $!\n";
-# select $makefile;
+open my $makefile, '>>', 'Makefile' or die "Can't open >> Makefile: $!\n";
 
 say 'Creating rules for:';
 say "* $_" foreach @dbs;
 
-# sanitize whitespaces
-if (@dbs > 1)
+my $count = 0;
+
+select $makefile;
+
+# Default goal
+print 'databases: ';
+
+foreach (@dbs)
 {
-   say 'databases: \\';
-   say "$_ \\" foreach @dbs;
-} else {
-   say "databases: @dbs";
+   print;
+   print ' \\' unless ++$count == @dbs;
+   print "\n";
 }
 
+$count = 0;
 print "\n";
 
+# Rules
 foreach my $db (@dbs)
 {
    my $base = fileparse ($db, '.db');
@@ -40,10 +46,11 @@ foreach my $db (@dbs)
    # canonical.in -> canonical
    symlink $base, $in;
 
-   say <<RULE
+   print <<RULE;
 $db: $in
-	\@echo updating "$db"...
-	\@$cmd "$in"
-	\@mv "$in.db" "$db"
+        \@echo updating "$db"...
+        \@$cmd "$in"
+        \@mv "$in.db" "$db"
 RULE
+   print "\n" unless ++$count == @dbs;
 }
