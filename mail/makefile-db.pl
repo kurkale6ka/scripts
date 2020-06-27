@@ -9,28 +9,46 @@ use warnings;
 use feature 'say';
 use File::Basename 'fileparse';
 use Term::ANSIColor qw/color :constants/;
+use Getopt::Long 'GetOptions';
 
 my  $BLUE = color('ansi69');
 my  $CYAN = color('ansi45');
 my   $RED = color('red');
 my $RESET = color('reset');
 
+# Help
+sub help() {
+   say "$0 [--dry-run(-n)]";
+   say 'Generate a Makefile for postfix Berkeley DB (.db) files';
+   exit;
+}
+
+# Options
+my $dry;
+GetOptions(
+   'n|dry-run' => \$dry,
+   'help'      => \&help
+) or die RED.'Error in command line arguments'.RESET, "\n";
+
 # Initialisations
 chdir '/etc/postfix' or
 die RED."failed to cd in $BLUE/etc/postfix$RESET $RED- $!".RESET, "\n";
 
-open my $makefile, '>', 'Makefile' or
-die RED."couldn't open Makefile: $!".RESET, "\n";
-
 my @dbs = glob "'*.db'" or
 die RED.'no Berkeley DBs (.db) found'.RESET, "\n";
 
-# List rules
-say 'Creating rules for:';
-say "* ${CYAN}$_${RESET}" foreach @dbs;
+unless ($dry)
+{
+   open my $makefile, '>', 'Makefile' or
+   die RED."couldn't open Makefile: $!".RESET, "\n";
 
-# Write to Makefile
-select $makefile;
+   # List rules
+   say 'Creating rules for:';
+   say "* ${CYAN}$_${RESET}" foreach @dbs;
+
+   # Write to Makefile
+   select $makefile;
+}
 
 # Default goal
 my $count = 0;
@@ -60,9 +78,9 @@ foreach my $db (@dbs)
 
    print <<RULE;
 $db: $in
-        \@echo updating "$db"...
-        \@$cmd "$in"
-        \@mv "$in.db" "$db"
+	\@echo updating "$db"...
+	\@$cmd "$in"
+	\@mv "$in.db" "$db"
 RULE
    print "\n" unless ++$count == @dbs;
 }
