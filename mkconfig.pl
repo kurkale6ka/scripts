@@ -21,6 +21,9 @@ my $YELLOW = color('yellow');
 my   $BOLD = color('bold');
 my  $RESET = color('reset');
 
+my $user = 'kurkale6ka';
+my @repos = qw/zsh bash help config scripts vim/;
+
 # Repos root folder setup
 unless ($ENV{REPOS_BASE})
 {
@@ -191,11 +194,11 @@ sub clone()
 
    my @statuses = (-1);
 
-   foreach my $repo (qw/zsh bash help config scripts vim/)
+   foreach my $repo (@repos)
    {
       next if -d $repo;
 
-      system qw/git clone/, "git\@github.com:kurkale6ka/$repo.git";
+      system qw/git clone/, "git\@github.com:$user/$repo.git";
       $? == 0 or return;
 
       push @statuses, $?;
