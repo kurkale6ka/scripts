@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-# Generate a postfix Makefile for Berkeley DB files (.db)
+# Generate a Makefile for postfix Berkeley DB (.db) files
 #
 # http://www.postfix.org/DATABASE_README.html#safe_db
 
@@ -8,21 +8,33 @@ use strict;
 use warnings;
 use feature 'say';
 use File::Basename 'fileparse';
+use Term::ANSIColor qw/color :constants/;
 
-chdir '/etc/postfix' or die;
+my  $BLUE = color('ansi69');
+my  $CYAN = color('ansi45');
+my   $RED = color('red');
+my $RESET = color('reset');
 
-my @dbs = glob "'*.db'" or die "No dbs found\n";
+# Initialisations
+chdir '/etc/postfix' or
+die RED."failed to cd in $BLUE/etc/postfix$RESET $RED- $!".RESET, "\n";
 
-open my $makefile, '>>', 'Makefile' or die "Can't open >> Makefile: $!\n";
+open my $makefile, '>', 'Makefile' or
+die RED."couldn't open Makefile: $!".RESET, "\n";
 
+my @dbs = glob "'*.db'" or
+die RED.'no Berkeley DBs (.db) found'.RESET, "\n";
+
+# List rules
 say 'Creating rules for:';
-say "* $_" foreach @dbs;
+say "* ${CYAN}$_${RESET}" foreach @dbs;
 
-my $count = 0;
-
+# Write to Makefile
 select $makefile;
 
 # Default goal
+my $count = 0;
+
 print 'databases: ';
 
 foreach (@dbs)
@@ -31,11 +43,11 @@ foreach (@dbs)
    print ' \\' unless ++$count == @dbs;
    print "\n";
 }
-
-$count = 0;
 print "\n";
 
 # Rules
+$count = 0;
+
 foreach my $db (@dbs)
 {
    my $base = fileparse ($db, '.db');
@@ -43,7 +55,7 @@ foreach my $db (@dbs)
 
    my $cmd = $db =~ /aliases/ ? 'postalias' : 'postmap';
 
-   # canonical.in -> canonical
+   # ex: canonical.in -> canonical
    symlink $base, $in;
 
    print <<RULE;
