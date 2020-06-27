@@ -37,8 +37,8 @@ ${BOLD}SYNOPSIS${RESET}
    pics    [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{title}${RESET}
    pics -i [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n]      : ${GREEN}$messages{import}${RESET}
 
-   pics                [img ...|${BLUE}dir${RESET}] : ${GREEN}show tags${RESET}
-   pics -t [tag[,...]] [img ...|${BLUE}dir${RESET}] :
+   pics                [img ...|${BLUE}dir${RESET}] [-v] : ${GREEN}show tags${RESET}
+   pics -t [tag[,...]] [img ...|${BLUE}dir${RESET}] [-v] :
 
 ${BOLD}OPTIONS${RESET}
 
