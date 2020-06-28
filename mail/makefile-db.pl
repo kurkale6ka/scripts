@@ -1,8 +1,13 @@
 #! /usr/bin/env perl
 
+# DEPRECATED
+#
+#   GNU make can do this for you,
+#   use the Makefile included at the end of this script
+#
 # Generate a Makefile for postfix Berkeley DB (.db) files
 #
-# http://www.postfix.org/DATABASE_README.html#safe_db
+#   http://www.postfix.org/DATABASE_README.html#safe_db
 
 use strict;
 use warnings;
@@ -84,3 +89,33 @@ $db: $in
 RULE
    print "\n" unless ++$count == @dbs;
 }
+
+__DATA__
+
+# Makefile for postfix Berkeley DB (.db) files
+#
+#   http://www.postfix.org/DATABASE_README.html#safe_db
+#
+# Requirement:
+#
+#   create links
+#   ex: canonical.in -> canonical
+#   for d in *.db; do ln -sf "${d%.db}" "${d%.db}.in"; done
+#
+# Warning:
+#
+#   pattern rules will fail if dbs have whitespaces in their names
+
+DBS = $(wildcard *.db)
+
+databases: ${DBS}
+
+aliases.db: aliases.in
+	@echo updating aliases.db...
+	@postalias aliases.in
+	@mv aliases.in.db aliases.db
+
+%.db: %.in
+	@echo updating "$@"...
+	@postmap "$<"
+	@mv "$<.db" "$@"
