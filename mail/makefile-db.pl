@@ -79,7 +79,7 @@ foreach my $db (@dbs)
    my $cmd = $db =~ /aliases/ ? 'postalias' : 'postmap';
 
    # ex: canonical.in -> canonical
-   symlink $base, $in;
+   symlink $base, $in unless $dry;
 
    print <<RULE;
 $db: $in
