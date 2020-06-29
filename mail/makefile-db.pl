@@ -93,18 +93,14 @@ RULE
 __DATA__
 
 # Makefile for postfix Berkeley DB (.db) files
-#
+# --------------------------------------------
 #   http://www.postfix.org/DATABASE_README.html#safe_db
 #
-# Requirement:
-#
-#   create links
-#   ex: canonical.in -> canonical
-#   for d in *.db; do ln -sf "${d%.db}" "${d%.db}.in"; done
-#
-# Warning:
-#
-#   pattern rules will fail if dbs have whitespaces in their names
+# Requirement
+# -----------
+#   make setup (see below)
+
+.PHONY : setup clean help
 
 DBS = $(wildcard *.db)
 
@@ -119,3 +115,23 @@ aliases.db: aliases.in
 	@echo updating "$@"...
 	@postmap "$<"
 	@mv "$<.db" "$@"
+
+#
+# API
+# ===
+# - make       : update databases
+# - make setup :    add .in symlinks (ex: canonical.in -> canonical)
+setup:
+	@echo 'adding .in symlinks'
+	@for d in *.db; \
+         do \
+            [[ -f $$d ]] && ln -sf "$${d%.db}" "$${d%.db}.in"; \
+         done
+
+# - make clean : remove .in symlinks
+clean:
+	@echo 'removing .in symlinks'
+	@rm *.in
+
+help: Makefile
+	@sed -n 's/^#\s\?//p' $<
