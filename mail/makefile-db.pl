@@ -100,8 +100,6 @@ __DATA__
 # -----------
 #   make setup (see below)
 
-.PHONY : setup clean help
-
 DBS = $(wildcard *.db)
 
 databases: ${DBS}
@@ -115,6 +113,8 @@ aliases.db: aliases.in
 	@echo updating "$@"...
 	@postmap "$<"
 	@mv "$<.db" "$@"
+
+.PHONY: setup clean help
 
 #
 # API
