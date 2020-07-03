@@ -5,6 +5,8 @@ use warnings;
 use feature 'say';
 use Term::ANSIColor ':constants';
 use Getopt::Long 'GetOptions';
+use File::Path 'make_path';
+# use Term::ReadLine;
 
 sub help() {
    say 'mkssh';
@@ -13,9 +15,9 @@ sub help() {
 
 my $stdin;
 GetOptions(
-   ''       => \$stdin,
-   'stdin'  => \$stdin,
-   'h|help' => \&help
+   ''      => \$stdin,
+   'stdin' => \$stdin,
+   'help'  => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Install key
@@ -23,20 +25,19 @@ sub install_key # ($$)
 {
    my ($key, $user) = @_;
 
-   if (mkdir "/home/$user/.ssh")
-   {
-      if ! grep -q "$key" "$home"/.ssh/authorized_keys 2>/dev/null
-      then
-         echo "Installing $_grn$login$_res's ssh key under $home/.ssh/authorized_keys..."
-         echo "$sshkey" >> "$home"/.ssh/authorized_keys
-      fi
+   make_path "/tmp/$user/.ssh";
 
-      # Change permissions + ownership
-      chmod 700 "$home"/.ssh
-      chmod 600 "$home"/.ssh/authorized_keys
+   #    if ! grep -q "$key" "$home"/.ssh/authorized_keys 2>/dev/null
+   #    then
+   #       echo "Installing $_grn$login$_res's ssh key under $home/.ssh/authorized_keys..."
+   #       echo "$sshkey" >> "$home"/.ssh/authorized_keys
+   #    fi
 
-      chown -R "$login":"$login" "$home"/.ssh
-   }
+   # Change permissions + ownership
+   chmod 700, "/tmp/$user/.ssh";
+   chmod 600, "/tmp/$user/.ssh/authorized_keys";
+
+   chown $user, $user, "/tmp/$user/.ssh";
 }
 
 #  in: ssh key
@@ -58,8 +59,13 @@ if ((getpwuid $<)[0] eq 'root')
 {
    # getent passwd $user
    # read fname lname
-   # accept name $user?
-   system qw(useradd -m -s/bin/bash -c), "$fname $lname", "$user";
+
+   # Accept name $user?
+   # make sure Term::ReadLine::GNU is returned
+   # my $term = Term::ReadLine->new();
+   # $term->readline ('User', $user);
+
+   # system qw(useradd -m -s/bin/bash -c), "$fname $lname", "$user";
 }
 
 if ($stdin)
@@ -72,6 +78,7 @@ if ($stdin)
 } else {
    while (<DATA>)
    {
+      next if /^#/ or /^$/;
       install_key (read_key $_);
    }
 }
