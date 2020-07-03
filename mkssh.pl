@@ -29,7 +29,7 @@ sub install_keys (@)
    my @keys = @_;
 
    # get current user
-   my ($name, $passwd, $uid, $gid) = getpwuid $<;
+   my ($name, $passwd, $uid, $gid) = getpwuid $>;
 
    my $user = $name unless $name eq 'root';
 
@@ -43,15 +43,19 @@ sub install_keys (@)
       {
          ($user) = split '@', $key[2];
 
-         # Accept name $user?
          # make sure Term::ReadLine::GNU is returned
-         # my $term = Term::ReadLine->new();
-         # $term->readline ('User', $user);
+         my $term = Term::ReadLine->new();
+         my $user = $term->readline ('User: ', $user);
 
-         # getent passwd $user
-         # read fname lname
+         print 'Full name: ';
+         chomp (my $fname = <STDIN>);
 
-         # system qw(useradd -m -c), "$fname $lname", "$user";
+         # getent passwd $user?
+         system qw(useradd -m -c), $fname, $user;
+         $? == 0 or die $!;
+
+         $uid = getpwnam $user;
+         $gid = getgrnam $user;
       }
 
       # write key
@@ -67,7 +71,6 @@ sub install_keys (@)
       chmod 0700, "/tmp/$user/.ssh";
       chmod 0600, "/tmp/$user/.ssh/authorized_keys";
 
-      # if root, get UID, GID for each user
       chown $uid, $gid, "/tmp/$user/.ssh";
    }
 }
