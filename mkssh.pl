@@ -24,20 +24,24 @@ GetOptions(
 sub install_key # ($$)
 {
    my ($key, $user) = @_;
+   my ($name, $passwd, $uid, $gid) = getpwuid $<;
+
+   $user = $name unless $name eq 'root';
 
    make_path "/tmp/$user/.ssh";
 
-   #    if ! grep -q "$key" "$home"/.ssh/authorized_keys 2>/dev/null
-   #    then
-   #       echo "Installing $_grn$login$_res's ssh key under $home/.ssh/authorized_keys..."
-   #       echo "$sshkey" >> "$home"/.ssh/authorized_keys
-   #    fi
+   unless (system ('grep', '-s', $key, "/tmp/$user/.ssh/authorized_keys") == 0)
+   {
+      open my $auth_keys, '>>', "/tmp/$user/.ssh/authorized_keys";
+      # say "Installing $_grn$login$_res's ssh key under $home/.ssh/authorized_keys..."
+      # TODO: write all key components
+      say $auth_keys $key;
+   }
 
-   # Change permissions + ownership
-   chmod 700, "/tmp/$user/.ssh";
-   chmod 600, "/tmp/$user/.ssh/authorized_keys";
+   chmod 0700, "/tmp/$user/.ssh";
+   chmod 0600, "/tmp/$user/.ssh/authorized_keys";
 
-   chown $user, $user, "/tmp/$user/.ssh";
+   chown $uid, $gid, "/tmp/$user/.ssh";
 }
 
 #  in: ssh key
