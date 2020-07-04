@@ -96,15 +96,15 @@ sub install_keys (@)
       {
          my $comment = $key[2];
 
-         my $term = Term::ReadLine->new('RL');
-         $term->ornaments(0);
-
          # propose username from email if Perl GNU readline installed
          if ($comment =~ /@/)
          {
+            my $term = Term::ReadLine->new('RL');
+            $term->ornaments(0);
             $user = $term->readline ('User: ', split '@', $comment);
          } else {
-            $user = $term->readline ('User: ');
+            print 'User: ';
+            $user = <STDIN>;
          }
 
          print 'Full name: ';
