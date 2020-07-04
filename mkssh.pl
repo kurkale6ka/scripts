@@ -20,7 +20,7 @@ my  $RESET = color('reset');
 sub help() {
    print <<MSG;
 ${BOLD}SYNOPSIS${RESET}
-mkssh   [-d] : ${YELLOW}read DATA for keys${RESET}
+mkssh   [-d] : ${YELLOW}read keys in DATA${RESET}
 mkssh - [-d] : ${YELLOW}read key on STDIN${RESET}
 
 ${BOLD}OPTIONS${RESET}
