@@ -94,12 +94,18 @@ sub install_keys (@)
       # add user
       if ($name eq 'root')
       {
-         ($user) = split '@', $key[2];
+         my $comment = $key[2];
 
-         # propose username from email if Perl GNU readline installed
          my $term = Term::ReadLine->new('RL');
          $term->ornaments(0);
-         my $user = $term->readline ('User: ', $user);
+
+         # propose username from email if Perl GNU readline installed
+         if ($comment =~ /@/)
+         {
+            $user = $term->readline ('User: ', split '@', $comment);
+         } else {
+            $user = $term->readline ('User: ');
+         }
 
          print 'Full name: ';
          chomp (my $fname = <STDIN>);
