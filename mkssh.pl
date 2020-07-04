@@ -83,7 +83,9 @@ sub install_keys (@)
    my @keys = @_;
 
    # get current user
-   my ($user, $passwd, $uid, $gid) = getpwuid $>;
+   my ($login, $passwd, $uid, $gid) = getpwuid $>;
+
+   my $user = $login unless $login eq 'root';
 
    foreach my $ssh_key (@keys)
    {
@@ -91,7 +93,7 @@ sub install_keys (@)
       my $key = $key[1];
 
       # add user
-      if ($user eq 'root')
+      if ($login eq 'root')
       {
          my $comment = $key[2];
 
