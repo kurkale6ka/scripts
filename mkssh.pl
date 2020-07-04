@@ -1,7 +1,8 @@
 #! /usr/bin/env perl
 
 # Install ssh keys
-# TODO: read keys from file
+# - add users/folders as needed
+# - ensure correct modes + permissions
 
 use strict;
 use warnings;
@@ -56,7 +57,7 @@ if ($stdin)
    print 'Public key: ';
    chomp ($_ = <STDIN>);
    validate_key $_;
-   install_keys $_; # how to act by default on $_?
+   install_keys $_;
 } else {
    my @keys;
    while (<DATA>)
@@ -82,9 +83,7 @@ sub install_keys (@)
    my @keys = @_;
 
    # get current user
-   my ($name, $passwd, $uid, $gid) = getpwuid $>;
-
-   my $user = $name unless $name eq 'root';
+   my ($user, $passwd, $uid, $gid) = getpwuid $>;
 
    foreach my $ssh_key (@keys)
    {
@@ -92,7 +91,7 @@ sub install_keys (@)
       my $key = $key[1];
 
       # add user
-      if ($name eq 'root')
+      if ($user eq 'root')
       {
          my $comment = $key[2];
 
@@ -104,14 +103,13 @@ sub install_keys (@)
             $user = $term->readline ('User: ', split '@', $comment);
          } else {
             print 'User: ';
-            $user = <STDIN>;
+            chomp ($user = <STDIN>);
          }
 
          print 'Full name: ';
-         chomp (my $fname = <STDIN>);
+         chomp (my $name = <STDIN>);
 
-         # getent passwd $user?
-         system qw(useradd -m -c), $fname, $user;
+         system qw(useradd -m -c), $name, $user;
          $? == 0 or die $!;
 
          $uid = getpwnam $user;
@@ -139,6 +137,7 @@ sub install_keys (@)
 
 __DATA__
 
-# keys: type key email
+# keys
+# type key email
 
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDUHDwFoZ8CaKSwk/Wo1EQ104EHiJ+1HBuv7CByxwues46dGbhh0oXjW7jb0g5619kcUqCGLeEdYEtEDBugwj3N5bfVTKoHsbR9RHfu9DzhnUq+FnmWtRuk8oYZ/CUjojrxcNDjdr8NhVpKIIkp/5+isco9xSSPNUa6GQOwBbrnrREKaJf2YRTWcLu+9GULcma410OrqLy6jOKxc3IfrdZEL9HO9buSotCmQFw2uTu5CS+N6jG5M90LXNpYex/ZmXSmdwDym8qZ3FSlJcfP2NYXmDLvL6SfXBE43bdtXMMcQJM8/SOzmw91YYyu2bqACXEDvr8t6nYdcUsU8b6kXuGeZrgysbi446o9+EsDjF9YGQzjMi30zcMr8luvlqE1NlfnMaMsjI10ZxtD/NMJFMSSlO84JdT0JmaDtZw9x0J/D6xlUI6K9TGrFd6T9Ae3AQ3HagsyC7nPYU18wCZQTX9V8E3IJ60JkBXOZbcvD0dcZq/c/eIzYGEGX49qGjon8GJwNVNIYMwig1FQ+vUL51euItvrG/KsMoK0JadcrKcCQ3rG0Iy74Fwamdg2bLdDElFKxam7Pi7LpWhPe/ppMUeEFQDWTtmmJFoyTyeIE0sUn/OAzJ+xe/M0uYHINbaAelXNg3rOY8ECMOuwqoT2TauYCuIP+myOqsEdsBC1gxMA6w== mitkofr@yahoo.fr
