@@ -8,26 +8,29 @@ use strict;
 use warnings;
 use feature 'say';
 use Term::ANSIColor qw/color :constants/;
-use Getopt::Long 'GetOptions';
+use Getopt::Long qw/GetOptions :config bundling/;
 use File::Path 'make_path';
 use Term::ReadLine;
 
+my   $CYAN = color('ansi45');
+my  $GREEN = color('green');
 my $YELLOW = color('yellow');
-my   $BOLD = color('bold');
-my  $RESET = color('reset');
+my $B = color('bold');
+my $I = color('italic');
+my $R = color('reset');
 
 # Help
 sub help() {
    print <<MSG;
-${BOLD}SYNOPSIS${RESET}
-mkssh   [-d] : ${YELLOW}read keys in DATA${RESET}
-mkssh - [-d] : ${YELLOW}read key on STDIN${RESET}
+${B}SYNOPSIS${R}
+mkssh   [-d] : ${YELLOW}read keys in DATA${R}
+mkssh - [-d] : ${YELLOW}read key on STDIN${R}
 
-${BOLD}OPTIONS${RESET}
+${B}OPTIONS${R}
 --home-dir /home, -d ...
 --stdin,          -s,    -
 
-${BOLD}DESCRIPTION${RESET}
+${B}DESCRIPTION${R}
 Install ssh keys:
 - add users/folders as needed
 - ensure correct modes + permissions
@@ -83,9 +86,9 @@ sub install_keys (@)
    my @keys = @_;
 
    # get current user
-   my ($login, $passwd, $uid, $gid) = getpwuid $>;
+   my ($name, $passwd, $uid, $gid) = getpwuid $>;
 
-   my $user = $login unless $login eq 'root';
+   my $user = $name unless $name eq 'root';
 
    foreach my $ssh_key (@keys)
    {
@@ -93,9 +96,10 @@ sub install_keys (@)
       my $key = $key[1];
 
       # add user
-      if ($login eq 'root')
+      if ($name eq 'root')
       {
          my $comment = $key[2];
+         say "${CYAN}Adding user for ${GREEN}${I}$comment${R}";
 
          # propose username from email if Perl GNU readline installed
          if ($comment =~ /@/)
@@ -108,11 +112,11 @@ sub install_keys (@)
             chomp ($user = <STDIN>);
          }
 
-         print 'Full name: ';
-         chomp (my $name = <STDIN>);
+         print 'Comment: ';
+         chomp (my $gcomment = <STDIN>);
 
-         system qw(useradd -m -c), $name, $user;
-         $? == 0 or die $!;
+         system qw(useradd -m -c), $gcomment, $user;
+         $? == 0 or die RED.$!.RESET, "\n";
 
          $uid = getpwnam $user;
          $gid = getgrnam $user;
