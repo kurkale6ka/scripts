@@ -12,9 +12,9 @@ use Getopt::Long qw/GetOptions :config bundling/;
 use File::Path 'make_path';
 use Term::ReadLine;
 
-my   $CYAN = color('ansi45');
-my  $GREEN = color('green');
-my $YELLOW = color('yellow');
+my $C = color('ansi45');
+my $G = color('green');
+my $Y = color('yellow');
 my $B = color('bold');
 my $I = color('italic');
 my $R = color('reset');
@@ -23,8 +23,8 @@ my $R = color('reset');
 sub help() {
    print <<MSG;
 ${B}SYNOPSIS${R}
-mkssh   [-d] : ${YELLOW}read keys in DATA${R}
-mkssh - [-d] : ${YELLOW}read key on STDIN${R}
+mkssh   [-d] : ${Y}read keys in DATA${R}
+mkssh - [-d] : ${Y}read key on STDIN${R}
 
 ${B}OPTIONS${R}
 --home-dir /home, -d ...
@@ -99,7 +99,7 @@ sub install_keys (@)
       if ($name eq 'root')
       {
          my $comment = $key[2];
-         say "${CYAN}Adding user for ${GREEN}${I}$comment${R}";
+         say "${C}Adding user for ${G}${I}$comment${R}";
 
          # propose username from email if Perl GNU readline installed
          if ($comment =~ /@/)
