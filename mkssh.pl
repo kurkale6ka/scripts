@@ -15,22 +15,22 @@ use Term::ReadLine;
 my $C = color('ansi45');
 my $G = color('green');
 my $Y = color('yellow');
-my $B = color('bold');
-my $I = color('italic');
+my $S = color('bold');
+my $E = color('italic');
 my $R = color('reset');
 
 # Help
 sub help() {
    print <<MSG;
-${B}SYNOPSIS${R}
+${S}SYNOPSIS${R}
 mkssh   [-d] : ${Y}read keys in DATA${R}
 mkssh - [-d] : ${Y}read key on STDIN${R}
 
-${B}OPTIONS${R}
+${S}OPTIONS${R}
 --home-dir /home, -d ...
 --stdin,          -s,    -
 
-${B}DESCRIPTION${R}
+${S}DESCRIPTION${R}
 Install ssh keys:
 - add users/folders as needed
 - ensure correct modes + permissions
@@ -99,7 +99,7 @@ sub install_keys (@)
       if ($name eq 'root')
       {
          my $comment = $key[2];
-         say "${C}Adding user for ${G}${I}$comment${R}";
+         say "${C}Adding user for ${G}${E}$comment${R}";
 
          # propose username from email if Perl GNU readline installed
          if ($comment =~ /@/)
