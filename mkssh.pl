@@ -1,13 +1,13 @@
 #! /usr/bin/env perl
 
-# run this script with:
-# perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkssh.pl) -
-#
 # Install ssh keys in ~/.ssh/authorized_keys
-# enforce correct ownership + modes (700, 600)
+# enforce correct modes (700/600) + ownership
 #
 # as root, create one user per key,
 # else put all keys under the current user
+#
+# run this script with:
+# perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkssh.pl) -
 
 use strict;
 use warnings;
@@ -17,6 +17,7 @@ use Getopt::Long qw/GetOptions :config bundling/;
 use File::Path 'make_path';
 use Term::ReadLine;
 
+my $B = color('ansi69');
 my $C = color('ansi45');
 my $G = color('green');
 my $Y = color('yellow');
@@ -32,11 +33,13 @@ mkssh   [-d] : ${Y}read keys in DATA${R}
 mkssh - [-d] : ${Y}read key on STDIN${R}
 
 ${S}OPTIONS${R}
---home-dir /home, -d ...
+--home-dir ${B}/home${R}, -d ...
 --stdin,          -s,    -
 
 ${S}DESCRIPTION${R}
-Install ssh keys:
+Install ssh keys in ${B}~/.ssh/${R}authorized_keys
+enforce correct modes (700/600) + ownership
+
 as root, create one user per key,
 else put all keys under the current user
 MSG
