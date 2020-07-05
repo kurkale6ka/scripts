@@ -1,6 +1,10 @@
 #! /usr/bin/env perl
 
-# Install ssh keys
+# run this script with:
+# perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkssh.pl) -
+#
+# Install ssh keys in ~/.ssh/authorized_keys
+# enforce correct ownership + modes (700, 600)
 #
 # as root, create one user per key,
 # else put all keys under the current user
