@@ -1,8 +1,9 @@
 #! /usr/bin/env perl
 
 # Install ssh keys
-# - add users/folders as needed
-# - ensure correct modes + permissions
+#
+# as root, create one user per key,
+# else put all keys under the current user
 
 use strict;
 use warnings;
@@ -32,8 +33,8 @@ ${S}OPTIONS${R}
 
 ${S}DESCRIPTION${R}
 Install ssh keys:
-- add users/folders as needed
-- ensure correct modes + permissions
+as root, create one user per key,
+else put all keys under the current user
 MSG
 exit;
 }
