@@ -108,11 +108,11 @@ sub install_keys (@)
       {
          my $comment = "@key[2..$#key]";
 
-         if (length ($comment) < 11)
+         if (length ($comment) < 31)
          {
             say "${C}Adding user for ${G}${E}$comment${R}";
          } else {
-            say "${C}Adding user for ${G}${E}", substr ($comment, 0, 10) . "<...${R}";
+            say "${C}Adding user for ${G}${E}", substr ($comment, 0, 30) . "<...${R}";
          }
 
          # propose username from email if Perl GNU readline installed
@@ -120,13 +120,13 @@ sub install_keys (@)
          {
             my $term = Term::ReadLine->new('RL');
             $term->ornaments(0);
-            $user = $term->readline ('User: ', split '@', $comment);
+            $user = $term->readline ('user: ', split '@', $comment);
          } else {
-            print 'User: ';
+            print 'user: ';
             chomp ($user = <STDIN>);
          }
 
-         print 'Comment: ';
+         print 'comment: ';
          chomp (my $gcomment = <STDIN>);
 
          system qw(useradd -m -c), $gcomment, $user;
