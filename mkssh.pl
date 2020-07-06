@@ -67,7 +67,7 @@ unless (@ARGV)
    install_keys $_;
 } else {
    my @keys;
-   open my $keys, '<', shift;
+   open my $keys, '<', shift or die RED.$!.RESET, "\n";
    while (<$keys>)
    {
       next if /^#/ or /^$/;
@@ -132,7 +132,7 @@ sub install_keys (@)
 
       unless (system (qw/grep -q -s/, $key, "$home/$user/.ssh/authorized_keys") == 0)
       {
-         open my $auth_keys, '>>', "$home/$user/.ssh/authorized_keys";
+         open my $auth_keys, '>>', "$home/$user/.ssh/authorized_keys" or die RED.$!.RESET, "\n";
          say $auth_keys $ssh_key;
       }
 
