@@ -29,12 +29,10 @@ my $R = color('reset');
 sub help() {
    print <<MSG;
 ${S}SYNOPSIS${R}
-mkssh   [-d] : ${Y}read keys in DATA${R}
-mkssh - [-d] : ${Y}read key on STDIN${R}
+mkssh         [-d ${B}/home${R}] : ${Y}read key on STDIN${R}
+mkssh -f file [-d ${B}/home${R}] : ${Y}read keys from file${R}
 
-${S}OPTIONS${R}
 --home-dir ${B}/home${R}, -d ...
---stdin,          -s,    -
 
 ${S}DESCRIPTION${R}
 Install ssh keys in ${B}~/.ssh/${R}authorized_keys
@@ -50,13 +48,12 @@ exit;
 my $stdin;
 my $home = '/home';
 GetOptions(
-   ''             => \$stdin,
-   's|stdin'      => \$stdin,
    'd|home-dir=s' => \$home,
    'h|help'       => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-die RED.'No arguments allowed'.RESET, "\n" if @ARGV;
+@ARGV <= 1 or
+die RED.'Wrong number of arguments: mkssh [-f file] [-d]'.RESET, "\n";
 
 # Declarations
 sub validate_key ($);
@@ -148,10 +145,3 @@ sub install_keys (@)
       chown $uid, $gid, "$home/$user/.ssh/authorized_keys";
    }
 }
-
-__DATA__
-
-# keys
-# type key email
-
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDUHDwFoZ8CaKSwk/Wo1EQ104EHiJ+1HBuv7CByxwues46dGbhh0oXjW7jb0g5619kcUqCGLeEdYEtEDBugwj3N5bfVTKoHsbR9RHfu9DzhnUq+FnmWtRuk8oYZ/CUjojrxcNDjdr8NhVpKIIkp/5+isco9xSSPNUa6GQOwBbrnrREKaJf2YRTWcLu+9GULcma410OrqLy6jOKxc3IfrdZEL9HO9buSotCmQFw2uTu5CS+N6jG5M90LXNpYex/ZmXSmdwDym8qZ3FSlJcfP2NYXmDLvL6SfXBE43bdtXMMcQJM8/SOzmw91YYyu2bqACXEDvr8t6nYdcUsU8b6kXuGeZrgysbi446o9+EsDjF9YGQzjMi30zcMr8luvlqE1NlfnMaMsjI10ZxtD/NMJFMSSlO84JdT0JmaDtZw9x0J/D6xlUI6K9TGrFd6T9Ae3AQ3HagsyC7nPYU18wCZQTX9V8E3IJ60JkBXOZbcvD0dcZq/c/eIzYGEGX49qGjon8GJwNVNIYMwig1FQ+vUL51euItvrG/KsMoK0JadcrKcCQ3rG0Iy74Fwamdg2bLdDElFKxam7Pi7LpWhPe/ppMUeEFQDWTtmmJFoyTyeIE0sUn/OAzJ+xe/M0uYHINbaAelXNg3rOY8ECMOuwqoT2TauYCuIP+myOqsEdsBC1gxMA6w== mitkofr@yahoo.fr
