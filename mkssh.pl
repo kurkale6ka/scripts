@@ -1,13 +1,13 @@
 #! /usr/bin/env perl
 
-# Install ssh keys in ~/.ssh/authorized_keys
+# Install ssh keys in ~/.ssh/authorized_keys,
 # enforce correct modes (700/600) + ownership
 #
-# as root, create one user per key,
-# else put all keys under the current user
+# root: create one user per key
+# else: put all keys under the current user
 #
 # run this script with:
-# perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkssh.pl) -
+# perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkssh.pl)
 
 use strict;
 use warnings;
@@ -20,7 +20,6 @@ use Term::ReadLine;
 my $B = color('ansi69');
 my $C = color('ansi45');
 my $G = color('green');
-my $Y = color('yellow');
 my $S = color('bold');
 my $E = color('italic');
 my $R = color('reset');
@@ -29,23 +28,23 @@ my $R = color('reset');
 sub help() {
    print <<MSG;
 ${S}SYNOPSIS${R}
-mkssh         [-d ${B}/home${R}] : ${Y}read key on STDIN${R}
-mkssh -f file [-d ${B}/home${R}] : ${Y}read keys from file${R}
+mkssh      : read key on STDIN
+mkssh ${C}file${R} : read keys from file
 
---home-dir /home, -d ...
+${S}OPTIONS${R}
+-d|--home-dir ${B}/home${R}
 
 ${S}DESCRIPTION${R}
-Install ssh keys in ${B}~/.ssh/${R}authorized_keys
+Install ssh keys in ${B}~/.ssh/${R}authorized_keys,
 enforce correct modes (700/600) + ownership
 
-as root, create one user per key,
-else put all keys under the current user
+root: create one user per key
+else: put all keys under the current user
 MSG
 exit;
 }
 
 # Arguments
-my $stdin;
 my $home = '/home';
 GetOptions(
    'd|home-dir=s' => \$home,
@@ -53,14 +52,14 @@ GetOptions(
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 @ARGV <= 1 or
-die RED.'Wrong number of arguments: mkssh [-f file] [-d]'.RESET, "\n";
+die RED.'Wrong number of arguments'.RESET, "\n";
 
 # Declarations
 sub validate_key ($);
 sub install_keys (@);
 
 # Main
-if ($stdin)
+unless (@ARGV)
 {
    print 'Public key: ';
    chomp ($_ = <STDIN>);
@@ -68,7 +67,8 @@ if ($stdin)
    install_keys $_;
 } else {
    my @keys;
-   while (<DATA>)
+   open my $keys, '<', shift;
+   while (<$keys>)
    {
       next if /^#/ or /^$/;
       chomp;
