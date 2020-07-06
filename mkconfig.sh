@@ -36,50 +36,35 @@ initial_setup() {
    links add
 
    echo '* Creating fuzzy cd database'
-   . "$REPOS_BASE"/scripts/db-create
+   bash "$REPOS_BASE"/scripts/db-create
 }
 
 links() {
-   # vim
    if [[ $1 == add ]]
    then
-      ln -srfT "$REPOS_BASE"/vim ~/.vim
-      ln -srf "$REPOS_BASE"/vim/.vimrc ~
+      # vim
+      ln -srfT "$REPOS_BASE"/vim        ~/.vim
+      ln -srf  "$REPOS_BASE"/vim/.vimrc ~
+      # bash
+      ln -srf "$REPOS_BASE"/bash/.bash_profile ~
+      ln -srf "$REPOS_BASE"/bash/.bashrc       ~
+      ln -srf "$REPOS_BASE"/bash/.bash_logout  ~
+      # zsh
+      ln -srf "$REPOS_BASE"/zsh/.zshenv   ~
+      ln -sf  "$REPOS_BASE"/zsh/.zprofile "$XDG_CONFIG_HOME"/zsh
+      ln -sf  "$REPOS_BASE"/zsh/.zshrc    "$XDG_CONFIG_HOME"/zsh
+      ln -sf  "$REPOS_BASE"/zsh/autoload  "$XDG_CONFIG_HOME"/zsh
    else
-      'rm' ~/.vim
-      'rm' ~/.vimrc
+      rm ~/.vim
+      rm ~/.vimrc
+      rm ~/.bash_profile
+      rm ~/.bashrc
+      rm ~/.bash_logout
+      rm ~/.zshenv
+      rm "$XDG_CONFIG_HOME"/zsh/.zprofile
+      rm "$XDG_CONFIG_HOME"/zsh/.zshrc
+      rm "$XDG_CONFIG_HOME"/zsh/autoload
    fi
-
-   local config
-
-   # bash
-   for config in .bash_profile .bashrc .bash_logout
-   do
-      if [[ $1 == add ]]
-      then
-         ln -srf "$REPOS_BASE"/bash/"$config" ~
-      else
-         'rm' ~/"$config"
-      fi
-   done
-
-   # zsh
-   if [[ $1 == add ]]
-   then
-      ln -srf "$REPOS_BASE"/zsh/.zshenv ~
-   else
-      'rm' ~/.zshenv
-   fi
-
-   for config in .zprofile .zshrc autoload
-   do
-      if [[ $1 == add ]]
-      then
-         ln -s "$REPOS_BASE"/zsh/"$config" "$XDG_CONFIG_HOME"/zsh
-      else
-         'rm' "$XDG_CONFIG_HOME"/zsh/"$config"
-      fi
-   done
 }
 
 # if no arguments, initial setup
@@ -171,7 +156,7 @@ fi
 # Create fuzzy cd database
 if [[ ${switches[*]} == *c* ]]
 then
-   . "$REPOS_BASE"/scripts/db-create
+   bash "$REPOS_BASE"/scripts/db-create
 fi
 
 # Make/remove links
