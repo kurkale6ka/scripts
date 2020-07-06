@@ -45,11 +45,14 @@ exit;
 }
 
 # Arguments
-my $home = '/home';
+my $home = $^O eq 'linux' ? '/home' : '/Users';
+
 GetOptions(
    'd|home-dir=s' => \$home,
    'h|help'       => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
+
+$home and $home =~ s@/$@@;
 
 @ARGV <= 1 or
 die RED.'Wrong number of arguments'.RESET, "\n";
