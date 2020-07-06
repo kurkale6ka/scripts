@@ -32,7 +32,7 @@ ${S}SYNOPSIS${R}
 mkssh         [-d ${B}/home${R}] : ${Y}read key on STDIN${R}
 mkssh -f file [-d ${B}/home${R}] : ${Y}read keys from file${R}
 
---home-dir ${B}/home${R}, -d ...
+--home-dir /home, -d ...
 
 ${S}DESCRIPTION${R}
 Install ssh keys in ${B}~/.ssh/${R}authorized_keys
