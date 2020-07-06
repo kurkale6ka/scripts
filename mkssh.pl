@@ -83,7 +83,7 @@ sub validate_key ($)
 {
    $_ = shift;
    my @key = split;
-   @key == 3 or die RED.'Wrong ssh key format. "type key email" expected'.RESET, "\n";
+   @key > 2 or die RED.'Wrong ssh key format. "type key comment" expected'.RESET, "\n";
 }
 
 sub install_keys (@)
@@ -103,8 +103,14 @@ sub install_keys (@)
       # add user
       if ($name eq 'root')
       {
-         my $comment = $key[2];
-         say "${C}Adding user for ${G}${E}$comment${R}";
+         my $comment = "@key[2..$#key]";
+
+         if (length ($comment) < 11)
+         {
+            say "${C}Adding user for ${G}${E}$comment${R}";
+         } else {
+            say "${C}Adding user for ${G}${E}", substr ($comment, 0, 10) . "<...${R}";
+         }
 
          # propose username from email if Perl GNU readline installed
          if ($comment =~ /@/)
