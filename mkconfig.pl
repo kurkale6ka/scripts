@@ -312,13 +312,14 @@ sub links($)
       [qw( sf scripts/colors_term.bash ~/bin          )],
       [qw( sf scripts/colors_tmux.bash ~/bin          )],
       # config
-      [qw( sf  config/tmux/lay.pl          ~/bin/lay )],
-      [qw( srf config/dotfiles/.gitignore  ~         )],
-      [qw( srf config/dotfiles/.irbrc      ~         )],
-      [qw( srf config/dotfiles/.pyrc       ~         )],
-      [qw( srf config/dotfiles/.Xresources ~         )],
-      [qw( srf config/ctags/.ctags         ~         )],
-      [qw( srf config/tmux/.tmux.conf      ~         )],
+      [qw( sf  config/tmux/lay.pl          ~/bin/lay   )],
+      [qw( sf  config/tmux/nodes.pl        ~/bin/nodes )],
+      [qw( srf config/dotfiles/.gitignore  ~           )],
+      [qw( srf config/dotfiles/.irbrc      ~           )],
+      [qw( srf config/dotfiles/.pyrc       ~           )],
+      [qw( srf config/dotfiles/.Xresources ~           )],
+      [qw( srf config/ctags/.ctags         ~           )],
+      [qw( srf config/tmux/.tmux.conf      ~           )],
    );
 
    foreach (@symlinks)
