@@ -7,12 +7,13 @@
 use strict;
 use warnings;
 use feature 'say';
+use File::Glob ':bsd_glob';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 use List::Util 'all';
 
 # Location where pictures get uploaded
-my $source = glob '"~/Dropbox/Camera Uploads"';
+my $source = glob '~/Dropbox/Camera Uploads';
 
 # Images library
 my $destination = glob '~/Dropbox/pics';
@@ -93,7 +94,7 @@ sub lib_import
    -d $destination or
    die RED."Destination missing: ${BLUE}$destination".RESET, "\n";
 
-   my @years = grep -d $_, glob "'$source/[0-9][0-9][0-9][0-9]'";
+   my @years = grep -d $_, glob "$source/[0-9][0-9][0-9][0-9]";
    @years or return;
 
    print "\n" unless $import;
@@ -129,7 +130,7 @@ sub lib_import
       # delete source years + months after a successful transfer
       foreach my $year (@years)
       {
-         foreach (glob "'$year/{January,February,March,April,May,June,July,August,September,October,November,December}'")
+         foreach (glob "$year/{January,February,March,April,May,June,July,August,September,October,November,December}")
          {
             next unless -d $_;
             rmdir $_ or die "$_: $!\n";
