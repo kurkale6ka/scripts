@@ -12,6 +12,7 @@
 use strict;
 use warnings;
 use feature 'say';
+use File::Glob ':bsd_glob';
 use File::Basename 'fileparse';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
@@ -36,16 +37,16 @@ GetOptions(
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Initialisations
-chdir '/etc/postfix' or
-die RED."failed to cd in $BLUE/etc/postfix$RESET $RED- $!".RESET, "\n";
+chdir '/etc/postfix'
+   or die RED."failed to cd in $BLUE/etc/postfix$RESET $RED- $!".RESET, "\n";
 
-my @dbs = glob "'*.db'" or
-die RED.'no Berkeley DBs (.db) found'.RESET, "\n";
+my @dbs = glob '*.db'
+   or die RED.'no Berkeley DBs (.db) found'.RESET, "\n";
 
 unless ($dry)
 {
-   open my $makefile, '>', 'Makefile' or
-   die RED."couldn't open Makefile: $!".RESET, "\n";
+   open my $makefile, '>', 'Makefile'
+      or die RED."couldn't open Makefile: $!".RESET, "\n";
 
    # List rules
    say 'Creating rules for:';

@@ -9,6 +9,7 @@
 use strict;
 use warnings;
 use feature 'say';
+use File::Glob ':bsd_glob';
 use File::Path 'make_path';
 use File::Basename qw/dirname basename/;
 use Term::ANSIColor qw/color :constants/;
@@ -224,7 +225,7 @@ sub update()
 
    my @children;
 
-   foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
+   foreach my $repo (glob "$ENV{REPOS_BASE}/*")
    {
       next unless -d $repo and chdir $repo;
 
@@ -256,7 +257,7 @@ sub status()
 {
    my @children;
 
-   foreach my $repo (glob "'$ENV{REPOS_BASE}/*'")
+   foreach my $repo (glob "$ENV{REPOS_BASE}/*")
    {
       next unless -d $repo and chdir $repo;
 
