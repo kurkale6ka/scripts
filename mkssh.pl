@@ -54,8 +54,8 @@ GetOptions(
 
 $home and $home =~ s@/$@@;
 
-@ARGV <= 1 or
-die RED.'Wrong number of arguments'.RESET, "\n";
+@ARGV <= 1
+   or die RED.'Wrong number of arguments'.RESET, "\n";
 
 # Declarations
 sub validate_key ($);
@@ -86,7 +86,8 @@ sub validate_key ($)
 {
    $_ = shift;
    my @key = split;
-   @key > 2 or die RED.'Wrong ssh key format. "type key comment" expected'.RESET, "\n";
+   @key > 2
+      or die RED.'Wrong ssh key format. "type key comment" expected'.RESET, "\n";
 }
 
 sub install_keys (@)
@@ -141,7 +142,8 @@ sub install_keys (@)
 
       unless (system (qw/grep -q -s/, $key, "$home/$user/.ssh/authorized_keys") == 0)
       {
-         open my $auth_keys, '>>', "$home/$user/.ssh/authorized_keys" or die RED.$!.RESET, "\n";
+         open my $auth_keys, '>>', "$home/$user/.ssh/authorized_keys"
+            or die RED.$!.RESET, "\n";
          say $auth_keys $ssh_key;
       }
 
