@@ -16,9 +16,6 @@ my $CYAN = color('ansi45');
 my $S = color('bold');
 my $R = color('reset');
 
-# EUID check
-$> or die RED.'Not allow to run as root'.RESET, "\n";
-
 # Help
 sub help() {
    print <<MSG;
@@ -35,9 +32,9 @@ my $archive;
 my $suffix = '.tar.gz';
 
 GetOptions (
-   'p|prefix'  => \$prefix,
-   'a|archive' => \$archive,
-   'h|help'    => \&help
+   'p|prefix=s'  => \$prefix,
+   'a|archive=s' => \$archive,
+   'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 unless ($archive)
@@ -47,29 +44,32 @@ unless ($archive)
 
    if ($archive)
    {
-      print "Found $archive. continue (y/n)? ";
-      die RED.'Abort'.RESET, "\n" unless <STDIN> =~ /y(es)?/ni;
+      print 'Found ', RED.basename($archive).RESET, ' Continue (y/n)? ';
+      <STDIN> =~ /y(es)?/ni or exit;
    } else {
       die RED.'No package found'.RESET, "\n";
    }
 }
 
+system ('mv', $archive, $prefix) == 0
+   or die "$!\n";
+
+chdir $prefix;
+
+system ('tar', 'zxf', basename $archive) == 0
+   or die "$!\n";
+
+unlink basename $archive;
+
 my $pkg = basename ($archive, $suffix);
+chdir $pkg;
 
-if (system ('mv', $archive, $prefix) == 0)
-{
-   if (system ('tar', 'zxf', $archive) == 0)
-   {
-      unlink "$prefix/$archive";
+system (qw/makepkg -s/) == 0
+   or die "$!\n";
 
-      chdir $pkg;
+# as dep
+# system qw/pacman --asdeps -U/, "$pkg.tar.xz";
 
-      system (qw/makepkg -s/) == 0 or die "$!\n";
-
-      # as dep
-      # system qw/pacman --asdeps -U/, "$pkg.tar.xz";
-
-      # Install
-      system qw/pacman -U/, "$pkg.tar.xz";
-   }
-}
+# Install
+system qw/pacman -U/, "$pkg.tar.xz"
+   or die "$!\n";
