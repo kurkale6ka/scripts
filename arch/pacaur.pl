@@ -63,13 +63,13 @@ chdir $prefix;
 system (qw/sudo tar zxf/, basename $archive) == 0
    or die "$!\n";
 
-system ('rm', basename $archive) == 0
+system (qw/sudo rm/, basename $archive) == 0
    or die "$!\n";
 
 my $pkg = basename ($archive, $suffix);
 chdir $pkg;
 
-system (qw/sudo -u/, $user, 'makepkg', '-s') == 0
+system (qw/makepkg -s/) == 0
    or die "$!\n";
 
 # as dep
