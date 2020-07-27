@@ -16,6 +16,10 @@ my $CYAN = color('ansi45');
 my $S = color('bold');
 my $R = color('reset');
 
+# EUID check
+my $user = getpwuid $>;
+$user ne 'root' or die RED.'Not allowed to run as root'.RESET, "\n";
+
 # Help
 sub help() {
    print <<MSG;
@@ -51,20 +55,21 @@ unless ($archive)
    }
 }
 
-system ('mv', $archive, $prefix) == 0
+system (qw/sudo mv/, $archive, $prefix) == 0
    or die "$!\n";
 
 chdir $prefix;
 
-system ('tar', 'zxf', basename $archive) == 0
+system (qw/sudo tar zxf/, basename $archive) == 0
    or die "$!\n";
 
-unlink basename $archive;
+system ('rm', basename $archive) == 0
+   or die "$!\n";
 
 my $pkg = basename ($archive, $suffix);
 chdir $pkg;
 
-system (qw/makepkg -s/) == 0
+system (qw/sudo -u/, $user, 'makepkg', '-s') == 0
    or die "$!\n";
 
 # as dep
