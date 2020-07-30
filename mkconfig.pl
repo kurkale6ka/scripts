@@ -16,11 +16,11 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 use List::Util qw/any all/;
 
-my   $BLUE = color('ansi69');
-my   $CYAN = color('ansi45');
+my $BLUE   = color('ansi69');
+my $CYAN   = color('ansi45');
 my $YELLOW = color('yellow');
-my   $BOLD = color('bold');
-my  $RESET = color('reset');
+my $S = color('bold');
+my $R = color('reset');
 
 my $user = 'kurkale6ka';
 my @repos = qw/zsh bash help config scripts vim/;
@@ -29,7 +29,7 @@ my @repos = qw/zsh bash help config scripts vim/;
 unless ($ENV{REPOS_BASE})
 {
    warn RED.'REPOS_BASE empty'.RESET, "\n";
-   print "define or accept default [$BLUE~/github$RESET]: ";
+   print "define or accept default [$BLUE~/github$R]: ";
 
    chomp ($ENV{REPOS_BASE} = <STDIN>);
 
@@ -49,13 +49,13 @@ unless ($ENV{REPOS_BASE})
 # Help
 sub help() {
    print <<MSG;
-${BOLD}SYNOPSIS${RESET}
+${S}SYNOPSIS${R}
 
-mkconfig              : ${YELLOW}update${RESET}
-mkconfig -i           : ${YELLOW}install${RESET}
+mkconfig              : ${YELLOW}update${R}
+mkconfig -i           : ${YELLOW}install${R}
 mkconfig -[u|s][l|L]t
 
-${BOLD}OPTIONS${RESET}
+${S}OPTIONS${R}
 
 --init,      -i: Initial setup
 --update,    -u: Update repositories
@@ -128,25 +128,25 @@ $tags      and tags;
 # Subroutines
 sub init()
 {
-   say "$CYAN*$RESET Cloning repositories in $BLUE~/", basename ($ENV{REPOS_BASE}), "$RESET...";
+   say "$CYAN*$R Cloning repositories in $BLUE~/", basename ($ENV{REPOS_BASE}), "$R...";
    clone or return;
 
-   say "$CYAN*$RESET Linking dot files";
+   say "$CYAN*$R Linking dot files";
    links 'add';
 
-   say "$CYAN*$RESET Generating tags";
+   say "$CYAN*$R Generating tags";
    tags;
 
-   say "$CYAN*$RESET Creating fuzzy cd database";
+   say "$CYAN*$R Creating fuzzy cd database";
    system 'bash', "$ENV{REPOS_BASE}/scripts/db-create";
 
-   say "$CYAN*$RESET Configuring git";
+   say "$CYAN*$R Configuring git";
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
 
    # macOS
    $^O eq 'darwin' or return;
 
-   say "$CYAN*$RESET Installing Homebrew formulae...";
+   say "$CYAN*$R Installing Homebrew formulae...";
 
    my @formulae = qw(
    bash
@@ -209,7 +209,7 @@ sub clone()
    if (all {$_ == 0} @statuses)
    {
       say <<VIM
-${YELLOW}Now install a vim plugin manager, vim-plug${RESET}:
+${YELLOW}Now install a vim plugin manager, vim-plug${R}:
 curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 :PlugInstall
 VIM
@@ -243,8 +243,9 @@ sub update()
 
       if (any {/^##\smaster.*behind/} `git status -b --porcelain`)
       {
-         print $CYAN, basename ($repo), "$RESET: ",
-         `git -c color.ui=always pull`;
+         my $name = basename $repo;
+         my $status = `git -c color.ui=always pull`;
+         print "${CYAN}$name${R}: $status";
       }
 
       exit;
@@ -275,8 +276,9 @@ sub status()
 
       if (@status > 1 or any {/ahead|behind/} @status)
       {
-         print $CYAN, basename ($repo), "$RESET: ",
-         `git -c color.status=always status -sb`;
+         my $name = basename $repo;
+         my $status = `git -c color.status=always status -sb`;
+         print "${CYAN}$name${R}: $status";
       }
 
       exit;
