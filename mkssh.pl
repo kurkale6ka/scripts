@@ -17,9 +17,9 @@ use Getopt::Long qw/GetOptions :config bundling/;
 use File::Path 'make_path';
 use Term::ReadLine;
 
-my $B = color('ansi69');
-my $C = color('ansi45');
-my $G = color('green');
+my $BLUE  = color('ansi69');
+my $CYAN  = color('ansi45');
+my $GREEN = color('green');
 my $S = color('bold');
 my $E = color('italic');
 my $R = color('reset');
@@ -29,13 +29,13 @@ sub help() {
    print <<MSG;
 ${S}SYNOPSIS${R}
 mkssh      : read key on STDIN
-mkssh ${C}file${R} : read keys from file
+mkssh ${CYAN}file${R} : read keys from file
 
 ${S}OPTIONS${R}
--d|--home-dir ${B}/home${R}
+-d|--home-dir ${BLUE}/home${R}
 
 ${S}DESCRIPTION${R}
-Install ssh keys in ${B}~/.ssh/${R}authorized_keys,
+Install ssh keys in ${BLUE}~/.ssh/${R}authorized_keys,
 enforce correct modes (700/600) + ownership
 
 root: create one user per key
@@ -111,9 +111,9 @@ sub install_keys (@)
 
          if (length ($comment) < 31)
          {
-            say "${C}Adding user for ${G}${E}$comment${R}";
+            say "${CYAN}Adding user for ${GREEN}${E}$comment${R}";
          } else {
-            say "${C}Adding user for ${G}${E}", substr ($comment, 0, 30) . "<...${R}";
+            say "${CYAN}Adding user for ${GREEN}${E}", substr ($comment, 0, 30) . "<...${R}";
          }
 
          # propose username from email if Perl GNU readline installed

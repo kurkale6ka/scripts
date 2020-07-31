@@ -23,25 +23,25 @@ my %messages = (
    import => 'import into the images library',
 );
 
-my  $BLUE = color('ansi69');
-my  $GRAY = color('ansi242');
+my $BLUE  = color('ansi69');
+my $GRAY  = color('ansi242');
 my $GREEN = color('green');
-my   $RED = color('red');
-my  $BOLD = color('bold');
-my $RESET = color('reset');
+my $RED   = color('red');
+my $S = color('bold');
+my $R = color('reset');
 
 sub help
 {
    print <<MSG;
-${BOLD}SYNOPSIS${RESET}
+${S}SYNOPSIS${R}
 
-   pics    [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n] [-v] : ${GREEN}$messages{title}${RESET}
-   pics -i [-s ${BLUE}src${RESET}] [-d ${BLUE}dst${RESET}] [-n]      : ${GREEN}$messages{import}${RESET}
+   pics    [-s ${BLUE}src${R}] [-d ${BLUE}dst${R}] [-n] [-v] : ${GREEN}$messages{title}${R}
+   pics -i [-s ${BLUE}src${R}] [-d ${BLUE}dst${R}] [-n]      : ${GREEN}$messages{import}${R}
 
-   pics                [img ...|${BLUE}dir${RESET}] [-v] : ${GREEN}show tags${RESET}
-   pics -t [tag[,...]] [img ...|${BLUE}dir${RESET}] [-v] :
+   pics                [img ...|${BLUE}dir${R}] [-v] : ${GREEN}show tags${R}
+   pics -t [tag[,...]] [img ...|${BLUE}dir${R}] [-v] :
 
-${BOLD}OPTIONS${RESET}
+${S}OPTIONS${R}
 
    --source,      -s
    --destination, -d
@@ -109,10 +109,10 @@ sub lib_import
    while (<$sync>)
    {
       # display dirs in blue
-      s@(?<=\s).*/@${BLUE}$&${RESET}@;
+      s@(?<=\s).*/@${BLUE}$&${R}@;
 
       # warn if the size has changed
-      s/^...s...../${RED}$&${RESET}/;
+      s/^...s...../${RED}$&${R}/;
 
       print;
    }
@@ -216,7 +216,7 @@ unless (defined $tags or $import)
    while (<$sort>)
    {
       s@$source/?@@g;
-      s@--> '(.*/)@$GRAY-->$RESET '${BLUE}$1${RESET}@;
+      s@--> '(.*/)@$GRAY-->$R '${BLUE}$1${R}@;
       print;
    }
 
