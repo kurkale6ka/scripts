@@ -17,10 +17,10 @@ use File::Basename 'fileparse';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
 
-my  $BLUE = color('ansi69');
-my  $CYAN = color('ansi45');
-my   $RED = color('red');
-my $RESET = color('reset');
+my $BLUE = color('ansi69');
+my $CYAN = color('ansi45');
+my $RED  = color('red');
+my $R = color('reset');
 
 # Help
 sub help() {
@@ -31,14 +31,14 @@ sub help() {
 
 # Options
 my $dry;
-GetOptions(
+GetOptions (
    'n|dry-run' => \$dry,
    'help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Initialisations
 chdir '/etc/postfix'
-   or die RED."failed to cd in $BLUE/etc/postfix$RESET $RED- $!".RESET, "\n";
+   or die RED."failed to cd in $BLUE/etc/postfix$R $RED- $!".RESET, "\n";
 
 my @dbs = glob '*.db'
    or die RED.'no Berkeley DBs (.db) found'.RESET, "\n";
@@ -50,7 +50,7 @@ unless ($dry)
 
    # List rules
    say 'Creating rules for:';
-   say "* ${CYAN}$_${RESET}" foreach @dbs;
+   say "* ${CYAN}$_${R}" foreach @dbs;
 
    # Write to Makefile
    select $makefile;
