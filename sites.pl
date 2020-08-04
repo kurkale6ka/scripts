@@ -16,14 +16,13 @@ MSG
 }
 
 my $sites;
-
 GetOptions (
    's|sites=s' => \$sites,
    'h|help'    => \&help
 ) or die "Error in command line arguments\n";
 
-$sites //= "$ENV{XDG_DATA_HOME}/sites"
-   or die "No sites found\n";
+$sites //= "$ENV{XDG_DATA_HOME}/sites";
+-f $sites or die "No sites found\n";
 
 if (@ARGV)
 {
@@ -36,4 +35,10 @@ chomp;
 m{https?://\S+} or die "Invalid data: $_\n";
 
 say $&;
-system 'open', $&;
+
+unless ($^O eq 'darwin')
+{
+   system 'xdg-open', $&;
+} else {
+   system 'open', $&;
+}
