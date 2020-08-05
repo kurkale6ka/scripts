@@ -9,7 +9,7 @@ use Getopt::Long qw/GetOptions :config bundling/;
 
 sub help() {
    print <<MSG;
-sites [-s sites] [pattern]
+www [-s sites] [pattern]
 fuzzy search & open of websites ($ENV{XDG_DATA_HOME}/sites)
 MSG
    exit;
