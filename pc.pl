@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-# fuzzy search for pass passwords
+# Fuzzy search and copy of passwords
 #
 # pass - the standard UNIX password manager
 # https://www.passwordstore.org/
@@ -24,18 +24,26 @@ my $R = color('reset');
 
 # Help
 sub help() {
-   print <<MSG;
-${S}SYNOPSIS${R}
-pc [-o] : copy password
-${S}OPTIONS${R}
-${S}DESCRIPTION${R}
+   print << 'MSG';
+Fuzzy search and copy of passwords
+pc [-o|--stdout] [pattern] ... : copy password
 MSG
    exit;
 }
 
 # Arguments
+my $stdout;
 GetOptions (
-   'h|help' => \&help
+   'o|stdout' => \$stdout,
+   'h|help'   => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
+chdir $store;
 
+# Get password
+if (@ARGV)
+{
+   my $pfile = `fd -e gpg -E'*~' -0 | sed -z 's/\.gpg$//' | fzf -q"$*" --read0 -0 -1 --cycle`;
+} else {
+   my $pfile = `fd -e gpg -E'*~' -0 | sed -z 's/\.gpg$//' | fzf --read0 -0 -1 --cycle`;
+}
