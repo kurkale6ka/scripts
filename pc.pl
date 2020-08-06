@@ -8,6 +8,7 @@
 use strict;
 use warnings;
 use feature 'say';
+use POSIX ":sys_wait_h";
 use File::Glob ':bsd_glob';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
@@ -34,16 +35,37 @@ MSG
 # Arguments
 my $stdout;
 GetOptions (
+   's|store'  => \$store,
    'o|stdout' => \$stdout,
    'h|help'   => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 chdir $store;
 
+my $pfile;
+
 # Get password
 if (@ARGV)
 {
-   my $pfile = `fd -e gpg -E'*~' -0 | sed -z 's/\.gpg$//' | fzf -q"$*" --read0 -0 -1 --cycle`;
+   $pfile = `fd -e gpg -E'*~' -0 | sed -z 's/\\.gpg\$//' | fzf -q"@ARGV" --read0 -0 -1 --cycle`;
 } else {
-   my $pfile = `fd -e gpg -E'*~' -0 | sed -z 's/\.gpg$//' | fzf --read0 -0 -1 --cycle`;
+   $pfile = `fd -e gpg -E'*~' -0 | sed -z 's/\\.gpg\$//' | fzf --read0 -0 -1 --cycle`;
 }
+
+system qw/pkill -f pc_cb_previous/;
+
+my $clip_prev = `pbpaste`;
+
+my $pid = fork // die "failed to fork: $!";
+
+# kid
+if ($pid == 0)
+{
+   $0 = 'pc_cb_previous';
+   sleep 45;
+   say "Hello World";
+   exit;
+}
+
+say $pfile;
+waitpid $pid, WNOHANG;
