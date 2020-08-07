@@ -14,6 +14,9 @@ use File::Glob ':bsd_glob';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
+my $YELLOW = color('YELLOW');
+my $R = color('reset');
+
 my $store = glob '~/.password-store';
 
 # Help
@@ -45,25 +48,54 @@ if (@ARGV)
    $pfile = `fd -e gpg -E'*~' -0 | sed -z 's/\\.gpg\$//' | fzf --read0 -0 -1 --cycle`;
 }
 
-system qw/pkill pc_cb_prev/;
+chomp $pfile;
 
-my $clip_prev = `pbpaste`;
+# kill any 'restore clipboard' processes
+system qw/pkill -f pc_cb_prev/
+   or die RED."$!".RESET, "\n";
 
-open my $paste, '|-', 'pbcopy';
+my $clip_prev;
 
-print $paste $pfile;
-# gpg -q -d $pstore/$pfile.gpg | head -n1 | tr -d '\n' | xclip
+# Get previous clipboard item
+unless ($^O eq 'darwin')
+{
+   # base64 encode to obfuscate password in 'ps'
+   $clip_prev = `xclip -o | openssl base64`;
+} else {
+   $clip_prev = `pbpaste | openssl base64`;
+}
 
-my $pid = fork;
+chomp $clip_prev;
+say $clip_prev;
+
+# Copy to clipboard
+if ($stdout)
+{
+   say YELLOW, $pfile, RESET;
+   system qw/gpg -q -d/, "$store/$pfile.gpg"
+      or die RED."$!".RESET, "\n";
+} else {
+   say "Copying ${YELLOW}$pfile${R} to the clipboard...";
+}
+
+system "gpg -q -d $store/$pfile.gpg | head -n1 | tr -d '\n' | pbcopy"
+   or die RED."$!".RESET, "\n";
+
+my $pid = fork // die "failed to fork: $!";
 
 # kid
+# keep password for 45sec, then reset clipboard to previous entry
 if ($pid == 0)
 {
+   say "KID";
    $0 = 'pc_cb_prev';
 
    sleep 5;
 
-   print $paste $clip_prev;
+   # reset clipboard to previous entry
+   system "echo $clip_prev | openssl base64 -d | pbcopy"
+      or die RED."$!".RESET, "\n";
+
    exit;
 }
 
