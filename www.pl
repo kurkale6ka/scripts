@@ -32,7 +32,11 @@ if (@ARGV)
 }
 
 chomp;
-m{https?://\S+} or die "Invalid data: $_\n";
+unless (m{https?://\S+})
+{
+   my $error = $_ ? "No valid URL in: $_" : 'No match';
+   die "$error\n";
+}
 
 say $&;
 
