@@ -25,27 +25,6 @@ my $R = color('reset');
 my $user = 'kurkale6ka';
 my @repos = qw/zsh bash help config scripts vim/;
 
-# Repos root folder setup
-unless ($ENV{REPOS_BASE})
-{
-   warn RED.'Repositories root undefined'.RESET, "\n";
-   print "define or accept default [$BLUE~/github$R]: ";
-
-   chomp ($ENV{REPOS_BASE} = <STDIN>);
-
-   $ENV{REPOS_BASE} ||= '~/github';
-   $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
-
-   if (-d dirname $ENV{REPOS_BASE})
-   {
-      make_path $ENV{REPOS_BASE};
-   } else {
-      die RED."parent folder doesn't exist".RESET, "\n";
-   }
-
-   print "\n";
-}
-
 # Help
 sub help() {
    print <<MSG;
@@ -66,6 +45,27 @@ ${S}OPTIONS${R}
 --download,  -d: Download repositories vs checkout
 MSG
 exit;
+}
+
+# Repos root folder setup
+unless ($ENV{REPOS_BASE})
+{
+   warn RED.'Repositories root undefined'.RESET, "\n";
+   print "define or accept default [$BLUE~/github$R]: ";
+
+   chomp ($ENV{REPOS_BASE} = <STDIN>);
+
+   $ENV{REPOS_BASE} ||= '~/github';
+   $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
+
+   if (-d dirname $ENV{REPOS_BASE})
+   {
+      make_path $ENV{REPOS_BASE};
+   } else {
+      die RED."parent folder doesn't exist".RESET, "\n";
+   }
+
+   print "\n";
 }
 
 # Declarations
