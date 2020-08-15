@@ -4,7 +4,7 @@
 # ---------------
 #
 # run this script with:
-# perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.pl -h)
+# perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.pl) -h
 
 use strict;
 use warnings;
@@ -205,9 +205,13 @@ sub checkout()
       {
          system qw/git clone/, "git\@github.com:$user/$repo.git";
       } else {
-         system 'wget', "https://github.com/$user/$repo/tarball/master", '-O', "$repo.tgz";
+         system 'wget', '-q', "https://github.com/$user/$repo/tarball/master", '-O', "$repo.tgz";
          $? == 0 or return;
-         system qw/tar zxf/, "$repo.tgz";
+
+         if (mkdir $repo)
+         {
+            system qw/tar zxf/, "$repo.tgz", '-C', $repo, '--strip-components', 1;
+         }
       }
 
       $? == 0 or return;
