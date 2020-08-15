@@ -4,7 +4,7 @@
 # ---------------
 #
 # run this script with:
-# perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.pl)
+# perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.pl -h)
 
 use strict;
 use warnings;
@@ -28,7 +28,7 @@ my @repos = qw/zsh bash help config scripts vim/;
 # Repos root folder setup
 unless ($ENV{REPOS_BASE})
 {
-   warn RED.'REPOS_BASE empty'.RESET, "\n";
+   warn RED.'Repositories root undefined'.RESET, "\n";
    print "define or accept default [$BLUE~/github$R]: ";
 
    chomp ($ENV{REPOS_BASE} = <STDIN>);
@@ -63,20 +63,21 @@ ${S}OPTIONS${R}
 --links,     -l: Make links
 --del-links, -L: Remove links
 --tags,      -t: Generate tags
+--download,  -d: Download repositories vs checkout
 MSG
 exit;
 }
 
 # Declarations
 sub init();
-sub clone();
+sub checkout();
 sub update();
 sub status();
 sub links($); # add|del
 sub tags();
 
 # Options
-my ($init, $update, $status, $links, $del_links, $tags);
+my ($init, $update, $status, $links, $del_links, $tags, $download);
 
 @ARGV or $update = 1; # default action
 
@@ -87,6 +88,7 @@ GetOptions (
    'l|links'     => \$links,
    'L|del-links' => \$del_links,
    't|tags'      => \$tags,
+   'd|download'  => \$download,
    'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
@@ -129,7 +131,7 @@ $tags      and tags;
 sub init()
 {
    say "$CYAN*$R Cloning repositories in $BLUE~/", basename ($ENV{REPOS_BASE}), "$R...";
-   clone or return;
+   checkout or return;
 
    say "$CYAN*$R Linking dot files";
    links 'add';
@@ -189,7 +191,7 @@ sub init()
 }
 
 # private
-sub clone()
+sub checkout()
 {
    chdir $ENV{REPOS_BASE} or return;
 
@@ -199,7 +201,15 @@ sub clone()
    {
       next if -d $repo;
 
-      system qw/git clone/, "git\@github.com:$user/$repo.git";
+      unless ($download)
+      {
+         system qw/git clone/, "git\@github.com:$user/$repo.git";
+      } else {
+         system 'wget', "https://github.com/$user/$repo/tarball/master", '-O', "$repo.tgz";
+         $? == 0 or return;
+         system qw/tar zxf/, "$repo.tgz";
+      }
+
       $? == 0 or return;
 
       push @statuses, $?;
