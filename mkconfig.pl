@@ -47,27 +47,6 @@ MSG
 exit;
 }
 
-# Repos root folder setup
-unless ($ENV{REPOS_BASE})
-{
-   warn RED.'Repositories root undefined'.RESET, "\n";
-   print "define or accept default [$BLUE~/github$R]: ";
-
-   chomp ($ENV{REPOS_BASE} = <STDIN>);
-
-   $ENV{REPOS_BASE} ||= '~/github';
-   $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
-
-   if (-d dirname $ENV{REPOS_BASE})
-   {
-      make_path $ENV{REPOS_BASE};
-   } else {
-      die RED."parent folder doesn't exist".RESET, "\n";
-   }
-
-   print "\n";
-}
-
 # Declarations
 sub init();
 sub checkout();
@@ -92,7 +71,28 @@ GetOptions (
    'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-# Checks
+# Repos root folder setup
+unless ($ENV{REPOS_BASE})
+{
+   warn RED.'Repositories root undefined'.RESET, "\n";
+   print "define or accept default [$BLUE~/github$R]: ";
+
+   chomp ($ENV{REPOS_BASE} = <STDIN>);
+
+   $ENV{REPOS_BASE} ||= '~/github';
+   $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
+
+   if (-d dirname $ENV{REPOS_BASE})
+   {
+      make_path $ENV{REPOS_BASE};
+   } else {
+      die RED."parent folder doesn't exist".RESET, "\n";
+   }
+
+   print "\n";
+}
+
+# More checks
 if (@ARGV)
 {
    warn RED.'Non-option arguments not allowed'.RESET, "\n";
