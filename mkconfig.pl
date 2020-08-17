@@ -130,7 +130,7 @@ $tags      and tags;
 # Subroutines
 sub init()
 {
-   say "$CYAN*$R Cloning repositories in $BLUE~/", basename ($ENV{REPOS_BASE}), "$R...";
+   say "$CYAN*$R Checking out repositories in ${BLUE}$ENV{REPOS_BASE}${R}...";
    checkout or return;
 
    say "$CYAN*$R Linking dot files";
@@ -224,7 +224,7 @@ sub checkout()
       }
 
       push @statuses, $?;
-      print "\n";
+      print "\n" unless $download;
    }
 
    if (all {$_ == 0} @statuses)
