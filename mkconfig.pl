@@ -204,17 +204,24 @@ sub checkout()
       unless ($download)
       {
          system qw/git clone/, "git\@github.com:$user/$repo.git";
-      } else {
-         system 'wget', '-q', "https://github.com/$user/$repo/tarball/master", '-O', "$repo.tgz";
-         $? == 0 or return;
-
-         if (mkdir $repo)
+         unless ($? == 0)
          {
+            warn RED."$!".RESET, "\n";
+            return;
+         }
+      } else {
+         eval {
+            system 'wget', '-q', "https://github.com/$user/$repo/tarball/master", '-O', "$repo.tgz";
+            mkdir $repo;
             system qw/tar zxf/, "$repo.tgz", '-C', $repo, '--strip-components', 1;
+            unlink "$repo.tgz";
+         };
+         if ($@)
+         {
+            warn RED."$@".RESET, "\n";
+            return;
          }
       }
-
-      $? == 0 or return;
 
       push @statuses, $?;
       print "\n";
