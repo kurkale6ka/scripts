@@ -31,18 +31,18 @@ sub help() {
 ${S}SYNOPSIS${R}
 
 mkconfig              : ${YELLOW}update${R}
-mkconfig -i           : ${YELLOW}install${R}
+mkconfig -i[d]        : ${YELLOW}install${R}
 mkconfig -[u|s][l|L]t
 
 ${S}OPTIONS${R}
 
 --init,      -i: Initial setup
+--download,  -d: Download repositories vs checkout
 --update,    -u: Update repositories
 --status,    -s: Check repositories statuses
 --links,     -l: Make links
 --del-links, -L: Remove links
 --tags,      -t: Generate tags
---download,  -d: Download repositories vs checkout
 MSG
 exit;
 }
@@ -56,18 +56,18 @@ sub links($); # add|del
 sub tags();
 
 # Options
-my ($init, $update, $status, $links, $del_links, $tags, $download);
+my ($init, $download, $update, $status, $links, $del_links, $tags);
 
 @ARGV or $update = 1; # default action
 
 GetOptions (
    'i|init'      => \$init,
+   'd|download'  => \$download,
    'u|update'    => \$update,
    's|status'    => \$status,
    'l|links'     => \$links,
    'L|del-links' => \$del_links,
    't|tags'      => \$tags,
-   'd|download'  => \$download,
    'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
@@ -195,20 +195,26 @@ sub checkout()
 {
    chdir $ENV{REPOS_BASE} or return;
 
-   my @statuses = (-1);
+   my @children;
 
    foreach my $repo (@repos)
    {
       next if -d $repo;
 
+      # parent
+      my $pid = fork // die "failed to fork: $!";
+
+      if ($pid)
+      {
+         push @children, $pid;
+         next;
+      }
+
+      # kid
       unless ($download)
       {
          system qw/git clone/, "git\@github.com:$user/$repo.git";
-         unless ($? == 0)
-         {
-            warn RED."$!".RESET, "\n";
-            return;
-         }
+         $? == 0 or die RED."$!".RESET, "\n";
       } else {
          eval {
             system 'wget', '-q', "https://github.com/$user/$repo/tarball/master", '-O', "$repo.tgz";
@@ -216,32 +222,26 @@ sub checkout()
             system qw/tar zxf/, "$repo.tgz", '-C', $repo, '--strip-components', 1;
             unlink "$repo.tgz";
          };
-         if ($@)
-         {
-            warn RED."$@".RESET, "\n";
-            return;
-         }
+         $@ and die RED."$@".RESET, "\n";
       }
 
-      push @statuses, $?;
       print "\n" unless $download;
+      exit;
    }
 
-   if (all {$_ == 0} @statuses)
-   {
-      say <<VIM
+   waitpid $_, 0 foreach @children;
+
+   say <<VIM;
 ${YELLOW}Now install a vim plugin manager, vim-plug${R}:
 curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 :PlugInstall
 VIM
-   }
 
    return 1;
 }
 
 sub update()
 {
-   my $action = shift;
    say 'Updating repos...';
 
    my @children;
