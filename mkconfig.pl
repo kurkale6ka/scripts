@@ -22,8 +22,39 @@ my $YELLOW = color('yellow');
 my $S = color('bold');
 my $R = color('reset');
 
+# Variables and declarations
 my $user = 'kurkale6ka';
 my @repos = qw/zsh bash help config scripts vim/;
+
+my $vim_help = <<VIM;
+${CYAN}To install vim-plug${R}:
+curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+:PlugInstall
+VIM
+
+sub init();
+sub checkout();
+sub update();
+sub status();
+sub links($); # add|del
+sub tags();
+
+# Options
+my ($init, $download, $update, $status, $links, $del_links, $tags, $long_help);
+
+@ARGV or $update = 1; # default action
+
+GetOptions (
+   'i|init'      => \$init,
+   'd|download'  => \$download,
+   'u|update'    => \$update,
+   's|status'    => \$status,
+   'l|links'     => \$links,
+   'L|del-links' => \$del_links,
+   't|tags'      => \$tags,
+   'H|long-help' => \$long_help,
+   'h|help'      => \&help
+) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Help
 sub help() {
@@ -43,33 +74,14 @@ ${S}OPTIONS${R}
 --links,     -l: Make links
 --del-links, -L: Remove links
 --tags,      -t: Generate tags
+--long-help, -H: Long help
 MSG
+
+print "\n$vim_help" if $long_help;
 exit;
 }
 
-# Declarations
-sub init();
-sub checkout();
-sub update();
-sub status();
-sub links($); # add|del
-sub tags();
-
-# Options
-my ($init, $download, $update, $status, $links, $del_links, $tags);
-
-@ARGV or $update = 1; # default action
-
-GetOptions (
-   'i|init'      => \$init,
-   'd|download'  => \$download,
-   'u|update'    => \$update,
-   's|status'    => \$status,
-   'l|links'     => \$links,
-   'L|del-links' => \$del_links,
-   't|tags'      => \$tags,
-   'h|help'      => \&help
-) or die RED.'Error in command line arguments'.RESET, "\n";
+help if $long_help;
 
 # Repos root folder setup
 unless ($ENV{REPOS_BASE})
@@ -231,12 +243,7 @@ sub checkout()
 
    waitpid $_, 0 foreach @children;
 
-   say <<VIM;
-${YELLOW}Now install a vim plugin manager, vim-plug${R}:
-curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-:PlugInstall
-VIM
-
+   say $vim_help;
    return 1;
 }
 
