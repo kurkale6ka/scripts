@@ -27,7 +27,7 @@ my $user = 'kurkale6ka';
 my @repos = qw/zsh bash help config scripts vim/;
 
 my $vim_help = <<VIM;
-${CYAN}To install vim-plug${R}:
+${CYAN}to install vim-plug${R}:
 curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 :PlugInstall
 VIM
@@ -208,6 +208,7 @@ sub checkout()
    chdir $ENV{REPOS_BASE} or return;
 
    my @children;
+   my @statuses;
 
    foreach my $repo (@repos)
    {
@@ -226,7 +227,11 @@ sub checkout()
       unless ($download)
       {
          system qw/git clone/, "git\@github.com:$user/$repo.git";
-         $? == 0 or die RED."$!".RESET, "\n";
+         unless ($? == 0)
+         {
+            push @statuses, -1;
+            die RED."$!".RESET, "\n";
+         }
       } else {
          eval {
             system 'wget', '-q', "https://github.com/$user/$repo/tarball/master", '-O', "$repo.tgz";
@@ -234,17 +239,27 @@ sub checkout()
             system qw/tar zxf/, "$repo.tgz", '-C', $repo, '--strip-components', 1;
             unlink "$repo.tgz";
          };
-         $@ and die RED."$@".RESET, "\n";
+         if ($@)
+         {
+            push @statuses, -1;
+            die RED."$@".RESET, "\n";
+         }
       }
 
+      push @statuses, 0;
       print "\n" unless $download;
       exit;
    }
 
    waitpid $_, 0 foreach @children;
 
-   say $vim_help;
-   return 1;
+   if (all {$_ == 0} @statuses)
+   {
+      say $vim_help;
+      return 1;
+   } else {
+      return 0;
+   }
 }
 
 sub update()
