@@ -1,5 +1,8 @@
 #! /usr/bin/env perl
 
+# pacaur -S openvpn-update-systemd-resolved
+# systemctl start systemd-resolved
+
 use strict;
 use warnings;
 use feature 'say';
@@ -8,12 +11,12 @@ use Getopt::Long qw/GetOptions :config bundling/;
 
 # Help
 sub help() {
-   say "$0 -a auth -c config";
+   say 'nvpn.pl -a auth -c config';
    exit;
 }
 
 # Arguments
-my ($config, $auth);
+my ($auth, $config);
 GetOptions (
    'a|auth=s'   => \$auth,
    'c|config=s' => \$config,
@@ -22,10 +25,13 @@ GetOptions (
 
 system
 'openvpn',
-'--config', "/etc/openvpn/ovpn_udp/$config",
+'--config', $config,
 '--script-security', 2,
-'--up',   '/etc/openvpn/scripts/update-systemd-resolved',
+'--setenv', 'PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+'--up', '/etc/openvpn/scripts/update-systemd-resolved',
+'--up-restart',
 '--down', '/etc/openvpn/scripts/update-systemd-resolved',
+'--down-pre',
 '--dhcp-option', 'DOMAIN-ROUTE', '.',
 '--auth-user-pass', $auth
    or die RED."$!".RESET, "\n";
