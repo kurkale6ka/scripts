@@ -26,5 +26,6 @@ system
 '--script-security', 2,
 '--up',   '/etc/openvpn/scripts/update-systemd-resolved',
 '--down', '/etc/openvpn/scripts/update-systemd-resolved',
+'--dhcp-option', 'DOMAIN-ROUTE', '.',
 '--auth-user-pass', $auth
    or die RED."$!".RESET, "\n";
