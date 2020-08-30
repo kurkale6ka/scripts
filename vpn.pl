@@ -9,13 +9,7 @@ use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
-# Help
-sub help() {
-   say 'vpn.pl [-a auth] [-c config] [-p]';
-   exit;
-}
-
-my %codes = (
+my %countries = (
    AF => "Afghanistan",
    AL => "Albania",
    DZ => "Algeria",
@@ -267,15 +261,30 @@ my %codes = (
    AX => "Åland Islands",
 );
 
+# Help
+sub help() {
+   say 'vpn.pl [-a auth] [-c config] [-p protocol] [-s]';
+   exit;
+}
+
 # Arguments
 my ($auth, $config, $protocol, $show);
 GetOptions (
-   'a|auth=s'   => \$auth,
-   'c|config=s' => \$config,
-   'p|protocol' => \$protocol,
-   's|show'     => \$show,
-   'h|help'     => \&help
+   'a|auth=s'     => \$auth,
+   'c|config=s'   => \$config,
+   'p|protocol=s' => \$protocol,
+   's|show'       => \$show,
+   'h|help'       => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
+
+if ($show)
+{
+   foreach (sort { $countries{$a} cmp $countries{$b} } keys %countries)
+   {
+      say CYAN.$_.RESET, " -> $countries{$_}";
+   }
+   exit;
+}
 
 $auth //= "/etc/openvpn/details";
 
@@ -284,16 +293,11 @@ chdir "/etc/openvpn/ovpn_$protocol" or die RED."$!".RESET, "\n";
 
 unless ($config)
 {
-   $config = `printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60%`;
+   chomp ($config = `printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60%`);
 }
 elsif ($config =~ /[a-z]+/)
 {
-   $config = `fzf -q$config -0 -1 --cycle --height 60%`;
-}
-
-if ($show)
-{
-   say foreach sort values %codes;
+   chomp ($config = `fzf -q$config -0 -1 --cycle --height 60%`);
 }
 
 system
