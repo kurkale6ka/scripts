@@ -263,7 +263,7 @@ my %countries = (
 
 # Help
 sub help() {
-   say 'vpn.pl [-a auth] [-c config] [-p protocol] [-s]';
+   say 'vpn.pl [-a auth] [-c config] [-p protocol] [-s [pattern]]';
    exit;
 }
 
@@ -273,15 +273,24 @@ GetOptions (
    'a|auth=s'     => \$auth,
    'c|config=s'   => \$config,
    'p|protocol=s' => \$protocol,
-   's|show'       => \$show,
+   's|show:s'     => \$show,
    'h|help'       => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-if ($show)
+if (defined $show)
 {
+   my $pattern = qr/\Q$show\E/i;
    foreach (sort { $countries{$a} cmp $countries{$b} } keys %countries)
    {
-      say CYAN.$_.RESET, " -> $countries{$_}";
+      unless ($show)
+      {
+         say CYAN.$_.RESET, " -> $countries{$_}";
+      } else {
+         if (/$pattern/ or $countries{$_} =~ $pattern)
+         {
+            say CYAN.$_.RESET, " -> $countries{$_}";
+         }
+      }
    }
    exit;
 }
