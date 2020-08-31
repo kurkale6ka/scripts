@@ -1,13 +1,19 @@
 #! /usr/bin/env perl
 
-# pacaur -S openvpn-update-systemd-resolved
-# systemctl start systemd-resolved
+# OpenVPN helper for NordVPN
+#
+# Prerequisites:
+# Install (openvpn-)update-systemd-resolved
+# systemctl enable --now systemd-resolved
 
 use strict;
 use warnings;
 use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
+
+my $S = color('bold');
+my $R = color('reset');
 
 my %countries = (
    AF => "Afghanistan",
@@ -263,19 +269,35 @@ my %countries = (
 
 # Help
 sub help() {
-   say 'vpn.pl [-a auth] [-c config] [-p protocol] [-s [pattern]]';
+   print <<MSG;
+${S}SYNOPSIS${R}
+vpn.pl [-a ...] [{-c ...} or {pattern}] [-d] [-p ...] [-s [...]]
+${S}OPTIONS${R}
+--auth,           -a : credentials
+--config,         -c : config file, or vpn country-pattern
+--download,       -d : download config files
+--protocol tcp    -p : defaults to udp
+--show [pattern], -s : show countries
+MSG
    exit;
 }
 
 # Arguments
-my ($auth, $config, $protocol, $show);
+my ($auth, $config, $download, $protocol, $show);
 GetOptions (
    'a|auth=s'     => \$auth,
    'c|config=s'   => \$config,
+   'd|download'   => \$download,
    'p|protocol=s' => \$protocol,
    's|show:s'     => \$show,
    'h|help'       => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
+
+if ($download)
+{
+   system qw(wget https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip);
+   exit;
+}
 
 if (defined $show)
 {
@@ -302,9 +324,15 @@ chdir "/etc/openvpn/ovpn_$protocol" or die RED."$!".RESET, "\n";
 
 unless ($config)
 {
-   chomp ($config = `printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60%`);
+   if (@ARGV)
+   {
+      $config = shift;
+   } else {
+      chomp ($config = `printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60%`);
+   }
 }
-elsif ($config =~ /[a-z]+/)
+
+if ($config =~ /^\Q[a-z]+\E$/)
 {
    chomp ($config = `fzf -q$config -0 -1 --cycle --height 60%`);
 }
