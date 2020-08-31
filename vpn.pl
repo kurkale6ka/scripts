@@ -2,9 +2,11 @@
 
 # OpenVPN helper for NordVPN
 #
-# Prerequisites:
+# OpenVPN DNS leak fix:
 # Install (openvpn-)update-systemd-resolved
 # systemctl enable --now systemd-resolved
+#
+# TODO: run with suid
 
 use strict;
 use warnings;
@@ -271,12 +273,16 @@ my %countries = (
 sub help() {
    print <<MSG;
 ${S}SYNOPSIS${R}
-vpn.pl [-a ...] [{-c ...} or {pattern}] [-d] [-p ...] [-s [...]]
+vpn.pl [-a ...]
+       [-c ...] or [country-pattern]
+       [-d]
+       [-p ...]
+       [-s [...]]
 ${S}OPTIONS${R}
---auth,           -a : credentials
---config,         -c : config file, or vpn country-pattern
+--auth ...,       -a : credentials file
+--config ...,     -c : config file
 --download,       -d : download config files
---protocol tcp    -p : defaults to udp
+--protocol ...    -p : defaults to udp
 --show [pattern], -s : show countries
 MSG
    exit;
@@ -332,7 +338,7 @@ unless ($config)
    }
 }
 
-if ($config =~ /^\Q[a-z]+\E$/)
+if ($config =~ /^[a-z]+$/)
 {
    chomp ($config = `fzf -q$config -0 -1 --cycle --height 60%`);
 }
