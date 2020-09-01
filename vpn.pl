@@ -12,9 +12,6 @@ use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
-# TODO: run with suid
-(getpwuid $>)[0] eq 'root' or die RED.'Run as root'.RESET, "\n";
-
 # Help
 sub help() {
    print << 'MSG';
@@ -37,6 +34,9 @@ GetOptions (
    's|show:s'     => \$show,
    'h|help'       => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
+
+# TODO: run with suid
+(getpwuid $>)[0] eq 'root' or die RED.'Run as root'.RESET, "\n";
 
 $auth //= "/etc/openvpn/details";
 
