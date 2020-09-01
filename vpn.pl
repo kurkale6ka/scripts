@@ -15,8 +15,8 @@ use Getopt::Long qw/GetOptions :config bundling/;
 # Help
 sub help() {
    print << 'MSG';
-vpn.pl [-a|--auth ...]                : credentials file
-       [-c|--config ...] or [pattern] : config file
+vpn.pl [-a|--auth ...]                : credentials file (/etc/openvpn/details)
+       [-c|--config ...] or [pattern] : config file (/etc/openvpn/ovpn_<proto>/...)
        [-d|--download]                : download config files
        [-p|--protocol ...]            : defaults to udp
        [-s|--show [pattern]]          : show countries
