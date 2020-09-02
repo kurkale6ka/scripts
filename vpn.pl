@@ -11,12 +11,17 @@ use warnings;
 use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
+use List::Util 'any';
+
+my $vpn = '/etc/openvpn';
+my $auth = "$vpn/details";
+my $protocol = 'udp';
 
 # Help
 sub help() {
-   print << 'MSG';
-vpn.pl [-a|--auth ...]                : credentials file (/etc/openvpn/details)
-       [-c|--config ...] or [pattern] : config file (/etc/openvpn/ovpn_<proto>/...)
+   print <<MSG;
+vpn.pl [-a|--auth ...]                : credentials file ($vpn/details)
+       [-c|--config ...] or [pattern] : config file ($vpn/ovpn_<proto>/...)
        [-d|--download]                : download config files
        [-p|--protocol ...]            : defaults to udp
        [-s|--show [pattern]]          : show countries
@@ -25,7 +30,7 @@ MSG
 }
 
 # Arguments
-my ($auth, $config, $download, $protocol, $show);
+my ($config, $download, $show);
 GetOptions (
    'a|auth=s'     => \$auth,
    'c|config=s'   => \$config,
@@ -38,24 +43,19 @@ GetOptions (
 # TODO: run with suid
 (getpwuid $>)[0] eq 'root' or die RED.'Run as root'.RESET, "\n";
 
-$auth //= "/etc/openvpn/details";
-
-$protocol //= 'udp';
-chdir "/etc/openvpn/ovpn_$protocol" or die RED."$!".RESET, "\n";
-
-unless ($config)
+unless (any {defined} ($config, $download, $show))
 {
    if (@ARGV)
    {
       $config = shift;
    } else {
-      chomp ($config = `printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60%`);
+      chomp ($config = `cd '$vpn/ovpn_$protocol' && printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60%`);
    }
 }
 
-if ($config =~ /^[a-z]+$/)
+if (defined $config and $config =~ /^[a-z]+$/)
 {
-   chomp ($config = `fzf -q$config -0 -1 --cycle --height 60%`);
+   chomp ($config = `cd '$vpn/ovpn_$protocol' && fzf -q$config -0 -1 --cycle --height 60%`);
 }
 
 if ($download)
@@ -338,9 +338,9 @@ system
 '--config', $config,
 '--script-security', 2,
 '--setenv', 'PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-'--up', '/etc/openvpn/scripts/update-systemd-resolved',
+'--up', "$vpn/scripts/update-systemd-resolved",
 '--up-restart',
-'--down', '/etc/openvpn/scripts/update-systemd-resolved',
+'--down', "$vpn/scripts/update-systemd-resolved",
 '--down-pre',
 '--dhcp-option', 'DOMAIN-ROUTE', '.',
 '--auth-user-pass', $auth
