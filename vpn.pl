@@ -40,8 +40,11 @@ GetOptions (
    'h|help'       => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-# TODO: run with suid
-(getpwuid $>)[0] eq 'root' or die RED.'Run as root'.RESET, "\n";
+unless (any {defined} ($download, $show))
+{
+   # TODO: run with suid
+   (getpwuid $>)[0] eq 'root' or die RED.'Run as root'.RESET, "\n";
+}
 
 unless (any {defined} ($config, $download, $show))
 {
@@ -55,7 +58,7 @@ unless (any {defined} ($config, $download, $show))
 
 if (defined $config and $config =~ /^[a-z]+$/)
 {
-   chomp ($config = `cd '$vpn/ovpn_$protocol' && fzf -q$config -0 -1 --cycle --height 60%`);
+   chomp ($config = `cd '$vpn/ovpn_$protocol' && printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60% -q$config`);
 }
 
 if ($download)
