@@ -42,7 +42,6 @@ GetOptions (
 
 unless (any {defined} ($download, $show))
 {
-   # TODO: run with suid
    (getpwuid $>)[0] eq 'root' or die RED.'Run as root'.RESET, "\n";
 }
 
@@ -338,8 +337,7 @@ if (defined $show)
    exit;
 }
 
-system
-'openvpn',
+exec 'openvpn',
 '--config', $config,
 '--script-security', 2,
 '--setenv', 'PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
@@ -348,5 +346,4 @@ system
 '--down', "$vpn/scripts/update-systemd-resolved",
 '--down-pre',
 '--dhcp-option', 'DOMAIN-ROUTE', '.',
-'--auth-user-pass', $auth
-   or die RED."$!".RESET, "\n";
+'--auth-user-pass', $auth;
