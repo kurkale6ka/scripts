@@ -7,6 +7,8 @@ use warnings;
 use feature 'say';
 use Getopt::Long qw/GetOptions :config bundling/;
 
+my $sites = "$ENV{XDG_DATA_HOME}/sites";
+
 sub help() {
    print <<MSG;
 www [-s sites] [pattern]
@@ -15,13 +17,11 @@ MSG
    exit;
 }
 
-my $sites;
 GetOptions (
    's|sites=s' => \$sites,
    'h|help'    => \&help
 ) or die "Error in command line arguments\n";
 
-$sites //= "$ENV{XDG_DATA_HOME}/sites";
 -f $sites or die "No sites found\n";
 
 if (@ARGV)
@@ -30,8 +30,8 @@ if (@ARGV)
 } else {
    $_ = `fzf -0 -1 --cycle --height 60% < $sites`;
 }
-
 chomp;
+
 unless (m{https?://\S+})
 {
    my $error = $_ ? "No valid URL in: $_" : 'No match';
@@ -42,7 +42,7 @@ say $&;
 
 unless ($^O eq 'darwin')
 {
-   system 'xdg-open', $&;
+   exec 'xdg-open', $&;
 } else {
-   system 'open', $&;
+   exec 'open', $&;
 }
