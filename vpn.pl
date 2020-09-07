@@ -341,7 +341,7 @@ if (defined $config and $config =~ /^[a-z]+$/)
       }
    }
 
-   chomp ($config = `cd '$vpn/ovpn_$protocol' && printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60% -q$country`);
+   chomp ($config = `cd '$vpn/ovpn_$protocol' && printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60% -q'^$country'`);
    $config or die RED.'no match'.RESET, "\n";
    $config = "$vpn/ovpn_$protocol/$config";
 }
