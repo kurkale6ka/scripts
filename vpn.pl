@@ -335,9 +335,9 @@ if (defined $config and $config =~ /^[a-z]+$/)
 
          print 'Choose: ';
          chomp ($_ = <STDIN>);
-         $country = $codes{$_};
+         $country = lc $codes{$_};
       } else {
-         $country = $codes{1};
+         $country = lc $codes{1};
       }
    }
 
