@@ -6,16 +6,23 @@ use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
-my $BLUE = color('ansi69');
-my $CYAN = color('ansi45');
 my $RED = color('red');
-my $S = color('bold');
 my $R = color('reset');
 
-my $usage;
-my @fields;
+# Arguments
+my ($long, $squeeze, $help, @extra);
+GetOptions (
+   'l|long'    => \$long,
+   'z|squeeze' => \$squeeze,
+   'h|help'    => \$help,
+   # '*'         => \@extra,
+) or die RED.'Error in command line arguments'.RESET, "\n";
 
-unless ($^O eq 'darwin')
+say for @extra;
+
+my ($usage, @ps, @fields);
+
+if ($^O eq 'linux')
 {
    $usage = << 'MSG';
 pg [-lz] pattern
@@ -23,16 +30,30 @@ pg [-lz] pattern
   -z: squeeze! no context lines.
 MSG
 
-@fields = qw/pid stat euser egroup start_time cmd/;
-}
-else
-{
+   @ps = qw/ps faxww o/;
+
+   unless ($long)
+   {
+      @fields = qw/pid stat euser egroup start_time cmd/;
+   } else {
+      @fields = qw/pid ppid pgid sid tname tpgid stat euser egroup start_time cmd/;
+   }
+
+} elsif ($^O eq 'darwin') {
+
    $usage = << 'MSG';
 pg [-l] pattern
     -l: PID PPID PGID SESS TTY TPGID STAT USER GID STARTED COMMAND
 MSG
 
-@fields = qw/pid stat user group start command/;
+   @ps = qw/ps axww -o/;
+
+   unless ($long)
+   {
+      @fields = qw/pid stat user group start command/;
+   } else {
+      @fields = qw/pid ppid pgid sess tty tpgid stat user group start command/;
+   }
 }
 
 # Help
@@ -41,32 +62,27 @@ sub help() {
    exit;
 }
 
-my $long;
+help if $help;
 
-# Arguments
-GetOptions (
-   'l|long' => \$long,
-   'h|help' => \&help
-) or die RED.'Error in command line arguments'.RESET, "\n";
-
-# @fields = qw/pid ppid pgid sid tname tpgid stat euser egroup start_time cmd/
-@fields = qw/pid ppid pgid sess tty tpgid stat user group start command/
-if $long;
-
-my $search = qr/\Q$ARGV[0]\E/i;
-
-my @ps = $^O ne 'darwin' ? qw/ps faxww o/ : qw/ps axww -o/;
+my $prev_line;
+my $search = qr/\Q$ARGV[0]\E/i; # make smart
 
 open my $fh, '-|', @ps, join ',', @fields
    or die RED."$!".RESET, "\n";
 
 while (<$fh>)
 {
-   chomp;
-   if (1..1) { say; next; } # ps header
-   if (/$search/)
+   if (1..1) { print; next; } # ps header
+   unless (/$search/)
    {
-      s/$search/$RED$&$R/g;
-      say;
+      $prev_line = $_ if $^O eq 'linux';
+   } else {
+      if ($prev_line)
+      {
+         print $prev_line unless $squeeze;
+      }
+      # exclude script
+      s/($search)/${RED}$1${R}/g;
+      print;
    }
 }
