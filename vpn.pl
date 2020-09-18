@@ -326,6 +326,8 @@ if (defined $config and $config =~ /^[a-z]+$/)
          $codes{++$num} = $_ if $countries{$_} =~ $pattern;
       }
 
+      %codes or die RED.'no match'.RESET, "\n";
+
       unless (scalar keys %codes == 1)
       {
          foreach (sort { $countries{$codes{$a}} cmp $countries{$codes{$b}} } keys %codes)
