@@ -65,6 +65,7 @@ sub help() {
 help if $help;
 
 my $prev_line;
+my $prog = qr/\Q$0\E/;
 my $search = qr/\Q$ARGV[0]\E/i; # make smart
 
 open my $fh, '-|', @ps, join ',', @fields
@@ -81,8 +82,10 @@ while (<$fh>)
       {
          print $prev_line unless $squeeze;
       }
-      # exclude script
-      s/($search)/${RED}$1${R}/g;
-      print;
+      unless (/$prog/)
+      {
+         s/($search)/${RED}$1${R}/g;
+         print;
+      }
    }
 }
