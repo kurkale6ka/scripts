@@ -81,6 +81,7 @@ while (<$PS>)
       if ($prev_line)
       {
          print $prev_line unless $squeeze;
+         $prev_line = '';
       }
       unless (/$prog/)
       {
