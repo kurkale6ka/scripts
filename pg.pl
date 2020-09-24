@@ -7,18 +7,18 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
 my $RED = color('red');
+my $S = color('bold');
 my $R = color('reset');
 
 # Arguments
-my ($long, $squeeze, $help, @extra);
+my @extra = grep {/^--?[^lzh-]/} @ARGV;
+
+my ($long, $squeeze, $help);
 GetOptions (
    'l|long'    => \$long,
    'z|squeeze' => \$squeeze,
    'h|help'    => \$help,
-   # '*'         => \@extra,
 ) or die RED.'Error in command line arguments'.RESET, "\n";
-
-say for @extra;
 
 my ($usage, @ps, @fields);
 
@@ -62,18 +62,18 @@ sub help() {
    exit;
 }
 
-help if $help;
+help if $help or @ARGV == 0;
 
 my $prev_line;
-my $prog = qr/\Q$0\E/;
+my $prog = qr/\Q$0\E\b/;
 my $search = qr/\Q$ARGV[0]\E/i; # make smart
 
-open my $fh, '-|', @ps, join ',', @fields
+open my $ps, '-|', @ps, @extra, join ',', @fields
    or die RED."$!".RESET, "\n";
 
-while (<$fh>)
+while (<$ps>)
 {
-   if (1..1) { print; next; } # ps header
+   if (1..1) { print; next; } # header
    unless (/$search/)
    {
       $prev_line = $_ if $^O eq 'linux';
@@ -84,7 +84,7 @@ while (<$fh>)
       }
       unless (/$prog/)
       {
-         s/($search)/${RED}$1${R}/g;
+         s/($search)/${RED}${S}$1${R}/g;
          print;
       }
    }
