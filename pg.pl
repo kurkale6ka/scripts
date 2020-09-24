@@ -68,10 +68,10 @@ my $prev_line;
 my $prog = qr/\Q$0\E\b/;
 my $search = qr/\Q$ARGV[0]\E/i; # make smart
 
-open my $ps, '-|', @ps, @extra, join ',', @fields
+open my $PS, '-|', @ps, @extra, join ',', @fields
    or die RED."$!".RESET, "\n";
 
-while (<$ps>)
+while (<$PS>)
 {
    if (1..1) { print; next; } # header
    unless (/$search/)
