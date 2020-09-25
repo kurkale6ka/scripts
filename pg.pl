@@ -64,29 +64,47 @@ sub help() {
 
 help if $help or @ARGV == 0;
 
-my $prev_line;
-my $prog = qr/\Q$0\E\b/;
-my $search = qr/\Q$ARGV[0]\E/i; # make smart
+my (@prev_line, @matches);
+
+my $self = qr/\Q$0\E\b/;
+my $search = qr/\Q$ARGV[0]\E/i; # make Smart case
 
 open my $PS, '-|', @ps, @extra, join ',', @fields
    or die RED."$!".RESET, "\n";
 
+chomp (my $header = <$PS>);
+
 while (<$PS>)
 {
-   if (1..1) { print; next; } # header
+   chomp;
    unless (/$search/)
    {
-      $prev_line = $_ if $^O eq 'linux';
+      @prev_line = ($., $_);
    } else {
-      if ($prev_line)
+      next if /$self/;
+      if (@prev_line)
       {
-         print $prev_line unless $squeeze;
-         $prev_line = '';
+         push @matches, [@prev_line] unless $squeeze;
+         @prev_line = ();
       }
-      unless (/$prog/)
-      {
-         s/($search)/${RED}${S}$1${R}/g;
-         print;
-      }
+      s/($search)/${RED}${S}$1${R}/g;
+      push @matches, [$., $_];
    }
+}
+
+exit 1 unless @matches;
+
+my $prev_num;
+
+say BOLD.$header.RESET;
+
+foreach (@matches)
+{
+   my ($num, $match) = $_->@*;
+   if ($prev_num and not $squeeze)
+   {
+      say CYAN.'--'.RESET if ++$prev_num < $num;
+   }
+   say $match;
+   $prev_num = $num;
 }
