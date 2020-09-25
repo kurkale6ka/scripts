@@ -64,10 +64,18 @@ sub help() {
 
 help if $help or @ARGV == 0;
 
+my $search;
+my $self = qr/\Q$0\E\b/;
+
 my (@prev_line, @matches);
 
-my $self = qr/\Q$0\E\b/;
-my $search = qr/\Q$ARGV[0]\E/i; # make Smart case
+# Smart case
+unless ($ARGV[0] =~ /[A-Z]/)
+{
+   $search = qr/\Q$ARGV[0]\E/i;
+} else {
+   $search = qr/\Q$ARGV[0]\E/;
+}
 
 open my $PS, '-|', @ps, @extra, join ',', @fields
    or die RED."$!".RESET, "\n";
