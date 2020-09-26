@@ -1,6 +1,10 @@
 #! /usr/bin/env perl
 
-# Add message + say about ps args
+# Human readable pgrep
+#
+# - ps options can be passed along
+# - Smart case
+# - context lines (like grep's -B1)
 
 use strict;
 use warnings;
@@ -24,6 +28,7 @@ GetOptions (
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 my $pattern;
+
 sub extra_options {
    foreach (@_) {
       if (/^-/) {
@@ -41,8 +46,9 @@ if ($^O eq 'linux')
 {
    $usage = << 'MSG';
 pg [-lz] pattern
-  -l: PID PPID PGID SID TTY TPGID STAT EUSER EGROUP START CMD
-  -z: squeeze! no context lines.
+
+--long,         -l: PID PPID PGID SID TTY TPGID STAT EUSER EGROUP START CMD
+--(no-)squeeze, -z: squeeze! no context lines
 MSG
 
    unless ($long)
@@ -57,8 +63,10 @@ MSG
 } elsif ($^O eq 'darwin') {
 
    $usage = << 'MSG';
-pg [-l] pattern
-    -l: PID PPID PGID SESS TTY TPGID STAT USER GID STARTED COMMAND
+pg [-lz] pattern
+
+--long,         -l: PID PPID PGID SESS TTY TPGID STAT USER GID STARTED COMMAND
+--(no-)squeeze, -z: squeeze! no context lines (default)
 MSG
 
    unless ($long)
@@ -77,8 +85,7 @@ sub help() {
    exit;
 }
 
-# FIXME
-help if $help; # or @ARGV == 0;
+help() if $help or not $pattern;
 
 my $search;
 my $self = qr/\Q$0\E\b/;

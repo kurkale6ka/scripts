@@ -4,3 +4,4 @@
 * [SSH setup](mkssh.pl)
 * [Fuzzy search & open of websites loaded from a file](www.pl)
 * [OpenVPN helper for NordVPN](vpn.pl)
+* [Human readable pgrep](pg.pl)
