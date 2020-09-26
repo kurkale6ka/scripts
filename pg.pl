@@ -117,11 +117,13 @@ while (<$PS>)
          push @matches, [@prev_line] unless $squeeze;
          @prev_line = ();
       }
+      # add color
       s/($search)/${RED}${S}$1${R}/g;
       push @matches, [$., $_];
    }
 }
 
+# no matches
 exit 1 unless @matches;
 
 my $prev_num;
@@ -130,13 +132,17 @@ say BOLD.$header.RESET;
 
 foreach (@matches)
 {
-   my ($num, $match) = $_->@*;
+   my ($num, $match) = @$_;
 
-   if ($prev_num and not $squeeze)
+   # group results, 'grep -C' style
+   unless ($squeeze)
    {
-      say CYAN.'--'.RESET if ++$prev_num < $num;
+      if ($prev_num)
+      {
+         say CYAN.'--'.RESET if ++$prev_num < $num;
+      }
+      $prev_num = $num;
    }
-   $prev_num = $num;
 
    say $match;
 }
