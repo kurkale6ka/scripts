@@ -19,20 +19,28 @@ my $R = color('reset');
 # Arguments
 my $squeeze = 1 if $^O eq 'darwin';
 
+my $custom_fields = 1;
 my ($long, $help, @extra);
 GetOptions (
-   'l|long'     => \$long,
-   'z|squeeze!' => \$squeeze,
-   'h|help'     => \$help,
-   '<>'         => \&extra_options,
+   'c|custom-fields!' => \$custom_fields,
+   'l|long'           => \$long,
+   'z|squeeze!'       => \$squeeze,
+   'h|help'           => \$help,
+   '<>'               => \&extra_options,
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
+my $selinux;
 my $pattern;
 
 sub extra_options {
    foreach (@_) {
       if (/^-/) {
-         push @extra, $_;
+         unless ($_ eq '-Z')
+         {
+            push @extra, $_;
+         } else {
+            $selinux = 1;
+         }
       } else {
          # FIXME: many patterns?
          $pattern = $_;
@@ -45,38 +53,51 @@ my ($usage, @fields, @ps);
 if ($^O eq 'linux')
 {
    $usage = << 'MSG';
-pg [-lz] pattern
+pg [options] pattern
 
---long,         -l: PID PPID PGID SID TTY TPGID STAT EUSER EGROUP START CMD
---(no-)squeeze, -z: squeeze! no context lines
+--(no-)custom-fields, -c: PID STAT EUSER EGROUP START CMD
+--long,               -l: PID PPID PGID SID TTY TPGID STAT EUSER EGROUP START CMD
+--(no-)squeeze,       -z: squeeze! no context lines
 MSG
 
-   unless ($long)
+   if ($custom_fields)
    {
-      @fields = qw/pid stat euser egroup start_time cmd/;
-   } else {
-      @fields = qw/pid ppid pgid sid tname tpgid stat euser egroup start_time cmd/;
-   }
+      unless ($long)
+      {
+         @fields = qw/pid stat euser egroup start_time cmd/;
+      } else {
+         @fields = qw/pid ppid pgid sid tname tpgid stat euser egroup start_time cmd/;
+      }
+      unshift @fields, 'label' if $selinux;
 
-   @ps = (qw/ps faxww/, @extra, 'o', join ',', @fields);
+      @ps = (qw/ps faxww/, @extra, 'o', join ',', @fields);
+   } else {
+      @ps = (qw/ps faxww/, @extra);
+   }
 
 } elsif ($^O eq 'darwin') {
 
    $usage = << 'MSG';
-pg [-lz] pattern
+pg [options] pattern
 
---long,         -l: PID PPID PGID SESS TTY TPGID STAT USER GID STARTED COMMAND
---(no-)squeeze, -z: squeeze! no context lines (default)
+--(no-)custom-fields, -c: PID STAT USER GID STARTED COMMAND
+--long,               -l: PID PPID PGID SESS TTY TPGID STAT USER GID STARTED COMMAND
+--(no-)squeeze,       -z: squeeze! no context lines (default)
 MSG
 
-   unless ($long)
+   if ($custom_fields)
    {
-      @fields = qw/pid stat user group start command/;
-   } else {
-      @fields = qw/pid ppid pgid sess tty tpgid stat user group start command/;
-   }
+      unless ($long)
+      {
+         @fields = qw/pid stat user group start command/;
+      } else {
+         @fields = qw/pid ppid pgid sess tty tpgid stat user group start command/;
+      }
 
-   @ps = (qw/ps axww/, @extra, '-o', join ',', @fields);
+      @ps = (qw/ps axww/, @extra, '-o', join ',', @fields);
+   } else {
+      @ps = (qw/ps axww/, @extra);
+   }
 }
 
 # Help
