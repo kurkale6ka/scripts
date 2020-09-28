@@ -137,7 +137,7 @@ while (<$PS>)
          push @matches, [@prev_line] unless $squeeze;
          @prev_line = ();
       }
-      s/($search)/BOLD.RED.$1.RESET/eg;
+      s/($search)/BOLD.RED.$1.RESET/eg if -t STDOUT;
       push @matches, [$., $_];
    }
 }
@@ -157,9 +157,9 @@ foreach (@matches)
    # group results, 'grep -B1' style
    unless ($squeeze)
    {
-      if ($prev_num)
+      if ($prev_num and ++$prev_num < $num)
       {
-         say CYAN.'--'.RESET if ++$prev_num < $num;
+         say -t STDOUT ? CYAN.'--'.RESET : '--';
       }
       $prev_num = $num;
    }
