@@ -49,6 +49,8 @@ links() {
       ln -srf "$REPOS_BASE"/bash/.bash_profile ~
       ln -srf "$REPOS_BASE"/bash/.bashrc       ~
       ln -srf "$REPOS_BASE"/bash/.bash_logout  ~
+      # scripts
+      ln -srf "$REPOS_BASE"/scripts/pg.pl ~/bin/pg
       # zsh
       ln -srf "$REPOS_BASE"/zsh/.zshenv   ~
       ln -sf  "$REPOS_BASE"/zsh/.zprofile "$XDG_CONFIG_HOME"/zsh
@@ -60,6 +62,7 @@ links() {
       rm ~/.bash_profile
       rm ~/.bashrc
       rm ~/.bash_logout
+      rm ~/bin/pg
       rm ~/.zshenv
       rm "$XDG_CONFIG_HOME"/zsh/.zprofile
       rm "$XDG_CONFIG_HOME"/zsh/.zshrc
