@@ -12,10 +12,6 @@ use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling pass_through/;
 
-my $RED = color('red');
-my $S = color('bold');
-my $R = color('reset');
-
 # Arguments
 my $squeeze = 1 if $^O eq 'darwin';
 
@@ -58,6 +54,8 @@ pg [options] pattern
 --(no-)custom-fields, -c: PID STAT EUSER EGROUP START CMD
 --long,               -l: PID PPID PGID SID TTY TPGID STAT EUSER EGROUP START CMD
 --(no-)squeeze,       -z: squeeze! no context lines
+
+ps options can be passed through
 MSG
 
    if ($custom_fields)
@@ -83,6 +81,8 @@ pg [options] pattern
 --(no-)custom-fields, -c: PID STAT USER GID STARTED COMMAND
 --long,               -l: PID PPID PGID SESS TTY TPGID STAT USER GID STARTED COMMAND
 --(no-)squeeze,       -z: squeeze! no context lines (default)
+
+ps options can be passed through
 MSG
 
    if ($custom_fields)
@@ -138,8 +138,7 @@ while (<$PS>)
          push @matches, [@prev_line] unless $squeeze;
          @prev_line = ();
       }
-      # add color
-      s/($search)/${RED}${S}$1${R}/g;
+      s/($search)/BOLD.RED.$1.RESET/eg;
       push @matches, [$., $_];
    }
 }
@@ -149,13 +148,14 @@ exit 1 unless @matches;
 
 my $prev_num;
 
-say BOLD.$header.RESET;
+say $header;
+say '-' x length $header;
 
 foreach (@matches)
 {
    my ($num, $match) = @$_;
 
-   # group results, 'grep -C' style
+   # group results, 'grep -B1' style
    unless ($squeeze)
    {
       if ($prev_num)
