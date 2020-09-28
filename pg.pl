@@ -13,27 +13,26 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling pass_through/;
 
 # Arguments
-my $squeeze = 1 if $^O eq 'darwin';
-
 my $custom_fields = 1;
-my ($long, $help, @extra);
+my $squeeze = 1 if $^O eq 'darwin';
+my ($long, $help, @extra_options);
+
 GetOptions (
    'c|custom-fields!' => \$custom_fields,
    'l|long'           => \$long,
    'z|squeeze!'       => \$squeeze,
    'h|help'           => \$help,
-   '<>'               => \&extra_options,
+   '<>'               => \&extra,
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-my $selinux;
-my $pattern;
+my ($selinux, $pattern);
 
-sub extra_options {
+sub extra {
    foreach (@_) {
       if (/^-/) {
          unless ($_ eq '-Z')
          {
-            push @extra, $_;
+            push @extra_options, $_;
          } else {
             $selinux = 1;
          }
@@ -68,9 +67,9 @@ MSG
       }
       unshift @fields, 'label' if $selinux;
 
-      @ps = (qw/ps faxww/, @extra, 'o', join ',', @fields);
+      push @ps, qw/ps faxww/, @extra_options, 'o', join ',', @fields;
    } else {
-      @ps = (qw/ps faxww/, @extra);
+      push @ps, qw/ps faxww/, @extra_options;
    }
 
 } elsif ($^O eq 'darwin') {
@@ -94,9 +93,9 @@ MSG
          @fields = qw/pid ppid pgid sess tty tpgid stat user group start command/;
       }
 
-      @ps = (qw/ps axww/, @extra, '-o', join ',', @fields);
+      push @ps, qw/ps axww/, @extra_options, '-o', join ',', @fields;
    } else {
-      @ps = (qw/ps axww/, @extra);
+      push @ps, qw/ps axww/, @extra_options;
    }
 }
 
