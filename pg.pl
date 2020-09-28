@@ -67,9 +67,9 @@ MSG
       }
       unshift @fields, 'label' if $selinux;
 
-      push @ps, qw/ps faxww/, @extra_options, 'o', join ',', @fields;
+      push @ps, qw/ps fax/, @extra_options, 'o', join ',', @fields;
    } else {
-      push @ps, qw/ps faxww/, @extra_options;
+      push @ps, qw/ps fax/, @extra_options;
    }
 
 } elsif ($^O eq 'darwin') {
@@ -93,9 +93,9 @@ MSG
          @fields = qw/pid ppid pgid sess tty tpgid stat user group start command/;
       }
 
-      push @ps, qw/ps axww/, @extra_options, '-o', join ',', @fields;
+      push @ps, qw/ps ax/, @extra_options, '-o', join ',', @fields;
    } else {
-      push @ps, qw/ps axww/, @extra_options;
+      push @ps, qw/ps ax/, @extra_options;
    }
 }
 
