@@ -26,7 +26,6 @@ my %messages = (
 my $BLUE  = color('ansi69');
 my $GRAY  = color('ansi242');
 my $GREEN = color('green');
-my $RED   = color('red');
 my $S = color('bold');
 my $R = color('reset');
 
@@ -112,7 +111,7 @@ sub lib_import
       s@(?<=\s).*/@${BLUE}$&${R}@;
 
       # warn if the size has changed
-      s/^...s...../${RED}$&${R}/;
+      s/^...s...../RED.$&.RESET/e;
 
       print;
    }
