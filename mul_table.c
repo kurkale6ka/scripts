@@ -21,8 +21,9 @@ int main (int argc, char* argv[])
       for (short k = 0; k <= cols-1; k++)
          printf("%-13d   ", num++);
 
+      // -------
       printf("\n");
-      for (int i = 1; i <= 16*cols-3 ; i++)
+      for (short i = 1; i <= 16*cols-3 ; i++)
          printf("-");
       printf("\n");
 
