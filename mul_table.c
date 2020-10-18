@@ -21,6 +21,7 @@ int main (int argc, char* argv[])
    else
       cols = 4;
 
+   // sets of cols columns
    for (short i = 1; i <= Twelve; i+=cols)
    {
       // -------
