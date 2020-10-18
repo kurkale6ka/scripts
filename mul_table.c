@@ -56,7 +56,7 @@ int main (int argc, char* argv[])
       {
          for (short k = 0; k <= cols-1; k++)
          {
-            printf("%-2hd x %-2hd = %3hd", j, (short)(i+k), (short)((i+k)*j));
+            printf("%-2hd x %2hd = %3hd", j, (short)(i+k), (short)((i+k)*j));
             printf("%s", k < cols-1 ?  " │ " : "");
          }
          printf("\n");
