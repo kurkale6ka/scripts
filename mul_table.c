@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void magenta() {
+   printf("\033[0;35m");
+}
+
+void reset() {
+   printf("\033[0m");
+}
+
 int main (int argc, char* argv[])
 {
    enum Number { One = 1, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven, Twelve };
@@ -27,7 +35,9 @@ int main (int argc, char* argv[])
       // -------
       if (i > 1)
       {
-         for (short i = 1; i <= 16*cols-3 ; i++) printf("─");
+         magenta();
+         for (short i = 1; i <= 16*cols-3; i++) printf("─");
+         reset();
          printf("\n");
       }
 
@@ -36,19 +46,22 @@ int main (int argc, char* argv[])
       {
          switch(num++)
          {
-            case    One: printf("     ONE        "); break;
-            case    Two: printf("     TWO        "); break;
-            case  Three: printf("    THREE       "); break;
-            case   Four: printf("    FOUR        "); break;
-            case   Five: printf("    FIVE        "); break;
-            case    Six: printf("     SIX        "); break;
-            case  Seven: printf("    SEVEN       "); break;
-            case  Eight: printf("    EIGHT       "); break;
-            case   Nine: printf("    NINE        "); break;
-            case    Ten: printf("     TEN        "); break;
-            case Eleven: printf("   ELEVEN       "); break;
-            case Twelve: printf("   TWELVE");        break;
+            case    One: printf("     ONE     "); break;
+            case    Two: printf("     TWO     "); break;
+            case  Three: printf("    THREE    "); break;
+            case   Four: printf("    FOUR     "); break;
+            case   Five: printf("    FIVE     "); break;
+            case    Six: printf("     SIX     "); break;
+            case  Seven: printf("    SEVEN    "); break;
+            case  Eight: printf("    EIGHT    "); break;
+            case   Nine: printf("    NINE     "); break;
+            case    Ten: printf("     TEN     "); break;
+            case Eleven: printf("   ELEVEN    "); break;
+            case Twelve: printf("   TWELVE");     break;
          }
+         magenta();
+         printf("%s", k < cols-1 ?  " │ " : "");
+         reset();
       }
       printf("\n");
 
@@ -57,7 +70,9 @@ int main (int argc, char* argv[])
          for (short k = 0; k <= cols-1; k++)
          {
             printf("%-2hd x %2hd = %3hd", j, (short)(i+k), (short)((i+k)*j));
+            magenta();
             printf("%s", k < cols-1 ?  " │ " : "");
+            reset();
          }
          printf("\n");
       }
