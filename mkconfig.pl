@@ -355,6 +355,7 @@ sub links($)
       # scripts
       [qw( sf scripts/mkconfig.pl      ~/bin/mkconfig )],
       [qw( sf scripts/pics.pl          ~/bin/pics     )],
+      [qw( sf scripts/mini.pl          ~/bin/mini     )],
       [qw( sf scripts/colors_term.bash ~/bin          )],
       [qw( sf scripts/colors_tmux.bash ~/bin          )],
       # config

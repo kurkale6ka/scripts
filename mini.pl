@@ -16,7 +16,12 @@ config/ksh/.kshrc
 vim/.vimrc.mini
 );
 
-$_ = `printf '%s\\n' @mini | fzf -0 -1 --cycle`;
+if (@ARGV)
+{
+   $_ = `printf '%s\\n' @mini | fzf -q"@ARGV" -0 -1 --cycle`;
+} else {
+   $_ = `printf '%s\\n' @mini | fzf -0 -1 --cycle`;
+}
 chomp;
 
 exec "$clipboard < $_" if $_;
