@@ -1,7 +1,6 @@
 #! /usr/bin/env perl
 
-# Syncing of my repos folder:
-#   rseverywhere [--base <...>] [--del] [--dry] destination
+# Sync my repos to remotes
 
 use strict;
 use warnings;
@@ -12,9 +11,20 @@ use Nodes;
 
 # Help
 sub help() {
-   my $msg = "Usage: rseverywhere [--base <...>] [--del] [--dry] destination\n";
-   die $msg.Nodes::help();
+   my $msg = << 'MSG';
+Sync repos to remotes
+
+rseverywhere @cluster ... node[range] ... [-exclude] ...
+
+Options:
+--delete-excluded
+--dry
+
+MSG
+   return $msg.Nodes::help();
 }
+
+die help if @ARGV == 0;
 
 # Arguments
 my $user = 'dimitar';
@@ -23,15 +33,15 @@ my $del;
 my $dry;
 
 GetOptions (
-   'base=s' => \$base,
-   'del'    => \$del,
-   'dry'    => \$dry,
-   'help'   => \&help,
+   'delete-excluded' => \$del,
+   'dry'             => \$dry,
+   'help'            => sub { print help; exit; },
 ) or die "Error in command line arguments\n";
 
 $del = $del ? '--delete-excluded' : '--delete';
 $dry = $dry ? 'n' : '';
 
+# Calculate hosts
 exit unless my @hosts = nodes();
 
 my @children;
@@ -48,7 +58,6 @@ foreach my $remote (@hosts)
    }
 
    # kid
-   # yellow?
    say $remote;
 
    unless (system ("ssh -TG $remote | grep 'user\\b' | grep -q $user") == 0)
@@ -82,7 +91,27 @@ foreach my $remote (@hosts)
    "$ENV{REPOS_BASE}/zsh",
    "$remote:~/$base";
 
-   # rsvim -ai$dry $del $ENV{REPOS_BASE}/vim $1:~/$base
+   # Sync my vim folder
+   #
+   # note: -f':- .gitignore' can't be used as this way we also exclude patterns
+   #       from the plugins .gitignore files and that is too much.
+   #       also, .gitignore might include peculiar patterns like !plugged/vsearch
+
+   # if [[ ! -d $REPOS_BASE/vim/plugged/csapprox ]]
+   # then
+   #    print -P '\n%F{red}The CSApprox plugin folder is missing. Please run the following in Vim%f:' 1>&2
+   #    echo "Plug 'godlygeek/csapprox'|PlugInstall" 1>&2
+   #    return 1
+   # fi
+
+   system
+   'rsync', "-ai$dry", '--no-o', '--no-g', $del, '-e', 'ssh -q',
+   '-f', '- .git',
+   '-f', '- .gitignore',
+   '-f', ".- $ENV{REPOS_BASE}/config/dotfiles/.gitignore",
+   '-f', ". $ENV{REPOS_BASE}/vim/extra/excludes",
+   "$ENV{REPOS_BASE}/vim",
+   "$remote:~/$base";
 
    exit;
 }
