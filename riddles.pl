@@ -13,7 +13,8 @@ my $reg_type = qr/^[[:blank:]]*(puzz?le|quizz?|single|tf)/;
 my $reg_answer = qr/answer:\s*(.*?)\s*$/;
 
 # Read the questions
-open my $fh, '<', $questions or die RED.$!.RESET, "\n";
+open my $fh, '<', $questions
+   or die RED.$!.RESET, "\nUsage: riddles questions_file\n";
 {
    local $/ = "---\n";
    while (<$fh>)
