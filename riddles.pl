@@ -13,13 +13,20 @@ my @questions;
 # Read the questions
 open my $fh, '<', $questions or die RED.$!.RESET, "\n";
 {
-   local $/ = '---';
+   local $/ = "---\n";
    while (<$fh>)
    {
       chomp;
       next if /^$/ or /^#/;
 
-      push @questions, [/(puzzle|quizz|single|tf):?\s*(.+?)\s*$(.+?)\s*answer:\s*(.*)\s*$/msg];
+      die "'$_': wrong format - puzzle, quizz, single or tf KEYWORD missing\n"
+      unless /^[[:blank:]]*(puzz?le|quizz?|single|tf)/in;
+
+      die "'$_': wrong format - answer KEYWORD missing\n"
+      unless /answer:\s*(.*?)\s*$/i;
+
+      # (?:) around \n is needed, else $\ var is assumed in $\n
+      push @questions, [/^[[:blank:]]*(puzz?le|quizz?|single|tf):?\s*(.+?)\s*$(?:\n)^[[:blank:]]*(.+?)\s*answer:\s*(.*?)\s*$/msi];
    }
 }
 
@@ -28,9 +35,6 @@ my $score = 0;
 foreach (@questions)
 {
    chomp (my ($type, $title, $question, $answer) = @$_);
-
-   # trim spaces in the regex
-   $question =~ s/^\s*//g;
 
    my ($category, $topic) = split /\s*\|\s*/, $title;
 
