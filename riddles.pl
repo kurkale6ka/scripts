@@ -30,7 +30,7 @@ open my $fh, '<', $questions or die RED.$!.RESET, "\n";
       # (?:) around \n is needed, else $\ var is assumed in $\n
       push @questions, [/$reg_type:?\s*(.+?)\s*$(?:\n)^[[:blank:]]*(.+?)\s*$reg_answer/msi];
 
-      die "Wrong title $questions[-1][1] or question $questions[-1][2]\n"
+      die "Wrong title '$questions[-1][1]' or question '$questions[-1][2]'\n"
       unless $questions[-1][1] and $questions[-1][2];
    }
 }
@@ -50,19 +50,34 @@ foreach (@questions)
    say "$question\n";
 
    print 'Your answer: ';
-   chomp ($_ = quotemeta <STDIN>);
+   chomp ($_ = <STDIN>);
+   $_ = quotemeta;
 
    s/y(?:es)?|ok/true/i;
+   s/\s+$//;
+
    $answer =~ s/y(?:es)?|ok/true/i;
+   $answer =~ s/\s+$//;
 
    if ($answer =~ /,/)
    {
       $answer =~ s/\s//g;
-      s/\\[[:blank:]]/,/g;
+      if (/,/)
+      {
+         s/\\\s//g;
+         s/\\,/,/g;
+      } else {
+         s/(\\\s)+/,/ng;
+      }
    } else {
       $answer =~ s/\s+/ /g;
-      s/\\,/ /g;
-      s/\\[[:blank:]]/ /g;
+      if (/\s/)
+      {
+         s/\\,//g;
+         s/(\\\s)+/ /ng;
+      } else {
+         s/\\,/ /g;
+      }
    }
 
    if (/$answer/i)
