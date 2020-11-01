@@ -49,18 +49,20 @@ foreach (@questions)
    say BOLD.$category.RESET, ' / ', CYAN.$topic.RESET;
    say "$question\n";
 
-   # todo: quotemeta
    print 'Your answer: ';
-   chomp ($_ = <STDIN>);
+   chomp ($_ = quotemeta <STDIN>);
 
    s/y(?:es)?|ok/true/i;
    $answer =~ s/y(?:es)?|ok/true/i;
 
    if ($answer =~ /,/)
    {
-      s/\s+/,/g;
+      $answer =~ s/\s//g;
+      s/\\[[:blank:]]/,/g;
    } else {
-      s/,\s*/ /g;
+      $answer =~ s/\s+/ /g;
+      s/\\,/ /g;
+      s/\\[[:blank:]]/ /g;
    }
 
    if (/$answer/i)
