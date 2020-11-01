@@ -5,10 +5,12 @@ use warnings;
 use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 
+my @questions;
 my $questions = 'questions';
 $questions = shift if @ARGV;
 
-my @questions;
+my $reg_type = qr/^[[:blank:]]*(puzz?le|quizz?|single|tf)/;
+my $reg_answer = qr/answer:\s*(.*?)\s*$/;
 
 # Read the questions
 open my $fh, '<', $questions or die RED.$!.RESET, "\n";
@@ -20,13 +22,16 @@ open my $fh, '<', $questions or die RED.$!.RESET, "\n";
       next if /^$/ or /^#/;
 
       die "'$_': wrong format - puzzle, quizz, single or tf KEYWORD missing\n"
-      unless /^[[:blank:]]*(puzz?le|quizz?|single|tf)/in;
+      unless /$reg_type/in;
 
       die "'$_': wrong format - answer KEYWORD missing\n"
-      unless /answer:\s*(.*?)\s*$/i;
+      unless /$reg_answer/i;
 
       # (?:) around \n is needed, else $\ var is assumed in $\n
-      push @questions, [/^[[:blank:]]*(puzz?le|quizz?|single|tf):?\s*(.+?)\s*$(?:\n)^[[:blank:]]*(.+?)\s*answer:\s*(.*?)\s*$/msi];
+      push @questions, [/$reg_type:?\s*(.+?)\s*$(?:\n)^[[:blank:]]*(.+?)\s*$reg_answer/msi];
+
+      die "Wrong title $questions[-1][1] or question $questions[-1][2]\n"
+      unless $questions[-1][1] and $questions[-1][2];
    }
 }
 
