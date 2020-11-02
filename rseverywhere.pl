@@ -10,7 +10,8 @@ use lib "$ENV{REPOS_BASE}/config/tmux";
 use Nodes;
 
 # Help
-sub help() {
+sub help()
+{
    my $msg = << 'MSG';
 Sync repos to remotes
 
@@ -44,29 +45,16 @@ $dry = $dry ? 'n' : '';
 # Calculate hosts
 exit unless my @hosts = nodes();
 
-my @children;
-
-foreach my $remote (@hosts)
+sub sync($)
 {
-   # parent
-   my $pid = fork // die "failed to fork: $!";
-
-   if ($pid)
-   {
-      push @children, $pid;
-      next;
-   }
-
-   # kid
-   say $remote;
+   my $remote = shift;
 
    unless (system ("ssh -TG $remote | grep 'user\\b' | grep -q $user") == 0)
    {
       $base = $user;
    }
 
-   system
-   'rsync', "-ai$dry", '--no-o', '--no-g', $del, '-e', 'ssh -q',
+   system 'rsync', "-ai$dry", '--no-o', '--no-g', $del, '-e', 'ssh -q',
    '-f', '- .git',
    '-f', '- .gitignore',
    '-f', '- LICENSE*',
@@ -91,27 +79,56 @@ foreach my $remote (@hosts)
    "$ENV{REPOS_BASE}/zsh",
    "$remote:~/$base";
 
-   # Sync my vim folder
-   #
-   # note: -f':- .gitignore' can't be used as this way we also exclude patterns
-   #       from the plugins .gitignore files and that is too much.
-   #       also, .gitignore might include peculiar patterns like !plugged/vsearch
+   # Vim repo sync
 
-   # if [[ ! -d $REPOS_BASE/vim/plugged/csapprox ]]
-   # then
-   #    print -P '\n%F{red}The CSApprox plugin folder is missing. Please run the following in Vim%f:' 1>&2
-   #    echo "Plug 'godlygeek/csapprox'|PlugInstall" 1>&2
-   #    return 1
-   # fi
+   # -f':- .gitignore' can't be used, as this way we also exclude patterns from
+   # the plugins .gitignore files and that is too much. also, .gitignore might
+   # include peculiar patterns like !plugged/vsearch
 
-   system
-   'rsync', "-ai$dry", '--no-o', '--no-g', $del, '-e', 'ssh -q',
-   '-f', '- .git',
-   '-f', '- .gitignore',
-   '-f', ".- $ENV{REPOS_BASE}/config/dotfiles/.gitignore",
-   '-f', ". $ENV{REPOS_BASE}/vim/extra/excludes",
-   "$ENV{REPOS_BASE}/vim",
-   "$remote:~/$base";
+   # local check for CSApprox plugin
+   if (-d "$ENV{REPOS_BASE}/vim/plugged/csapprox")
+   {
+      system 'rsync', "-ai$dry", '--no-o', '--no-g', $del, '-e', 'ssh -q',
+      '-f', '- .git',
+      '-f', '- .gitignore',
+      '-f', ".- $ENV{REPOS_BASE}/config/dotfiles/.gitignore",
+      '-f', ". $ENV{REPOS_BASE}/vim/extra/excludes",
+      "$ENV{REPOS_BASE}/vim",
+      "$remote:~/$base";
+   }
+   else
+   {
+      warn << 'MSG';
+The CSApprox plugin folder is missing. Please run the following in Vim:
+Plug 'godlygeek/csapprox'|PlugInstall
+MSG
+   }
+}
+
+# Single host
+if (@hosts == 1)
+{
+   sync shift;
+   exit;
+}
+
+# Multiple hosts
+my @children;
+
+foreach my $remote (@hosts)
+{
+   # parent
+   my $pid = fork // die "failed to fork: $!";
+
+   if ($pid)
+   {
+      push @children, $pid;
+      next;
+   }
+
+   # kid
+   say $remote;
+   sync $remote;
 
    exit;
 }
