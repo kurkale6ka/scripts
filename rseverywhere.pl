@@ -17,8 +17,8 @@ Sync repos to remotes
 
 rseverywhere @cluster ... node[range] ... [-exclude] ...
 
-Options:
---delete-excluded
+Rsync options:
+--(no-)delete-excluded, --delete if 'no-'
 --dry
 
 MSG
@@ -30,13 +30,13 @@ die help if @ARGV == 0;
 # Arguments
 my $user = 'dimitar';
 my $base = 'github';
-my $del;
+my $del = 1;
 my $dry;
 
 GetOptions (
-   'delete-excluded' => \$del,
-   'dry'             => \$dry,
-   'help'            => sub { print help; exit; },
+   'delete-excluded!' => \$del,
+   'dry'              => \$dry,
+   'help'             => sub { print help; exit; },
 ) or die "Error in command line arguments\n";
 
 $del = $del ? '--delete-excluded' : '--delete';
