@@ -79,6 +79,8 @@ sub sync($)
    "$ENV{REPOS_BASE}/zsh",
    "$remote:~/$base";
 
+   push my @codes, $?;
+
    # Vim repo sync
 
    # -f':- .gitignore' can't be used, as this way we also exclude patterns from
@@ -95,6 +97,8 @@ sub sync($)
       '-f', ". $ENV{REPOS_BASE}/vim/extra/excludes",
       "$ENV{REPOS_BASE}/vim",
       "$remote:~/$base";
+
+      push @codes, $?;
    }
    else
    {
@@ -102,6 +106,13 @@ sub sync($)
 The CSApprox plugin folder is missing. Please run the following in Vim:
 Plug 'godlygeek/csapprox'|PlugInstall
 MSG
+   }
+
+   if (grep {$_ != 0} @codes)
+   {
+      return 0;
+   } else {
+      return 1;
    }
 }
 
@@ -115,7 +126,7 @@ if (@hosts == 1)
 # Multiple hosts
 my @children;
 
-foreach my $remote (@hosts)
+foreach (@hosts)
 {
    # parent
    my $pid = fork // die "failed to fork: $!";
@@ -127,8 +138,8 @@ foreach my $remote (@hosts)
    }
 
    # kid
-   say $remote;
-   sync $remote;
+   say;
+   sync $_ or die "Error with: $_\n";
 
    exit;
 }
