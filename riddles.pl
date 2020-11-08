@@ -9,7 +9,7 @@ my @questions;
 my $questions = 'questions';
 $questions = shift if @ARGV;
 
-my $reg_type = qr/^[[:blank:]]*(puzz?le|quizz?|single|tf)/;
+my $reg_type = qr/^\p{blank}*(puzz?le|quizz?|single|tf)/;
 my $reg_answer = qr/answer:\s*(.*?)\s*$/;
 
 # Read the questions
@@ -29,7 +29,7 @@ open my $fh, '<', $questions
       unless /$reg_answer/i;
 
       # (?:) around \n is needed, else $\ var is assumed in $\n
-      push @questions, [/$reg_type:?\s*(.+?)\s*$(?:\n)^[[:blank:]]*(.+?)\s*$reg_answer/msi];
+      push @questions, [/$reg_type:?\s*(.+?)\s*$(?:\n)^\p{blank}*(.+?)\s*$reg_answer/msi];
 
       die "Wrong title '$questions[-1][1]' or question '$questions[-1][2]'\n"
       unless $questions[-1][1] and $questions[-1][2];
