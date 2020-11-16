@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-# Show certificate/csr info
+# Show Certificate/CSR info
 #
 # Wrapper for:
 # openssl x509, req, rsa
@@ -15,20 +15,20 @@ use File::Basename 'fileparse';
 my $help = << 'MSG';
 cert [options] file
 
---check,       -c
+--check,       -c : cert/key match?
 --dates,       -d
 --fingerprint, -f
 --issuer,      -i
 --subject,     -s
 --text,        -t
---verbose,     -v : print command without executing
+--view,        -v : print command without executing
 
 many:
 parallel --tag cert ::: *.crt
 MSG
 
 # Arguments
-my ($check, $dates, $fingerprint, $issuer, $subject, $text, $verbose);
+my ($check, $dates, $fingerprint, $issuer, $subject, $text, $view);
 GetOptions (
    'c|check'       => \$check,
    'd|dates'       => \$dates,
@@ -36,7 +36,7 @@ GetOptions (
    'i|issuer'      => \$issuer,
    's|subject'     => \$subject,
    't|text'        => \$text,
-   'v|verbose'     => \$verbose,
+   'v|view'        => \$view,
    'h|help'        => sub {print $help; exit;}
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
@@ -63,7 +63,7 @@ if ($ext =~ /\.csr/)
 # execute or print external commands
 sub run(@)
 {
-   unless ($verbose)
+   unless ($view)
    {
       unless ($check)
       {
