@@ -1,24 +1,24 @@
 #! /usr/bin/env perl
 
-# Wrapper for:
-# openssl x509 -in <cert> -noout ...
+# Show certificate/csr info
 #
-# default:
-# openssl x509 -in <cert> -noout -subject -issuer -dates
+# Wrapper for:
+# openssl x509, req, rsa
 
 use strict;
 use warnings;
 use feature 'say';
 use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;
+use File::Basename 'fileparse';
 
 my $help = << 'MSG';
-cert [options] certificate
+cert [options] file
 
+--check,       -c
 --dates,       -d
 --fingerprint, -f
 --issuer,      -i
---modulus,     -m
 --subject,     -s
 --text,        -t
 --verbose,     -v : print command without executing
@@ -28,12 +28,12 @@ parallel --tag cert ::: *.crt
 MSG
 
 # Arguments
-my ($dates, $fingerprint, $issuer, $modulus, $subject, $text, $verbose);
+my ($check, $dates, $fingerprint, $issuer, $subject, $text, $verbose);
 GetOptions (
+   'c|check'       => \$check,
    'd|dates'       => \$dates,
    'f|fingerprint' => \$fingerprint,
    'i|issuer'      => \$issuer,
-   'm|modulus'     => \$modulus,
    's|subject'     => \$subject,
    't|text'        => \$text,
    'v|verbose'     => \$verbose,
@@ -43,28 +43,76 @@ GetOptions (
 $dates       = '-dates'       if $dates;
 $fingerprint = '-fingerprint' if $fingerprint;
 $issuer      = '-issuer'      if $issuer;
-$modulus     = '-modulus'     if $modulus;
 $subject     = '-subject'     if $subject;
 
+# Checks
 @ARGV == 1 or die $help;
 -f $ARGV[0] or die RED.$!.RESET, "\n";
+
+my $cert = shift;
+my ($name, $path, $ext) = fileparse($cert, qr/\.[^.]*/);
+
+$check = 1 if $ext =~ /\.key/;
+
+if ($ext =~ /\.csr/)
+{
+   $dates = '';
+   $fingerprint = '';
+   $issuer = '';
+   $text = '';
+}
 
 sub run(@)
 {
    unless ($verbose)
    {
-      exec @_;
+      unless ($check)
+      {
+         exec @_;
+      } else {
+         system @_;
+      }
    } else {
       say "@_";
+      exit unless $check;
    }
 }
 
-unless ($dates or $fingerprint or $issuer or $modulus or $subject or $text)
+# check whether private/public key match
+if ($check)
 {
-   run qw/openssl x509 -in/, $ARGV[0], qw/-noout -subject -issuer -dates/;
-} elsif (defined $text) {
-   run qw/openssl x509 -in/, $ARGV[0], qw/-noout -text/;
+   my $crt = -f "$name.crt" ? 'crt' : 'pem';
+
+   print 'crt: ';
+   run "openssl x509 -in $name.$crt -noout -modulus | openssl md5";
+
+   print 'key: ';
+   run "openssl rsa -in $name.key -noout -modulus | openssl md5";
+
+   if (-f "$name.csr")
+   {
+      print 'csr: ';
+      run "openssl req -in $name.csr -noout -modulus | openssl md5";
+   }
+
+   exit;
+}
+
+# default output
+unless ($dates or $fingerprint or $issuer or $subject or $text)
+{
+   if ($ext =~ /\.csr/)
+   {
+      run qw/openssl req -in/, $cert, qw/-noout -subject/;
+   } else {
+      run qw/openssl x509 -in/, $cert, qw/-noout -subject -issuer -dates/;
+   }
+}
+
+# custom output
+if (defined $text) {
+   run qw/openssl x509 -in/, $cert, qw/-noout -text/;
 } else {
-   run qw/openssl x509 -in/, $ARGV[0], '-noout', grep {defined}
-   ($subject, $issuer, $dates, $fingerprint, $modulus);
+   run qw/openssl x509 -in/, $cert, '-noout', grep {defined}
+   ($subject, $issuer, $dates, $fingerprint);
 }
