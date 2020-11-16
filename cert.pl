@@ -13,6 +13,8 @@ use Term::ANSIColor qw/color :constants/;
 use File::Basename 'fileparse';
 
 my $help = << 'MSG';
+Show Certificate/CSR info
+
 cert [options] file
 
 --check,       -c : cert/key match?
@@ -21,10 +23,7 @@ cert [options] file
 --issuer,      -i
 --subject,     -s
 --text,        -t
---view,        -v : print command without executing
-
-many:
-parallel --tag cert ::: *.crt
+--view,        -v : print openssl commands
 MSG
 
 # Arguments
