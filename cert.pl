@@ -50,18 +50,17 @@ $subject     = '-subject'     if $subject;
 -f $ARGV[0] or die RED.$!.RESET, "\n";
 
 my $cert = shift;
-my ($name, $path, $ext) = fileparse($cert, qr/\.[^.]*/);
+my ($name, undef, $ext) = fileparse($cert, qr/\.[^.]*/);
 
 $check = 1 if $ext =~ /\.key/;
 
+# scratch wrong args for a CSR
 if ($ext =~ /\.csr/)
 {
-   $dates = '';
-   $fingerprint = '';
-   $issuer = '';
-   $text = '';
+   undef $_ foreach $dates, $fingerprint, $issuer, $text;
 }
 
+# execute or print external commands
 sub run(@)
 {
    unless ($verbose)
