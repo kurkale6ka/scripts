@@ -116,12 +116,16 @@ sub check()
 {
    my $crt = -f "$name.crt" ? 'crt' : 'pem';
 
-   print 'crt: ';
-   run "openssl x509 -in $name.$crt -noout -modulus | openssl md5";
-
-   print 'key: ';
-   run "openssl rsa -in $name.key -noout -modulus | openssl md5";
-
+   if (-f "$name.$crt")
+   {
+      print 'crt: ';
+      run "openssl x509 -in $name.$crt -noout -modulus | openssl md5";
+   }
+   if (-f "$name.key")
+   {
+      print 'key: ';
+      run "openssl rsa -in $name.key -noout -modulus | openssl md5";
+   }
    if (-f "$name.csr")
    {
       print 'csr: ';
