@@ -1,8 +1,9 @@
 #! /usr/bin/env perl
 
 # Show Certificate/CSR info
+# create CSR
 #
-# Wrapper for:
+# wrapper around:
 # openssl x509, req, rsa
 
 use strict;
@@ -18,6 +19,7 @@ Show Certificate/CSR info
 cert [options] file
 
 --check,       -c : cert/key match?
+--csr,         -r : create CSR
 --dates,       -d
 --fingerprint, -f
 --issuer,      -i
@@ -27,9 +29,10 @@ cert [options] file
 MSG
 
 # Arguments
-my ($check, $dates, $fingerprint, $issuer, $subject, $text, $view);
+my ($check, $csr, $dates, $fingerprint, $issuer, $subject, $text, $view);
 GetOptions (
    'c|check'       => \$check,
+   'r|csr'         => \$csr,
    'd|dates'       => \$dates,
    'f|fingerprint' => \$fingerprint,
    'i|issuer'      => \$issuer,
@@ -51,14 +54,6 @@ $subject     = '-subject'     if $subject;
 my $cert = shift;
 my ($name, undef, $ext) = fileparse($cert, qr/\.[^.]*/);
 
-$check = 1 if $ext =~ /\.key/;
-
-# scratch wrong args for a CSR
-if ($ext =~ /\.csr/)
-{
-   undef $_ foreach $dates, $fingerprint, $issuer, $text;
-}
-
 # execute or print external commands
 sub run(@)
 {
@@ -76,8 +71,48 @@ sub run(@)
    }
 }
 
-# check whether private/public key match
-if ($check)
+sub cert()
+{
+   # Certificate
+   unless ($dates or $fingerprint or $issuer or $subject or $text)
+   {
+      # default fields
+      run qw/openssl x509 -in/, $cert, qw/-noout -subject -issuer -dates/;
+   } elsif (defined $text) {
+      # whole cert
+      run qw/openssl x509 -in/, $cert, qw/-noout -text/;
+   } else {
+      # custom fields
+      run qw/openssl x509 -in/, $cert, '-noout', grep {defined}
+      ($subject, $issuer, $dates, $fingerprint);
+   }
+}
+
+# CSR
+sub csr()
+{
+   unless ($csr)
+   {
+      # info
+      run qw/openssl req -in/, $cert, qw/-noout -subject/;
+   } else {
+      # default
+      my $subj = "/C=GB/ST=State/L=London/O=Company/OU=IT/CN=$name/emailAddress=@";
+
+      # get existing
+      if ($ext =~ /\.csr/i)
+      {
+         chomp ($_ = `openssl req -in $cert -noout -subject`);
+         (undef, $subj) = split /=/, $_, 2;
+      }
+
+      # create
+      run qw/openssl req -nodes -newkey rsa:2048 -keyout/, "$name.key", '-out', "$name.csr", '-subj', $subj;
+   }
+}
+
+# Check whether cert/key match
+sub check()
 {
    my $crt = -f "$name.crt" ? 'crt' : 'pem';
 
@@ -92,25 +127,14 @@ if ($check)
       print 'csr: ';
       run "openssl req -in $name.csr -noout -modulus | openssl md5";
    }
-
-   exit;
 }
 
-# default output
-unless ($dates or $fingerprint or $issuer or $subject or $text)
-{
-   if ($ext =~ /\.csr/)
-   {
-      run qw/openssl req -in/, $cert, qw/-noout -subject/;
-   } else {
-      run qw/openssl x509 -in/, $cert, qw/-noout -subject -issuer -dates/;
-   }
-}
-
-# custom output
-if (defined $text) {
-   run qw/openssl x509 -in/, $cert, qw/-noout -text/;
+# Main
+if ($check or $ext =~ /\.key/i) {
+   $check = 1;
+   check();
+} elsif ($csr or $ext =~ /\.csr/i) {
+   csr();
 } else {
-   run qw/openssl x509 -in/, $cert, '-noout', grep {defined}
-   ($subject, $issuer, $dates, $fingerprint);
+   cert();
 }
