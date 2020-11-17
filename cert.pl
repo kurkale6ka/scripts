@@ -52,7 +52,7 @@ $subject     = '-subject'     if $subject;
 -f $ARGV[0] or die RED.$!.RESET, "\n";
 
 my $cert = shift;
-my ($name, undef, $ext) = fileparse($cert, qr/\.[^.]*/);
+my ($base, undef, $ext) = fileparse($cert, qr/\.[^.]*/);
 
 # execute or print external commands
 sub run(@)
@@ -97,47 +97,52 @@ sub csr()
       run qw/openssl req -in/, $cert, qw/-noout -subject/;
    } else {
       # default
-      my $subj = "/C=GB/ST=State/L=London/O=Company/OU=IT/CN=$name/emailAddress=@";
+      my $subj = "/C=GB/ST=State/L=London/O=Company/OU=IT/CN=$base/emailAddress=@";
 
       # get existing
-      if ($ext =~ /\.csr/i)
+      if (-f "$base.csr")
       {
-         chomp ($_ = `openssl req -in $cert -noout -subject`);
+         chomp ($_ = `openssl req -in $base.csr -noout -subject`);
          (undef, $subj) = split /=/, $_, 2;
       }
 
       # create
-      run qw/openssl req -nodes -newkey rsa:2048 -keyout/, "$name.key", '-out', "$name.csr", '-subj', $subj;
+      run qw/openssl req -nodes -newkey rsa:2048 -keyout/, "$base.key", '-out', "$base.csr", '-subj', $subj;
    }
 }
 
 # Check whether cert/key match
 sub check()
 {
-   my $crt = -f "$name.crt" ? 'crt' : 'pem';
+   $check = 1;
 
-   if (-f "$name.$crt")
+   my $crt = -f "$base.crt" ? 'crt' : 'pem';
+
+   if (-f "$base.$crt")
    {
-      print 'crt: ';
-      run "openssl x509 -in $name.$crt -noout -modulus | openssl md5";
+      print CYAN.'crt'.RESET.': ';
+      run "openssl x509 -in $base.$crt -noout -modulus | openssl md5";
    }
-   if (-f "$name.key")
+   if (-f "$base.key")
    {
-      print 'key: ';
-      run "openssl rsa -in $name.key -noout -modulus | openssl md5";
+      print CYAN.'key'.RESET.': ';
+      run "openssl rsa -in $base.key -noout -modulus | openssl md5";
    }
-   if (-f "$name.csr")
+   if (-f "$base.csr")
    {
-      print 'csr: ';
-      run "openssl req -in $name.csr -noout -modulus | openssl md5";
+      print CYAN.'csr'.RESET.': ';
+      run "openssl req -in $base.csr -noout -modulus | openssl md5";
    }
 }
 
 # Main
-if ($check or $ext =~ /\.key/i) {
-   $check = 1;
+if ($check) {
    check();
-} elsif ($csr or $ext =~ /\.csr/i) {
+} elsif ($csr) {
+   csr();
+} elsif ($ext =~ /\.key/i) {
+   check();
+} elsif ($ext =~ /\.csr/i) {
    csr();
 } else {
    cert();
