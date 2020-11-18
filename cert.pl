@@ -29,7 +29,7 @@ cert [options] file
 
 Intermediate certificates can be appended to:
 * the certificate itself
-* the certificate and put in a separate file $ cat cert CA > chain
+* the certificate and put in a separate chain file
 
 SSL Certificate Checker
 https://www.digicert.com/help/
