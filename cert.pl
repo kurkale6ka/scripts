@@ -27,6 +27,10 @@ cert [options] file
 --text,        -t
 --view,        -v : print openssl commands
 
+Intermediate certificates can be appended to:
+* the certificate itself
+* the certificate and put in a separate file $ cat cert CA > chain
+
 SSL Certificate Checker
 https://www.digicert.com/help/
 MSG
