@@ -26,6 +26,9 @@ cert [options] file
 --subject,     -s
 --text,        -t
 --view,        -v : print openssl commands
+
+SSL Certificate Checker
+https://www.digicert.com/help/
 MSG
 
 # Arguments
