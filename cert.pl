@@ -18,7 +18,7 @@ Show Certificate/CSR info
 
 cert [options] file
 
---check,       -c : cert/key match?
+--check,       -c : chain of trust + cert/key match
 --csr,         -r : create CSR
 --dates,       -d
 --fingerprint, -f
@@ -124,6 +124,24 @@ sub check()
    $check = 1;
 
    my $crt = -f "$base.crt" ? 'crt' : 'pem';
+
+   # -CAfile <root CA certificate>:
+   #  trusted (often root) CA certificate; usually not needed (except when self
+   #  signing) as these trusted certificates will be in the OS/browser store
+   #
+   # -untrusted <intermediate CA certificate>
+
+   my $PINK = color('ansi205');
+
+   # Chain of Trust test
+   say $PINK.'Chain of Trust'.RESET;
+   run "openssl verify -untrusted $base.ca.$crt $base.$crt";
+
+   print "\n";
+   run "openssl crl2pkcs7 -nocrl -certfile $base.chn | openssl pkcs7 -print_certs -noout";
+
+   # Certificate/key match test
+   say $PINK.'Certificate/key match test'.RESET;
 
    if (-f "$base.$crt")
    {
