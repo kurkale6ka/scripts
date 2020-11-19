@@ -118,12 +118,35 @@ sub csr()
    }
 }
 
-# Check whether cert/key match
+# Check 'chain of trust' + cert/key match
 sub check()
 {
+   if ($cert =~ /chain|\bca\b/i or $ext =~ /\.ch(ai)?n/in)
+   {
+      die RED.'Certificate needed but got intermediate certificates'.RESET, "\n";
+   }
+
    $check = 1;
 
    my $crt = -f "$base.crt" ? 'crt' : 'pem';
+
+   sub ask($$)
+   {
+      my ($test, $message) = @_;
+      my $file;
+
+      if (-f $test)
+      {
+         $file = $test;
+      } else {
+         warn "\n", RED."$test not found".RESET, "\n";
+         print "$message: ";
+         chomp ($file = <STDIN>);
+         die RED.'not found'.RESET, "\n" unless -f $file;
+      }
+
+      return $file;
+   }
 
    # -CAfile <root CA certificate>:
    #  trusted (often root) CA certificate; usually not needed (except when self
@@ -135,10 +158,22 @@ sub check()
 
    # Chain of Trust test
    say $PINK.'Chain of Trust'.RESET;
-   run "openssl verify -untrusted $base.ca.$crt $base.$crt";
 
+   my $intermediate = ask "$base.ca.$crt", 'Intermediate CA certificate';
+
+   # verify
+   if (-f "$base.$crt")
+   {
+      run "openssl verify -untrusted $intermediate $base.$crt";
+   } else {
+      die RED."$base.$crt certificate not found".RESET, "\n";
+   }
+
+   my $chain = ask "$base.chn", 'Full chain';
+
+   # show chain
    print "\n";
-   run "openssl crl2pkcs7 -nocrl -certfile $base.chn | openssl pkcs7 -print_certs -noout";
+   run "openssl crl2pkcs7 -nocrl -certfile $chain | openssl pkcs7 -noout -print_certs";
 
    # Certificate/key match test
    say $PINK.'Certificate/key match test'.RESET;
