@@ -123,7 +123,10 @@ sub check()
 {
    if ($cert =~ /chain|\bca\b/i or $ext =~ /\.ch(ai)?n/in)
    {
-      die RED.'Certificate needed but got intermediate certificates'.RESET, "\n";
+      unless ($view)
+      {
+         die RED.'Certificate needed but got intermediate certificates (view with -v)'.RESET, "\n";
+      }
    }
 
    $check = 1;
@@ -139,7 +142,8 @@ sub check()
       {
          $file = $test;
       } else {
-         warn "\n", RED."$test not found".RESET, "\n";
+         $test =~ s/$base\.(.+)/$base.BOLD.".$1"/e;
+         warn "\n", RED.$test.RESET, RED.' not found'.RESET, "\n";
          print "$message: ";
          chomp ($file = <STDIN>);
          die RED.'not found'.RESET, "\n" unless -f $file;
