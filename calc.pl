@@ -27,7 +27,7 @@ if (@ARGV > 0)
 unless (m@^[\s()'"_.\d%^x*/+-]*$@)
 {
    s/\P{print}/?/g;
-   die substr ($_, 0, 17), ": bad symbols\n";
+   die substr ($_, 0, 17), "...: bad symbols\n";
 }
 
 # allow pow with ^
