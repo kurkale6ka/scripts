@@ -6,8 +6,9 @@
 #
 # Notes:
 #   symlink this script to =
-#   x can be used in lieu of *
 #   ^ can be used for powers (in addition to **)
+#   x can be used in lieu of *
+#   ÷ can be used in lieu of /
 #   * can be omitted in parenthesised expressions: a(b+c)
 
 # use strict;
@@ -24,17 +25,22 @@ if (@ARGV > 0)
 }
 
 # sanitize input
-unless (m@^[\s()'"_.\d%^x*/+-]*$@)
+unless (m@^[\s()'"_.\d%^x*÷/+-]*$@)
 {
    s/\P{print}/?/g;
    die substr ($_, 0, 17), "...: bad symbols\n";
 }
 
+warn "% performs integer modulus only\n" if /%/;
+
 # allow pow with ^
 s/\^\^?/**/g;
 
 # allow x for multiplication
-s/x/*/g;
+tr/x/*/;
+
+# allow ÷ for division
+s(÷)(/)g;
 
 # allow omitting * in parenthesised expressions: a(b+c)
 s/([\d)])\s*\(/$1*(/g if /[\d)]\s*\(/; # 2(5+7), )(
