@@ -10,8 +10,8 @@
 #   ^ can be used for powers (in addition to **)
 #   * can be omitted in parenthesised expressions: a(b+c)
 
-use strict;
-use warnings;
+# use strict;
+# use warnings;
 use feature 'say';
 
 # read arguments
@@ -24,7 +24,7 @@ if (@ARGV > 0)
 }
 
 # sanitize input
-unless (m@^[\s()'"\d%^x*/+-]*$@)
+unless (m@^[\s()'"_\d%^x*/+-]*$@)
 {
    s/\P{print}/?/g;
    die substr ($_, 0, 17), ": bad symbols\n";
