@@ -2,6 +2,7 @@
 * [Fuzzy search & open of websites loaded from a file](www.pl)
 * [Show Certificate/CSR info (openssl helper)](cert.pl)
 * [SSH setup](mkssh.pl)
+* [Simple calculator](calc.pl)
 * [Dot files setup](mkconfig.pl)
 * [OpenVPN helper for NordVPN](vpn.pl)
 * [Sort camera shots into timestamped folders](pics.pl)
