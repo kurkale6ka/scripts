@@ -24,7 +24,7 @@ if (@ARGV > 0)
 }
 
 # sanitize input
-unless (m@^[\s()'"_\d%^x*/+-]*$@)
+unless (m@^[\s()'"_.\d%^x*/+-]*$@)
 {
    s/\P{print}/?/g;
    die substr ($_, 0, 17), ": bad symbols\n";
