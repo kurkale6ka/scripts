@@ -9,9 +9,11 @@
 use strict;
 use warnings;
 use feature 'say';
+use File::Basename 'fileparse';
 use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;
-use File::Basename 'fileparse';
+
+my $PINK = color('ansi205');
 
 my $help = << 'MSG';
 Show Certificate/CSR info
@@ -121,63 +123,76 @@ sub csr()
 # Check 'chain of trust' + cert/key match
 sub check()
 {
-   if ($cert =~ /chain|\bca\b/i or $ext =~ /\.ch(ai)?n/in)
-   {
-      unless ($view)
-      {
-         die RED.'Certificate needed but got intermediate certificates (view with -v)'.RESET, "\n";
-      }
-   }
-
    $check = 1;
-
    my $crt = -f "$base.crt" ? 'crt' : 'pem';
-
-   sub ask($$)
-   {
-      my ($test, $message) = @_;
-      my $file;
-
-      if (-f $test)
-      {
-         $file = $test;
-      } else {
-         $test =~ s/$base\.(.+)/$base.BOLD.".$1"/e;
-         warn "\n", RED.$test.RESET, RED.' not found'.RESET, "\n";
-         print "$message: ";
-         chomp ($file = <STDIN>);
-         die RED.'not found'.RESET, "\n" unless -f $file;
-      }
-
-      return $file;
-   }
-
-   # -CAfile <root CA certificate>:
-   #  trusted (often root) CA certificate; usually not needed (except when self
-   #  signing) as these trusted certificates will be in the OS/browser store
-   #
-   # -untrusted <intermediate CA certificate>
-
-   my $PINK = color('ansi205');
 
    # Chain of Trust test
    say $PINK.'Chain of Trust'.RESET;
 
-   my $intermediate = ask "$base.ca.$crt", 'Intermediate CA certificate';
-
-   # verify
-   if (-f "$base.$crt")
+   unless (($cert =~ /chain|\bca\b/i or $ext =~ /\.ch(ai)?n/in) and not $view)
    {
-      run "openssl verify -untrusted $intermediate $base.$crt";
-   } else {
-      die RED."$base.$crt certificate not found".RESET, "\n";
+      sub get_file($$)
+      {
+         my ($default, $message) = @_;
+         my $file;
+
+         if (-f $default)
+         {
+            $file = $default;
+         } else {
+            $default =~ s/$base\.(.+)/$base.BOLD.".$1"/e;
+            warn "\n", RED.$default.RESET, RED.' not found'.RESET, "\n";
+
+            print YELLOW.$message.RESET, ': ';
+            chomp ($file = <STDIN>);
+            warn RED.'not found'.RESET, "\n" unless -f $file;
+         }
+
+         return $file;
+      }
+
+      # verify
+      if (-f "$base.$crt")
+      {
+         my $intermediate = get_file "$base.ca.$crt", 'Intermediate CA certificate';
+
+         if (-f $intermediate or $view)
+         {
+            unless (-f $intermediate)
+            {
+               $intermediate ||= 'undef';
+               $intermediate = RED.$intermediate.RESET;
+            }
+
+            # -CAfile <root CA certificate>:
+            #  trusted (often root) CA certificate; usually not needed (except when self
+            #  signing) as these trusted certificates will be in the OS/browser store
+            #
+            # -untrusted <intermediate CA certificate>
+            run "openssl verify -untrusted $intermediate $base.$crt";
+         }
+      } else {
+         warn RED."$base.$crt certificate not found".RESET, "\n";
+      }
+
+      # show chain
+      my $chain = get_file "$base.chn", 'Full chain';
+
+      if (-f $chain or $view)
+      {
+         unless (-f $chain)
+         {
+            $chain ||= 'undef';
+            $chain = RED.$chain.RESET;
+         }
+
+         print "\n";
+         run "openssl crl2pkcs7 -nocrl -certfile $chain | openssl pkcs7 -noout -print_certs";
+      }
    }
-
-   my $chain = ask "$base.chn", 'Full chain';
-
-   # show chain
-   print "\n";
-   run "openssl crl2pkcs7 -nocrl -certfile $chain | openssl pkcs7 -noout -print_certs";
+   else {
+      warn RED.'Certificate needed but got intermediate certificates (view with -v)'.RESET, "\n";
+   }
 
    # Certificate/key match test
    say $PINK.'Certificate/key match test'.RESET;
