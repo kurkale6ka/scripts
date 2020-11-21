@@ -16,7 +16,7 @@
 use feature 'say';
 
 # read arguments
-if (@ARGV > 0)
+if (@ARGV)
 {
    die "Usage: = math-expr\n" if $ARGV[0] =~ /-h|--help/i;
    $_ = "@ARGV";
@@ -46,9 +46,6 @@ s(÷)(/)g;
 s/([\d)])\s*\(/$1*(/g if /[\d)]\s*\(/; # 2(5+7), )(
 s/\)\s*([\d])/)*$1/g if /\)\s*[\d]/;   # (5+7)2
 
-if ($_)
-{
-   say eval;
-} else {
-   warn "Usage: = math-expr\n";
-}
+die "Usage: = math-expr\n" unless $_;
+
+say eval;
