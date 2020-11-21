@@ -48,7 +48,7 @@ s/\)\s*([\d])/)*$1/g if /\)\s*[\d]/;   # (5+7)2
 
 if ($_)
 {
-   say @ARGV == 0 ? '= ' : '', eval;
+   say eval;
 } else {
    warn "Usage: = math-expr\n";
 }
