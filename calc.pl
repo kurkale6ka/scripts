@@ -7,15 +7,15 @@
 # Notes:
 #   symlink this script to =
 #   ^ can be used for powers (in addition to **)
-#   x can be used in lieu of *
 #   ÷ can be used in lieu of /
+#   x can be used in lieu of *
 #   * can be omitted in parenthesised expressions: a(b+c)
 
 # use strict;
 # use warnings;
 use feature 'say';
 
-# read arguments
+# read expression
 if (@ARGV)
 {
    die "Usage: = math-expr\n" if $ARGV[0] =~ /-h|--help/i;
@@ -24,7 +24,7 @@ if (@ARGV)
    chomp ($_ = <STDIN>);
 }
 
-# sanitize input
+# validate input
 unless (m@^[\s()'"_.\d%^x*÷/+-]*$@)
 {
    s/\P{print}/?/g;
@@ -42,9 +42,9 @@ tr/x/*/;
 # allow ÷ for division
 s(÷)(/)g;
 
-# allow omitting * in parenthesised expressions: a(b+c)
-s/([\d)])\s*\(/$1*(/g if /[\d)]\s*\(/; # 2(5+7), )(
-s/\)\s*([\d])/)*$1/g if /\)\s*[\d]/;   # (5+7)2
+# allow omitting * in parenthesised expressions
+s/([\d)])\s*\(/$1*(/g if /[\d)]\s*\(/; # a(b+c), )(
+s/\)\s*([\d])/)*$1/g if /\)\s*[\d]/;   # (b+c)a
 
 die "Usage: = math-expr\n" unless $_;
 
