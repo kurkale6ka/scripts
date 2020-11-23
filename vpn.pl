@@ -17,12 +17,14 @@ my $vpn = '/etc/openvpn';
 my $auth = "$vpn/details";
 my $protocol = 'udp';
 
-# Help
-sub help() {
+sub help()
+{
    print <<MSG;
 vpn.pl [-a|--auth ...]                : credentials file ($vpn/details)
+       [-b|--batch]                   : no codes with 'show'
        [-c|--config ...] or [pattern] : config file ($vpn/ovpn_<proto>/...)
        [-d|--download]                : download config files
+       [-i|--ignore]                  : ignore excluded countries
        [-p|--protocol ...]            : defaults to udp
        [-s|--show [pattern]]          : show countries
 MSG
@@ -30,11 +32,13 @@ MSG
 }
 
 # Arguments
-my ($config, $download, $show);
+my ($batch, $config, $download, $ignore, $show);
 GetOptions (
    'a|auth=s'     => \$auth,
+   'b|batch'      => \$batch,
    'c|config=s'   => \$config,
    'd|download'   => \$download,
+   'i|ignore'     => \$ignore,
    'p|protocol=s' => \$protocol,
    's|show:s'     => \$show,
    'h|help'       => \&help
@@ -44,6 +48,9 @@ unless (any {defined} ($download, $show))
 {
    (getpwuid $>)[0] eq 'root' or die RED.'Run as root'.RESET, "\n";
 }
+
+# China, North Korea, Syria
+my @exclusions = qw/CN KP SY/;
 
 my %countries = (
    AF => "Afghanistan",
@@ -90,7 +97,7 @@ my %countries = (
    CF => "Central African Republic (the)",
    TD => "Chad",
    CL => "Chile",
-   # CN => "China",
+   CN => "China",
    CX => "Christmas Island",
    CC => "Cocos (Keeling) Islands (the)",
    CO => "Colombia",
@@ -163,7 +170,7 @@ my %countries = (
    KZ => "Kazakhstan",
    KE => "Kenya",
    KI => "Kiribati",
-   # KP => "Korea (the Democratic People's Republic of)",
+   KP => "Korea (the Democratic People's Republic of)",
    KR => "Korea (the Republic of)",
    KW => "Kuwait",
    KG => "Kyrgyzstan",
@@ -261,7 +268,7 @@ my %countries = (
    SJ => "Svalbard and Jan Mayen",
    SE => "Sweden",
    CH => "Switzerland",
-   # SY => "Syrian Arab Republic",
+   SY => "Syrian Arab Republic",
    TW => "Taiwan (Province of China)",
    TJ => "Tajikistan",
    TZ => "Tanzania, United Republic of",
@@ -297,6 +304,9 @@ my %countries = (
    AX => "Åland Islands",
 );
 
+delete @countries{@exclusions} unless $ignore;
+
+# get config
 unless (any {defined} ($config, $download, $show))
 {
    if (@ARGV)
@@ -309,13 +319,14 @@ unless (any {defined} ($config, $download, $show))
    }
 }
 
-# vpn (-c) country/code
+# vpn --config code/country
 if (defined $config and $config =~ /^[a-z]+$/)
 {
    my $country;
 
    if (length $config == 2)
    {
+      # code
       $country = $config;
    } else {
       my (%codes, $num);
@@ -323,7 +334,7 @@ if (defined $config and $config =~ /^[a-z]+$/)
 
       foreach (sort { $countries{$a} cmp $countries{$b} } keys %countries)
       {
-         $codes{++$num} = $_ if $countries{$_} =~ $pattern;
+         $codes{++$num} = $_ if $countries{$_} =~ /$pattern/;
       }
 
       %codes or die RED.'no match'.RESET, "\n";
@@ -361,11 +372,22 @@ if (defined $show)
    {
       unless ($show)
       {
-         say CYAN.$_.RESET, " -> $countries{$_}";
+         # all
+         unless ($batch)
+         {
+            say CYAN.$_.RESET, " -> $countries{$_}";
+         } else {
+            say $countries{$_};
+         }
       } else {
          if (/$pattern/ or $countries{$_} =~ $pattern)
          {
-            say CYAN.$_.RESET, " -> $countries{$_}";
+            unless ($batch)
+            {
+               say CYAN.$_.RESET, " -> $countries{$_}";
+            } else {
+               say $countries{$_};
+            }
          }
       }
    }
