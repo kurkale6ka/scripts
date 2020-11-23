@@ -17,6 +17,7 @@ my $vpn = '/etc/openvpn';
 my $auth = "$vpn/details";
 my $protocol = 'udp';
 
+# Help
 sub help()
 {
    print <<MSG;
