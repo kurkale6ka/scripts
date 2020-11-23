@@ -321,7 +321,7 @@ unless (any {defined} ($config, $download, $show))
 }
 
 # vpn --config code/country
-if (defined $config and $config =~ /^[a-z]+$/)
+if (defined $config and $config =~ /^\p{alpha}+$/)
 {
    my $country;
 
