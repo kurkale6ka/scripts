@@ -25,7 +25,7 @@ if (@ARGV)
 }
 
 # validate input
-unless (m@^[\s()'"_.\d%^x*÷/+-]*$@)
+unless (m@^[\h()'"_.\d%^x*÷/+-]*$@)
 {
    s/\P{print}/?/g;
    die substr ($_, 0, 17), "...: bad symbols\n";
@@ -43,8 +43,8 @@ tr/x/*/;
 s(÷)(/)g;
 
 # allow omitting * in parenthesised expressions
-s/([\d)])\s*\(/$1*(/g if /[\d)]\s*\(/; # a(b+c), )(
-s/\)\s*([\d])/)*$1/g if /\)\s*[\d]/;   # (b+c)a
+s/([\d)])\h*\(/$1*(/g if /[\d)]\h*\(/; # a(b+c), )(
+s/\)\h*([\d])/)*$1/g if /\)\h*[\d]/;   # (b+c)a
 
 die "Usage: = math-expr\n" unless $_;
 
