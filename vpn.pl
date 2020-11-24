@@ -322,13 +322,13 @@ if (defined $config and not -f $config)
 
    my $country;
 
+   # get code
    if (length $config == 2)
    {
-      # code
       $country = $config;
    } else {
-      my (%codes, $num);
       my $pattern = qr/\Q$config\E/i;
+      my (%codes, $num);
 
       foreach (sort { $countries{$a} cmp $countries{$b} } keys %countries)
       {
@@ -351,6 +351,9 @@ if (defined $config and not -f $config)
          $country = $codes{1};
       }
    }
+
+   # uk fix
+   $country = 'uk' if $country eq 'gb';
 
    chomp ($config = `cd '$vpn/ovpn_$protocol' && printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60% -q'^$country'`);
    $config or die RED.'no match'.RESET, "\n";
