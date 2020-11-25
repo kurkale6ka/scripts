@@ -13,6 +13,7 @@
 
 # use strict;
 # use warnings;
+use re '/aa';
 use feature 'say';
 
 # read expression
