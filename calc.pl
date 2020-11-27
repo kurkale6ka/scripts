@@ -16,37 +16,64 @@
 use re '/aa';
 use feature 'say';
 
+my $ans;
+sub math_eval();
+
 # read expression
 if (@ARGV)
 {
-   die "Usage: = math-expr\n" if $ARGV[0] =~ /-h|--help/i;
+   die "= math-expr, ans stored in _\n" if $ARGV[0] =~ /-h|--help/i;
    $_ = "@ARGV";
+   say math_eval();
 } else {
-   chomp ($_ = <STDIN>);
+   while (1)
+   {
+      print '? ';
+      defined ($_ = <STDIN>) or die "\n";
+      chomp;
+      exit if /^(q(uit)?|e(xit)?)$/in;
+      say math_eval();
+   }
 }
 
-# validate input
-unless (m@^[\h()'"_.\d%^x*÷/+-]*$@)
+sub math_eval()
 {
-   s/\P{print}/?/g;
-   die substr ($_, 0, 17), "...: bad symbols\n";
+   # validate input
+   unless (m@^[\h()'"_.\d%^x*÷/+-]*$@)
+   {
+      s/\P{print}/?/g;
+      die substr ($_, 0, 17), "...: bad symbols\n";
+   }
+
+   # replace _ with the result of the previous calculation
+   # except when used as separator in big numbers such as 1_000_000
+   if (/(?<!\d)_/)
+   {
+      if (defined $ans)
+      {
+         s/(?<!\d)_+/$ans/g;
+      } else {
+         return 'ans empty';
+      }
+   }
+
+   warn "% performs integer modulus only\n" if /%/;
+
+   # allow pow with ^
+   s/\^\^?/**/g;
+
+   # allow x for multiplication
+   tr/x/*/;
+
+   # allow ÷ for division
+   s(÷)(/)g;
+
+   # allow omitting * in parenthesised expressions
+   s/([\d)])\h*\(/$1*(/g if /[\d)]\h*\(/; # a(b+c), )(
+   s/\)\h*([\d])/)*$1/g if /\)\h*[\d]/;   # (b+c)a
+
+   # <enter> only
+   exit unless length;
+
+   return $ans = eval;
 }
-
-warn "% performs integer modulus only\n" if /%/;
-
-# allow pow with ^
-s/\^\^?/**/g;
-
-# allow x for multiplication
-tr/x/*/;
-
-# allow ÷ for division
-s(÷)(/)g;
-
-# allow omitting * in parenthesised expressions
-s/([\d)])\h*\(/$1*(/g if /[\d)]\h*\(/; # a(b+c), )(
-s/\)\h*([\d])/)*$1/g if /\)\h*[\d]/;   # (b+c)a
-
-die "Usage: = math-expr\n" unless $_;
-
-say eval;
