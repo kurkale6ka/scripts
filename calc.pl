@@ -13,17 +13,17 @@ use Getopt::Long qw/GetOptions :config bundling/;
 sub help()
 {
    print << 'MSG';
-Usage: = math-expr
+Usage: calc math-expr
 
-^ can be used for powers (in addition to **)
+^ can be used for raising to a power (in addition to **)
 ÷ can be used in lieu of /
 x can be used in lieu of *
-* can be omitted in parenthesised expressions: a(b+c), (b+c)a
+* can be omitted in parenthesised expressions: a(b+c)
 
 replace _ with the result of the previous calculation
 except when used as separator in big numbers such as 1_000_000
 
-symlink this script to =
+tip: symlink this script to =
 MSG
    exit;
 }
@@ -33,46 +33,56 @@ GetOptions (
    'h|help' => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-my $ans;
+my $prompt = CYAN.'>>'.RESET.' ';
+
+my $res;
 sub math_eval();
 
 # read expression
 if (@ARGV)
 {
    $_ = "@ARGV";
-   print math_eval();
+   if ($res = math_eval())
+   {
+      say $res;
+   }
 } else {
    while (1)
    {
-      print CYAN.'>>'.RESET.' ';
-      defined ($_ = <STDIN>) or die "\n";
+      print $prompt;
+      defined ($_ = <STDIN>) or die "\n"; # exit on ^d
       chomp;
       exit if /^\h*(q(u(it?)?)?|e(x(it?)?)?)\h*$/in;
-      print math_eval();
+      if ($res = math_eval())
+      {
+         say $res;
+      }
    }
 }
+
+# intermediary calculation memory
+my $ans;
 
 sub math_eval()
 {
    # validate input
-   unless (m@^['"#\h()_.\d%^x*÷/+-]*$@)
+   unless (m@^['"\h()_.\d%^x*÷/+-]*$@)
    {
       $_ = substr ($_, 0, 17) . '...' if length > 17;
       s/\P{print}/?/g;
-      die RED."bad symbols: $_".RESET, "\n";
+      $_ = RED."bad symbols: $_".RESET;
+      die "$_\n" unless -t;
+      warn "$_\n";
    }
-
-   my $comment = '';
 
    # replace _ with ans
    if (/(?<!\d)_/)
    {
       if (defined $ans)
       {
-         $comment = ' '.GREEN."# _ was $ans".RESET unless /^_+$/;
          s/(?<!\d)_+/$ans/g;
       } else {
-         return RED.'ans empty'.RESET, "\n";
+         return RED.'ans empty'.RESET;
       }
    }
 
@@ -97,8 +107,7 @@ sub math_eval()
       # todo: exceptions handling + readline support
       if ($_ = eval)
       {
-         $ans = $_;
-         return "${ans}${comment}\n";
+         return $ans = $_;
       }
    }
 
