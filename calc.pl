@@ -32,7 +32,7 @@ if (@ARGV)
       print CYAN.'>>'.RESET.' ';
       defined ($_ = <STDIN>) or die "\n";
       chomp;
-      exit if /^(q(uit)?|e(xit)?)$/in;
+      exit if /^\h*(q(u(it?)?)?|e(x(it?)?)?)\h*$/in;
       print math_eval();
    }
 }
@@ -58,7 +58,7 @@ sub math_eval()
       }
    }
 
-   warn RED.'% performs integer modulus only'.RESET, "\n" if /%/;
+   warn YELLOW.'% performs integer modulus only'.RESET, "\n" if /%/;
 
    # allow pow with ^
    s/\^\^?/**/g;
