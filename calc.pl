@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use re '/aa';
 use feature 'say';
+use Term::ANSIColor qw/color :constants/;
 
 my $ans;
 sub math_eval();
@@ -28,7 +29,7 @@ if (@ARGV)
 } else {
    while (1)
    {
-      print '>> ';
+      print CYAN.'>>'.RESET.' ';
       defined ($_ = <STDIN>) or die "\n";
       chomp;
       exit if /^(q(uit)?|e(xit)?)$/in;
@@ -42,7 +43,7 @@ sub math_eval()
    unless (m@^[\h()'"_.\d%^x*÷/+-]*$@)
    {
       s/\P{print}/?/g;
-      die substr ($_, 0, 17), "...: bad symbols\n";
+      die substr ($_, 0, 17), RED.'...: bad symbols'.RESET, "\n";
    }
 
    # replace _ with the result of the previous calculation
@@ -53,11 +54,11 @@ sub math_eval()
       {
          s/(?<!\d)_+/$ans/g;
       } else {
-         return "ans empty\n";
+         return RED.'ans empty'.RESET, "\n";
       }
    }
 
-   warn "% performs integer modulus only\n" if /%/;
+   warn RED.'% performs integer modulus only'.RESET, "\n" if /%/;
 
    # allow pow with ^
    s/\^\^?/**/g;
