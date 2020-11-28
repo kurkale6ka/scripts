@@ -72,13 +72,16 @@ sub math_eval()
    s/([\d)])\h*\(/$1*(/g if /[\d)]\h*\(/; # a(b+c), )(
    s/\)\h*([\d])/)*$1/g if /\)\h*[\d]/;   # (b+c)a
 
-   # <enter> only
-   length or return;
-
-   # todo: exceptions handling + readline support
-   if ($_ = eval)
+   if (length)
    {
-      $ans = $_;
-      return "$ans\n";
+      # todo: exceptions handling + readline support
+      if ($_ = eval)
+      {
+         $ans = $_;
+         return "$ans\n";
+      }
    }
+
+   # <enter> only
+   return;
 }
