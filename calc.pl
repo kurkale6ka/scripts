@@ -11,8 +11,8 @@
 #   x can be used in lieu of *
 #   * can be omitted in parenthesised expressions: a(b+c)
 
-# use strict;
-# use warnings;
+use strict;
+use warnings;
 use re '/aa';
 use feature 'say';
 
@@ -24,15 +24,15 @@ if (@ARGV)
 {
    die "= math-expr, ans stored in _\n" if $ARGV[0] =~ /-h|--help/i;
    $_ = "@ARGV";
-   say math_eval();
+   print math_eval();
 } else {
    while (1)
    {
-      print '? ';
+      print '>> ';
       defined ($_ = <STDIN>) or die "\n";
       chomp;
       exit if /^(q(uit)?|e(xit)?)$/in;
-      say math_eval();
+      print math_eval();
    }
 }
 
@@ -53,7 +53,7 @@ sub math_eval()
       {
          s/(?<!\d)_+/$ans/g;
       } else {
-         return 'ans empty';
+         return "ans empty\n";
       }
    }
 
@@ -73,7 +73,12 @@ sub math_eval()
    s/\)\h*([\d])/)*$1/g if /\)\h*[\d]/;   # (b+c)a
 
    # <enter> only
-   exit unless length;
+   length or return;
 
-   return $ans = eval;
+   # todo: exceptions handling + readline support
+   if ($_ = eval)
+   {
+      $ans = $_;
+      return "$ans\n";
+   }
 }
