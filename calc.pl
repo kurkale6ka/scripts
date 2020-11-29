@@ -4,8 +4,9 @@
 
 use strict;
 use warnings;
-use re '/aa';
 use feature 'say';
+use re '/aa';
+use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
@@ -23,7 +24,9 @@ x can be used in lieu of *
 replace _ with the result of the previous calculation
 except when used as separator in big numbers such as 1_000_000
 
-tip: symlink this script to =
+Tips:
+- for arrows support, install Term::ReadLine::Gnu
+- symlink this script to =
 MSG
    exit;
 }
@@ -47,15 +50,20 @@ if (@ARGV)
       say $res;
    }
 } else {
-   while (1)
+   # color, ornaments
+   # history, not res
+   # exit on ^d
+   # cpam
+   my $term = Term::ReadLine->new('Simple calculator');
+   $term->ornaments(0);
+   my $OUT = $term->OUT || \*STDOUT;
+   while (defined ($_ = $term->readline ($prompt)))
    {
-      print $prompt;
-      defined ($_ = <STDIN>) or die "\n"; # exit on ^d
-      chomp;
       exit if /^\h*(q(u(it?)?)?|e(x(it?)?)?)\h*$/in;
       if ($res = math_eval())
       {
-         say $res;
+         say $OUT $res;
+         $term->addhistory ($_) if /\S/;
       }
    }
 }
