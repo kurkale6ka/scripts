@@ -21,7 +21,7 @@ Usage: calc math-expr
 x can be used in lieu of *
 * can be omitted in parenthesised expressions: a(b+c)
 
-replace _ with the result of the previous calculation
+_ holds the result of the previous calculation
 except when used as separator in big numbers such as 1_000_000
 
 Tips:
