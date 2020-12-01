@@ -60,6 +60,7 @@ if (@ARGV)
          say $OUT $res;
       }
    }
+   print "\n";
 }
 
 # intermediary calculation memory
