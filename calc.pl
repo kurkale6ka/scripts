@@ -107,7 +107,7 @@ sub math_eval()
 
    if (length)
    {
-      # todo: exceptions handling + readline support
+      # todo: exceptions handling
       if ($_ = eval)
       {
          return $ans = $_;
