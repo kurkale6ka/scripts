@@ -54,6 +54,7 @@ if (@ARGV)
    my $OUT = $term->OUT || \*STDOUT;
    while (defined ($_ = $term->readline ($prompt)))
    {
+      # todo: add SIGINT (^C) handler to stay inside the loop
       exit if /^\h*(q(u(it?)?)?|e(x(it?)?)?)\h*$/in;
       if ($res = math_eval())
       {
