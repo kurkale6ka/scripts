@@ -22,7 +22,6 @@ x can be used in lieu of *
 * can be omitted in parenthesised expressions: a(b+c)
 
 _ holds the result of the previous calculation
-except when used as separator in big numbers such as 1_000_000
 
 Tips:
 - for arrows support, install Term::ReadLine::Gnu
@@ -50,10 +49,6 @@ if (@ARGV)
       say $res;
    }
 } else {
-   # color, ornaments
-   # history, not res
-   # exit on ^d
-   # cpam
    my $term = Term::ReadLine->new('Simple calculator');
    $term->ornaments(0);
    my $OUT = $term->OUT || \*STDOUT;
@@ -63,7 +58,6 @@ if (@ARGV)
       if ($res = math_eval())
       {
          say $OUT $res;
-         $term->addhistory ($_) if /\S/;
       }
    }
 }
@@ -83,7 +77,8 @@ sub math_eval()
       warn "$_\n";
    }
 
-   # replace _ with ans
+   # replace _ with ans,
+   # except when used as separator in big numbers such as 1_000_000
    if (/(?<!\d)_/)
    {
       if (defined $ans)
