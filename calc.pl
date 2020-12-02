@@ -9,6 +9,12 @@ use re '/aa';
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
+use POSIX 'SIGINT';
+
+# Catch SIGINT
+POSIX::sigaction (SIGINT,
+   POSIX::SigAction->new (sub { print YELLOW.'KeyboardInterrupt'.RESET; }));
+$| = 1;
 
 # Help
 sub help()
@@ -54,7 +60,7 @@ if (@ARGV)
    my $OUT = $term->OUT || \*STDOUT;
    while (defined ($_ = $term->readline ($prompt)))
    {
-      # todo: add SIGINT (^C) handler to stay inside the loop
+      # todo: change SIGINT (^C) handler to stay inside the loop
       exit if /^\h*(q(u(it?)?)?|e(x(it?)?)?)\h*$/in;
       if ($res = math_eval())
       {
