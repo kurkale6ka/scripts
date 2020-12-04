@@ -1,20 +1,55 @@
 #! /usr/bin/env perl
 
 # SIMPLE calculator
+# todo: tests!
 
 use strict;
 use warnings;
 use feature 'say';
-use re '/aa';
+use utf8;
+use Encode 'decode';
+use open ':std', ':encoding(UTF-8)';
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
+use I18N::Langinfo qw/langinfo CODESET/;
 use POSIX 'SIGINT';
 
 # Catch SIGINT
 POSIX::sigaction (SIGINT,
    POSIX::SigAction->new (sub { print YELLOW.'KeyboardInterrupt'.RESET; }));
 $| = 1;
+
+my $prompt = CYAN.'>>'.RESET.' ';
+
+# ok keys?
+my %fractions = (
+   '½' => 1/2,
+   '⅓' => 1/3,
+   '⅔' => 2/3,
+   '¼' => 1/4,
+   '¾' => 3/4,
+   '⅕' => 1/5,
+   '⅖' => 2/5,
+   '⅗' => 3/5,
+   '⅘' => 4/5,
+   '⅙' => 1/6,
+   '⅚' => 5/6,
+   '⅐' => 1/7,
+   '⅛' => 1/8,
+   '⅜' => 3/8,
+   '⅝' => 5/8,
+   '⅞' => 7/8,
+   '⅑' => 1/9,
+   '⅒' => 1/10
+);
+
+my $fractions = join '', keys %fractions;
+my $superscripts = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+my $lparens = '（⟮﴾❨❪﹙';
+my $rparens = '）⟯﴿❩❫﹚';
+
+my $symbols = qr{^(['"\h()${lparens}${rparens}_.$fractions\d%^x×✕✖*÷∕/➕+−-]|(?<=[\d$rparens)])[$superscripts])*$}n;
 
 # Help
 sub help()
@@ -23,11 +58,13 @@ sub help()
 Usage: calc math-expr
 
 ^ can be used for raising to a power (in addition to **)
-÷ can be used in lieu of /
 x can be used in lieu of *
 * can be omitted in parenthesised expressions: a(b+c)
 
 _ holds the result of the previous calculation
+
+Recognized Unicode Math symbols:
+...
 
 Tips:
 - for arrows support, install Term::ReadLine::Gnu
@@ -41,14 +78,14 @@ GetOptions (
    'h|help' => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-my $prompt = CYAN.'>>'.RESET.' ';
-
 my $res;
+my $codeset = langinfo(CODESET); # utf8
 sub math_eval();
 
 # read expression
 if (@ARGV)
 {
+   @ARGV = map {decode $codeset, $_} @ARGV;
    $_ = "@ARGV";
    if ($res = math_eval())
    {
@@ -60,6 +97,7 @@ if (@ARGV)
    my $OUT = $term->OUT || \*STDOUT;
    while (defined ($_ = $term->readline ($prompt)))
    {
+      $_ = decode $codeset, $_;
       # todo: change SIGINT (^C) handler to stay inside the loop
       exit if /^\h*(q(u(it?)?)?|e(x(it?)?)?)\h*$/in;
       if ($res = math_eval())
@@ -70,13 +108,14 @@ if (@ARGV)
    print "\n";
 }
 
-# intermediary calculation memory
+# global intermediary calculation memory
 my $ans;
 
 sub math_eval()
 {
    # validate input
-   unless (m@^['"\h()_.\d%^x*÷/+-]*$@)
+   # todo: point to error
+   unless (/$symbols/)
    {
       $_ = substr ($_, 0, 17) . '...' if length > 17;
       s/\P{print}/?/g;
@@ -99,15 +138,22 @@ sub math_eval()
 
    warn YELLOW.'% performs integer modulus only'.RESET, "\n" if /%/;
 
-   # allow pow with ^
+   # allow ^ for raising to a power
    s/\^\^?/**/g;
 
-   # allow x for multiplication
-   tr/x/*/;
+   # replace Unicode operator symbols with ASCII ones
+   tr(x×✕✖÷∕➕−)(****//+-);
 
-   # allow ÷ for division
-   # todo: report that tr didn't work because of wide char ?
-   s(÷)(/)g;
+   # superscripts
+   s/[$superscripts]+/**$&/g;
+   tr/⁰¹²³⁴⁵⁶⁷⁸⁹/0123456789/;
+
+   # fractions
+   s/[$fractions]/$fractions{$&}/g;
+
+   # fancy parenthesis
+   s/[$lparens]/(/g;
+   s/[$rparens]/)/g;
 
    # allow omitting * in parenthesised expressions
    s/([\d)])\h*\(/$1*(/g if /[\d)]\h*\(/; # a(b+c), )(
