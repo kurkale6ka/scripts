@@ -49,7 +49,13 @@ my $superscripts = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 my $lparens = '（⟮﴾❨❪﹙';
 my $rparens = '）⟯﴿❩❫﹚';
 
-my $symbols = qr{^(['"\h()${lparens}${rparens}_.${fractions}\d%^x×✕✖*÷∕/➕+−-]|(?<=[\d${fractions}${rparens})])[$superscripts])*$}n;
+my $symbols = qr{^(
+
+['"\h()${lparens}${rparens}_.${fractions}\d%^x×✕✖*÷∕/➕+−-]
+|
+(?<=[\d${fractions}${rparens})]) [$superscripts]+
+
+)*$}xn;
 
 # Help
 sub help()
