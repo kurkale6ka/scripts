@@ -8,7 +8,7 @@ use warnings;
 use feature 'say';
 use utf8;
 use Encode 'decode';
-use open ':std', ':encoding(UTF-8)';
+use open ':std', ':encoding(utf-8)';
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
@@ -22,7 +22,7 @@ $| = 1;
 
 my $prompt = CYAN.'>>'.RESET.' ';
 
-# ok keys?
+# todo: ok keys?
 my %fractions = (
    '½' => 1/2,
    '⅓' => 1/3,
@@ -46,13 +46,14 @@ my %fractions = (
 
 my $fractions = join '', keys %fractions;
 my $superscripts = '⁰¹²³⁴⁵⁶⁷⁸⁹';
-my $lparens = '（⟮﴾❨❪﹙';
-my $rparens = '﹚❫❩﴿⟯）';
+my $lparens = '﴾⟮❪❨﹙（';
+my $rparens = '﴿⟯❫❩﹚）';
+my $parens = '﴾﴿⟮⟯❪❫❨❩﹙﹚（）';
 
 my $symbols = qr{(
 [\d${fractions}${rparens})]\h*[$superscripts]+
 |
-['"\h()${lparens}${rparens}_.${fractions}\d%^x×✕✖*÷∕/➕+−-]
+['"\h()${parens}_.${fractions}\d%^x×✕✖*÷∕/➕+−-]
 )*}xn;
 
 # Help
@@ -125,7 +126,7 @@ sub unicode()
    operators: ×✕✖ ÷∕ ➕ −
    fractions: @fractions
 superscripts: $superscripts, only if preceded by a number or a parenthesis
- parenthesis: ${lparens}${rparens}
+ parenthesis: $parens
 CODES
    exit;
 }
