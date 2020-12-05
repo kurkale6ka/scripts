@@ -51,9 +51,11 @@ my $rparens = '﴿⟯❫❩﹚）';
 my $parens = '﴾﴿⟮⟯❪❫❨❩﹙﹚（）';
 
 my $symbols = qr{(
-[\d${fractions}${rparens})]\h*[$superscripts]+
+[${fractions}\d][eE]\d+
 |
-['"\h()${parens}_.${fractions}\d%^x×✕✖*÷∕/➕+−-]
+[${rparens})${fractions}\d]\h*[$superscripts]+
+|
+['"\h${parens}()${fractions}\d_.%^x×✕✖*÷∕/➕+−-]
 )*}xn;
 
 # Help
