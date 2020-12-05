@@ -20,8 +20,38 @@ POSIX::sigaction (SIGINT,
    POSIX::SigAction->new (sub { print YELLOW.'KeyboardInterrupt'.RESET; }));
 $| = 1;
 
-my $prompt = CYAN.'>>'.RESET.' ';
+# Help
+sub help()
+{
+   print << 'MSG';
+Usage: calc math-expr
 
+^ can be used for raising to a power (in addition to **)
+x can be used in lieu of *
+* can be omitted in parenthesised expressions: a(b+c)
+
+_ holds the result of the previous calculation
+
+Options:
+--unicode, -u: print recognized Unicode Math symbols
+
+Tips:
+  for arrows support, install Term::ReadLine::Gnu
+  symlink this script to =
+MSG
+   exit;
+}
+
+# Functions
+sub math_eval();
+sub unicode();
+
+GetOptions (
+   'u|unicode' => \&unicode,
+   'h|help'    => \&help
+) or die RED.'Error in command line arguments'.RESET, "\n";
+
+# Valid Math Symbols
 # todo: ok keys?
 my %fractions = (
    '½' => 1/2,
@@ -51,49 +81,17 @@ my $rparens = '﴿⟯❫❩﹚）';
 my $parens = '﴾﴿⟮⟯❪❫❨❩﹙﹚（）';
 
 my $symbols = qr{(
-[${fractions}\d][eE]\d+
+[${fractions}\d][eE][-+]?\d+ # exponent notation
 |
-[${rparens})${fractions}\d]\h*[$superscripts]+
+[${rparens})${fractions}\d]\h*[$superscripts]+ # raise to a power
 |
 ['"\h${parens}()${fractions}\d_.%^x×✕✖*÷∕/➕+−-]
 )*}xn;
 
-# Help
-sub help()
-{
-   print << 'MSG';
-Usage: calc math-expr
-
-^ can be used for raising to a power (in addition to **)
-x can be used in lieu of *
-* can be omitted in parenthesised expressions: a(b+c)
-
-_ holds the result of the previous calculation
-
-Options:
---unicode, -u: print recognized Unicode Math symbols
-
-Tips:
-  for arrows support, install Term::ReadLine::Gnu
-  symlink this script to =
-MSG
-   exit;
-}
-
-# Functions
-sub unicode();
-sub math_eval();
-
-# Arguments
-GetOptions (
-   'u|unicode' => \&unicode,
-   'h|help'    => \&help
-) or die RED.'Error in command line arguments'.RESET, "\n";
-
 my $res;
 my $codeset = langinfo(CODESET); # utf8
 
-# read expression
+# Arguments
 if (@ARGV)
 {
    @ARGV = map {decode $codeset, $_} @ARGV;
@@ -102,11 +100,14 @@ if (@ARGV)
    {
       say $res;
    }
-} else {
+}
+else # STDIN
+{
    my $term = Term::ReadLine->new('Simple calculator');
    $term->ornaments(0);
    my $OUT = $term->OUT || \*STDOUT;
-   while (defined ($_ = $term->readline ($prompt)))
+
+   while (defined ($_ = $term->readline (CYAN.'>>'.RESET.' ')))
    {
       $_ = decode $codeset, $_;
       # todo: change SIGINT (^C) handler to stay inside the loop
@@ -116,11 +117,11 @@ if (@ARGV)
          say $OUT $res;
       }
    }
+
    print "\n";
 }
 
-# print recognized Unicode symbols
-
+# Print recognized Unicode symbols
 sub unicode()
 {
    my @fractions = sort {$fractions{$a} <=> $fractions{$b}} keys %fractions;
@@ -132,7 +133,6 @@ superscripts: $superscripts, only if preceded by a number or a parenthesis
 CODES
    exit;
 }
-
 
 # global intermediary calculation memory
 my $ans;
