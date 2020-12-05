@@ -49,13 +49,11 @@ my $superscripts = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 my $lparens = '（⟮﴾❨❪﹙';
 my $rparens = '）⟯﴿❩❫﹚';
 
-my $symbols = qr{^(
-
-['"\h()${lparens}${rparens}_.${fractions}\d%^x×✕✖*÷∕/➕+−-]
+my $symbols = qr{(
+[\d${fractions}${rparens})]\h*[$superscripts]+
 |
-(?<=[\d${fractions}${rparens})]) [$superscripts]+
-
-)*$}xn;
+['"\h()${lparens}${rparens}_.${fractions}\d%^x×✕✖*÷∕/➕+−-]
+)*}xn;
 
 # Help
 sub help()
@@ -120,10 +118,10 @@ my $ans;
 sub math_eval()
 {
    # validate input
-   # todo: point to error
-   unless (/$symbols/)
+   if (/$symbols/ and $')
    {
-      $_ = substr ($_, 0, 17) . '...' if length > 17;
+      $_ = $';
+      $_ = substr ($', 0, 17) . '...' if length > 17;
       s/\P{print}/?/g;
       $_ = RED."bad symbols: $_".RESET;
       die "$_\n" unless -t;
