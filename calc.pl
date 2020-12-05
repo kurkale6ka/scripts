@@ -47,7 +47,7 @@ my %fractions = (
 my $fractions = join '', keys %fractions;
 my $superscripts = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 my $lparens = '（⟮﴾❨❪﹙';
-my $rparens = '）⟯﴿❩❫﹚';
+my $rparens = '﹚❫❩﴿⟯）';
 
 my $symbols = qr{(
 [\d${fractions}${rparens})]\h*[$superscripts]+
@@ -67,24 +67,28 @@ x can be used in lieu of *
 
 _ holds the result of the previous calculation
 
-Recognized Unicode Math symbols:
-...
+Options:
+--unicode, -u: print recognized Unicode Math symbols
 
 Tips:
-- for arrows support, install Term::ReadLine::Gnu
-- symlink this script to =
+  for arrows support, install Term::ReadLine::Gnu
+  symlink this script to =
 MSG
    exit;
 }
 
+# Functions
+sub unicode();
+sub math_eval();
+
 # Arguments
 GetOptions (
-   'h|help' => \&help
+   'u|unicode' => \&unicode,
+   'h|help'    => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 my $res;
 my $codeset = langinfo(CODESET); # utf8
-sub math_eval();
 
 # read expression
 if (@ARGV)
@@ -112,9 +116,25 @@ if (@ARGV)
    print "\n";
 }
 
+# print recognized Unicode symbols
+
+sub unicode()
+{
+   my @fractions = sort {$fractions{$a} <=> $fractions{$b}} keys %fractions;
+   print <<CODES;
+   operators: ×✕✖ ÷∕ ➕ −
+   fractions: @fractions
+superscripts: $superscripts, only if preceded by a number or a parenthesis
+ parenthesis: ${lparens}${rparens}
+CODES
+   exit;
+}
+
+
 # global intermediary calculation memory
 my $ans;
 
+# Main
 sub math_eval()
 {
    # validate input
