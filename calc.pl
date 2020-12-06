@@ -1,7 +1,6 @@
 #! /usr/bin/env perl
 
 # SIMPLE calculator
-# todo: tests!
 
 use strict;
 use warnings;
@@ -29,6 +28,7 @@ Usage: calc math-expr
 ^ can be used for raising to a power (in addition to **)
 x can be used in lieu of *
 * can be omitted in parenthesised expressions: a(b+c)
+exponent notation is supported
 
 _ holds the result of the previous calculation
 
@@ -52,7 +52,6 @@ GetOptions (
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Valid Math Symbols
-# todo: ok keys?
 my %fractions = (
    '½' => 1/2,
    '⅓' => 1/3,
@@ -198,3 +197,33 @@ sub math_eval()
    # <enter> only
    return;
 }
+
+__DATA__
+
+TODO: Tests
+
+4e3, 4000, 'Exponent notation (1)'
+7e-2, 0.07, 'Exponent notation (2)'
+2^3, 8, 'Caret for raising to a power'
+4x7, 28, 'ASCII x for multiplication'
+17%3, 2, 'Modulo'
+11✖8, 88, 'Unicode multiplication'
+78÷3, 26, 'Unicode division'
+50➕101, 151, 'Unicode addition'
+231−17, 214, 'Unicode substraction'
+3³, 27, 'Unicode superscript raise to a power'
+⅗ / ⅚, 0.72, 'Unicode fractions'
+⟮5+2⟯*（4-15）, -77, 'Unicode parens'
+3(12-7), 15, 'Digit left parens implicit multiplication'
+(4-9)7, -35, 'Right parens digit implicit multiplication'
+
+All
+
+179 / 12
+15 * 5.2
+12.3 - 14
+8 + 88
+-5e2 + 12
+❨4÷7❩³
+⅔e-34
+3²/(2-19)(4+1.1) − 7(12-100) + 3^6
