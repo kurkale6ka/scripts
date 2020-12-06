@@ -78,16 +78,19 @@ my $symbols = qr{(
 ['"\h${parens}()${fractions}\d_.%^x×✕✖*÷∕/➕+−-]
 )*}xn;
 
-# Declarations
+# Global variables
 my $res;
+my $ans; # intermediary calculation memory
 my $codeset = langinfo(CODESET); # utf8
+
+# Declarations
 sub tests();
 sub unicode();
 sub math_eval();
 
 # Options
 GetOptions (
-   't|tests'   => sub {tests();    exit;},
+   't|tests'   => sub {tests();   exit;},
    'u|unicode' => sub {unicode(); exit;},
    'h|help'    => sub {help();    exit;},
 ) or die RED.'Error in command line arguments'.RESET, "\n";
@@ -126,21 +129,6 @@ else # STDIN
 
    print "\n";
 }
-
-# Print recognized Unicode symbols
-sub unicode()
-{
-   my @fractions = sort {$fractions{$a} <=> $fractions{$b}} keys %fractions;
-   print <<CODES;
-   operators: ×✕✖ ÷∕ ➕ −
-   fractions: @fractions
-superscripts: $superscripts, only if preceded by a number or a parenthesis
- parenthesis: $parens
-CODES
-}
-
-# global intermediary calculation memory
-my $ans;
 
 # Main
 sub math_eval()
@@ -204,20 +192,34 @@ sub math_eval()
    return;
 }
 
-sub tests() {
+# Print recognized Unicode symbols
+sub unicode()
+{
+   my @fractions = sort {$fractions{$a} <=> $fractions{$b}} keys %fractions;
+   print <<CODES;
+   operators: ×✕✖ ÷∕ ➕ −
+   fractions: @fractions
+superscripts: $superscripts, only if preceded by a number or a parenthesis
+ parenthesis: $parens
+CODES
+}
+
+sub tests()
+{
+   my $res;
    while (<DATA>)
    {
       next if /^#/ or /^$/;
       chomp;
       my ($expr, $ans, $title) = split /\h*,\h*/;
-      say $title;
-      print "$expr = $ans? ";
+      print "$expr = $ans ? ";
       $_ = $expr;
-      if (math_eval() == $ans)
+      $res = math_eval();
+      if ($res == $ans)
       {
-         print GREEN.'ok'.RESET, "\n";
+         print GREEN."ok ($res) # $title".RESET, "\n";
       } else {
-         print RED.'fail'.RESET, "\n";
+         print RED."fail ($res) # $title".RESET, "\n";
       }
    }
 }
@@ -247,4 +249,6 @@ __DATA__
 -5e2 + 12, -488, Combined (1)
 ❨4÷7❩³, 0.18658892128, Combined (2)
 ⅔e-34, 6.6666667e-35, Combined (3)
-3²/(2-19)(4+1.1) − 7(12-100) + 3^6, , Combined (4)
+3²/(2-19)(4+1.1) − 7(12-100) + 3^6, 1342.3, Combined (4)
+
+# todo: test _
