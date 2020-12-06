@@ -25,20 +25,20 @@ sub help()
    print << 'MSG';
 Usage: calc math-expr
 
-^ can be used for raising to a power (in addition to **)
 x can be used in lieu of *
 * can be omitted in parenthesised expressions: a(b+c)
+^ can be used for raising to a power (in addition to **)
 
 _ holds the result of the previous calculation
 
 Options:
---unicode, -u (no dashes in interactive mode)
-  print supported Unicode symbols
+--tests,   -t : run unit tests
+--unicode, -u : print supported Unicode symbols (no -- in interactive mode)
 
 Tips:
-  exponent notation is supported
-  for arrows support, install Term::ReadLine::Gnu
-  symlink this script to =
+• exponent notation is supported
+• for arrows support, install Term::ReadLine::Gnu
+• symlink this script to =
 MSG
 }
 
@@ -64,6 +64,7 @@ my %fractions = (
    '⅒' => 1/10
 );
 
+my $numbers = '𝟎𝟢𝟬𝟶𝟏𝟣𝟭𝟷𝟐𝟤𝟮𝟸𝟑𝟥𝟯𝟹𝟒𝟦𝟰𝟺𝟓𝟧𝟱𝟻𝟔𝟨𝟲𝟼𝟕𝟩𝟳𝟽𝟖𝟪𝟴𝟾𝟗𝟫𝟵𝟿';
 my $fractions = join '', keys %fractions;
 my $superscripts = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 my $lparens = '﴾⟮❪❨﹙（';
@@ -71,11 +72,11 @@ my $rparens = '﴿⟯❫❩﹚）';
 my $parens = '﴾﴿⟮⟯❪❫❨❩﹙﹚（）';
 
 my $symbols = qr{(
-[${fractions}\d][eE][-+]?\d+ # exponent notation
+[${numbers}${fractions}\d][eE][-+]?\d+ # exponent notation
 |
-[${rparens})${fractions}\d]\h*[$superscripts]+ # raise to a power
+[${rparens})${numbers}${fractions}\d]\h*[$superscripts]+ # raise to a power
 |
-['"\h${parens}()${fractions}\d_.%^x×✕✖*÷∕/➕+−-]
+['"\h${parens}()${numbers}${fractions}\d⅟_.%^x×✕✖*÷∕⁄/➕+−-]
 )*}xn;
 
 # Global variables
@@ -118,7 +119,7 @@ else # STDIN
       # todo: change SIGINT (^C) handler to stay inside the loop
       exit if /^\h*(q(uit)?|e(xit)?)\h*$/in;
 
-      if (/^\h*(h(elp)?|\?)\h*$/in) {help(); next;}
+      if (/^\h*(h(elp)?|\?+)\h*$/in) {help(); next;}
       if (/^\h*u(nicode)?\h*$/in) {unicode(); next;}
 
       if ($res = math_eval())
@@ -158,18 +159,22 @@ sub math_eval()
 
    warn YELLOW.'% performs integer modulus only'.RESET, "\n" if /%/;
 
+   # replace Unicode operator symbols with ASCII ones
+   tr(x×✕✖÷∕⁄➕−)(****///+-);
+
    # allow ^ for raising to a power
    s/\^\^?/**/g;
 
-   # replace Unicode operator symbols with ASCII ones
-   tr(x×✕✖÷∕➕−)(****//+-);
+   # numbers
+   tr/𝟎𝟢𝟬𝟶𝟏𝟣𝟭𝟷𝟐𝟤𝟮𝟸𝟑𝟥𝟯𝟹𝟒𝟦𝟰𝟺𝟓𝟧𝟱𝟻𝟔𝟨𝟲𝟼𝟕𝟩𝟳𝟽𝟖𝟪𝟴𝟾𝟗𝟫𝟵𝟿/0000111122223333444455556666777788889999/;
+
+   # fractions
+   s/[$fractions]/$fractions{$&}/g;
+   s(⅟)(1/)g;
 
    # superscripts
    s/[$superscripts]+/**$&/g;
    tr/⁰¹²³⁴⁵⁶⁷⁸⁹/0123456789/;
-
-   # fractions
-   s/[$fractions]/$fractions{$&}/g;
 
    # fancy parenthesis
    s/[$lparens]/(/g;
@@ -197,9 +202,10 @@ sub unicode()
 {
    my @fractions = sort {$fractions{$a} <=> $fractions{$b}} keys %fractions;
    print <<CODES;
-   operators: ×✕✖ ÷∕ ➕ −
-   fractions: @fractions
-superscripts: $superscripts, only if preceded by a number or a parenthesis
+   operators: ×✕✖ ÷∕⁄ ➕ −
+     numbers: $numbers
+   fractions: @fractions ⅟
+superscripts: (number)$superscripts
  parenthesis: $parens
 CODES
 }
@@ -251,4 +257,4 @@ __DATA__
 ⅔e-34, 6.6666667e-35, Combined (3)
 3²/(2-19)(4+1.1) − 7(12-100) + 3^6, 1342.3, Combined (4)
 
-# todo: test _
+# todo: test _, ⅟, nums, fix floating point comparisons
