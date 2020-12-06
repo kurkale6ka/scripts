@@ -28,28 +28,19 @@ Usage: calc math-expr
 ^ can be used for raising to a power (in addition to **)
 x can be used in lieu of *
 * can be omitted in parenthesised expressions: a(b+c)
-exponent notation is supported
 
 _ holds the result of the previous calculation
 
 Options:
---unicode, -u: print recognized Unicode Math symbols
+--unicode, -u (no dashes in interactive mode)
+  print supported Unicode symbols
 
 Tips:
+  exponent notation is supported
   for arrows support, install Term::ReadLine::Gnu
   symlink this script to =
 MSG
-   exit;
 }
-
-# Functions
-sub math_eval();
-sub unicode();
-
-GetOptions (
-   'u|unicode' => \&unicode,
-   'h|help'    => \&help
-) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Valid Math Symbols
 my %fractions = (
@@ -87,8 +78,17 @@ my $symbols = qr{(
 ['"\h${parens}()${fractions}\d_.%^x×✕✖*÷∕/➕+−-]
 )*}xn;
 
+# Declarations
 my $res;
 my $codeset = langinfo(CODESET); # utf8
+sub unicode();
+sub math_eval();
+
+# Options
+GetOptions (
+   'u|unicode' => sub {unicode; exit;},
+   'h|help'    => sub {help; exit;},
+) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Arguments
 if (@ARGV)
@@ -109,8 +109,13 @@ else # STDIN
    while (defined ($_ = $term->readline (CYAN.'>>'.RESET.' ')))
    {
       $_ = decode $codeset, $_;
+
       # todo: change SIGINT (^C) handler to stay inside the loop
-      exit if /^\h*(q(u(it?)?)?|e(x(it?)?)?)\h*$/in;
+      exit if /^\h*(q(uit)?|e(xit)?)\h*$/in;
+
+      if (/^\h*(h(elp)?|\?)\h*$/in) {help(); next;}
+      if (/^\h*u(nicode)?\h*$/in) {unicode(); next;}
+
       if ($res = math_eval())
       {
          say $OUT $res;
@@ -130,7 +135,6 @@ sub unicode()
 superscripts: $superscripts, only if preceded by a number or a parenthesis
  parenthesis: $parens
 CODES
-   exit;
 }
 
 # global intermediary calculation memory
@@ -202,11 +206,15 @@ __DATA__
 
 TODO: Tests
 
+15 * 5.2
+179 / 12
+8 + 88
+12.3 - 14
+17%3, 2, 'Modulo'
 4e3, 4000, 'Exponent notation (1)'
 7e-2, 0.07, 'Exponent notation (2)'
 2^3, 8, 'Caret for raising to a power'
 4x7, 28, 'ASCII x for multiplication'
-17%3, 2, 'Modulo'
 11✖8, 88, 'Unicode multiplication'
 78÷3, 26, 'Unicode division'
 50➕101, 151, 'Unicode addition'
@@ -217,12 +225,8 @@ TODO: Tests
 3(12-7), 15, 'Digit left parens implicit multiplication'
 (4-9)7, -35, 'Right parens digit implicit multiplication'
 
-All
+Combined
 
-179 / 12
-15 * 5.2
-12.3 - 14
-8 + 88
 -5e2 + 12
 ❨4÷7❩³
 ⅔e-34
