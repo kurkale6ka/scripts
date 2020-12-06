@@ -206,10 +206,10 @@ __DATA__
 
 TODO: Tests
 
-15 * 5.2
-179 / 12
-8 + 88
-12.3 - 14
+15 * 5.2, 78.0, 'Multiplication'
+179 / 16, 11.1875, 'Division'
+8 + 88, 96, 'Addition'
+12.3 - 14, -1.7, 'Substraction'
 17%3, 2, 'Modulo'
 4e3, 4000, 'Exponent notation (1)'
 7e-2, 0.07, 'Exponent notation (2)'
@@ -224,10 +224,7 @@ TODO: Tests
 ⟮5+2⟯*（4-15）, -77, 'Unicode parens'
 3(12-7), 15, 'Digit left parens implicit multiplication'
 (4-9)7, -35, 'Right parens digit implicit multiplication'
-
-Combined
-
--5e2 + 12
-❨4÷7❩³
-⅔e-34
-3²/(2-19)(4+1.1) − 7(12-100) + 3^6
+-5e2 + 12, , 'Combined (1)'
+❨4÷7❩³, , 'Combined (2)'
+⅔e-34, , 'Combined (3)'
+3²/(2-19)(4+1.1) − 7(12-100) + 3^6, , 'Combined (4)'
