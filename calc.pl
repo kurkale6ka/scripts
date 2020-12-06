@@ -81,13 +81,15 @@ my $symbols = qr{(
 # Declarations
 my $res;
 my $codeset = langinfo(CODESET); # utf8
+sub tests();
 sub unicode();
 sub math_eval();
 
 # Options
 GetOptions (
-   'u|unicode' => sub {unicode; exit;},
-   'h|help'    => sub {help; exit;},
+   't|tests'   => sub {tests();    exit;},
+   'u|unicode' => sub {unicode(); exit;},
+   'h|help'    => sub {help();    exit;},
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # Arguments
@@ -202,29 +204,47 @@ sub math_eval()
    return;
 }
 
+sub tests() {
+   while (<DATA>)
+   {
+      next if /^#/ or /^$/;
+      chomp;
+      my ($expr, $ans, $title) = split /\h*,\h*/;
+      say $title;
+      print "$expr = $ans? ";
+      $_ = $expr;
+      if (math_eval() == $ans)
+      {
+         print GREEN.'ok'.RESET, "\n";
+      } else {
+         print RED.'fail'.RESET, "\n";
+      }
+   }
+}
+
 __DATA__
 
-TODO: Tests
+# Tests
 
-15 * 5.2, 78.0, 'Multiplication'
-179 / 16, 11.1875, 'Division'
-8 + 88, 96, 'Addition'
-12.3 - 14, -1.7, 'Substraction'
-17%3, 2, 'Modulo'
-4e3, 4000, 'Exponent notation (1)'
-7e-2, 0.07, 'Exponent notation (2)'
-2^3, 8, 'Caret for raising to a power'
-4x7, 28, 'ASCII x for multiplication'
-11✖8, 88, 'Unicode multiplication'
-78÷3, 26, 'Unicode division'
-50➕101, 151, 'Unicode addition'
-231−17, 214, 'Unicode substraction'
-3³, 27, 'Unicode superscript raise to a power'
-⅗ / ⅚, 0.72, 'Unicode fractions'
-⟮5+2⟯*（4-15）, -77, 'Unicode parens'
-3(12-7), 15, 'Digit left parens implicit multiplication'
-(4-9)7, -35, 'Right parens digit implicit multiplication'
--5e2 + 12, , 'Combined (1)'
-❨4÷7❩³, , 'Combined (2)'
-⅔e-34, , 'Combined (3)'
-3²/(2-19)(4+1.1) − 7(12-100) + 3^6, , 'Combined (4)'
+15 * 5.2, 78.0, Multiplication
+179 / 16, 11.1875, Division
+8 + 88, 96, Addition
+12.3 - 14, -1.7, Substraction
+17%3, 2, Modulo
+4e3, 4000, Exponent notation (1)
+7e-2, 0.07, Exponent notation (2)
+2^3, 8, Caret for raising to a power
+4x7, 28, ASCII x for multiplication
+11✖8, 88, Unicode multiplication
+78÷3, 26, Unicode division
+50➕101, 151, Unicode addition
+231−17, 214, Unicode substraction
+3³, 27, Unicode superscript raise to a power
+⅗ / ⅚, 0.72, Unicode fractions
+⟮5+2⟯*（4-15）, -77, Unicode parens
+3(12-7), 15, Digit left parens implicit multiplication
+(4-9)7, -35, Right parens digit implicit multiplication
+-5e2 + 12, -488, Combined (1)
+❨4÷7❩³, 0.18658892128, Combined (2)
+⅔e-34, 6.6666667e-35, Combined (3)
+3²/(2-19)(4+1.1) − 7(12-100) + 3^6, , Combined (4)
