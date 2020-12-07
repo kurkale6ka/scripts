@@ -240,20 +240,20 @@ Multiplication,            12_345_679 * 8,                     98765432
 Multiplication ASCII x,    12_345_679 x 9,                     111111111
 Multiplication parens (,   3(12-7),                            15
 Multiplication parens ),   (4-9)7,                             -35
-Multiplication Unicode,    11✖8,                               88
+Multiplication Unicode,    11 ✖ 8,                             88
 Power ^,                   2^3,                                8
 Power superscript Unicode, 3³,                                 27
 Division,                  179 / 16,                           11.1875
-Division Unicode,          78÷3,                               26
+Division Unicode,          78 ÷ 3,                             26
 Fractions Unicode 1),      ⅗ / ⅚,                              0.72
 Fractions Unicode 2),      ⅟4,                                 0.25
 Addition,                  8 + 88,                             96
-Addition Unicode,          50➕101,                            151
+Addition Unicode,          50 ➕ 101,                          151
 Substraction,              12.3 - 14,                          -1.7
-Substraction Unicode,      231−17,                             214
+Substraction Unicode,      231 − 17,                           214
 Exponent notation e+,      4e3,                                4000
 Exponent notation e-,      7e-2,                               0.07
-Modulo,                    17%3,                               2
+Modulo,                    17 % 3,                             2
 Parens Unicode,            ⟮5+2⟯*（4-15）,                     -77
 Numbers Unicode,           𝟭𝟥 + 𝟨𝟿,                            82
 Combined 1),               -5e2 + 12,                          -488
