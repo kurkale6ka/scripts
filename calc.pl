@@ -236,8 +236,8 @@ __DATA__
 
 # Tests
 
-Multiplication,            15 * 5.2,                           78.0
-Multiplication ASCII x,    4x7,                                28
+Multiplication,            12_345_679 * 8,                     98765432
+Multiplication ASCII x,    12_345_679 x 9,                     111111111
 Multiplication parens (,   3(12-7),                            15
 Multiplication parens ),   (4-9)7,                             -35
 Multiplication Unicode,    11✖8,                               88
