@@ -228,12 +228,11 @@ sub tests()
       $res = math_eval();
       my $cl = $res == $ans ? GREEN : RED;
       my $rs = RESET;
-      printf "$cl%-25s$rs %s = %s ? $cl%s$rs\n", $title, $expr, $ans, $res;
+      printf "$cl%-25s$rs │ %s = %s ? $cl%s$rs\n", $title, $expr, $ans, $res;
    }
 }
 
 __DATA__
-
 # Tests
 
 Multiplication,            12_345_679 * 8,                     98765432
@@ -245,11 +244,11 @@ Power ^,                   2^3,                                8
 Power superscript Unicode, 3³,                                 27
 Division,                  179 / 16,                           11.1875
 Division Unicode,          78 ÷ 3,                             26
-Fractions Unicode 1),      ⅗ / ⅚,                              0.72
+Fractions Unicode 1),      ¼ / ⅒,                              2.5
 Fractions Unicode 2),      ⅟4,                                 0.25
 Addition,                  8 + 88,                             96
 Addition Unicode,          50 ➕ 101,                          151
-Substraction,              12.3 - 14,                          -1.7
+Substraction,              19 - 277,                           -258
 Substraction Unicode,      231 − 17,                           214
 Exponent notation e+,      4e3,                                4000
 Exponent notation e-,      7e-2,                               0.07
@@ -257,8 +256,8 @@ Modulo,                    17 % 3,                             2
 Parens Unicode,            ⟮5+2⟯*（4-15）,                     -77
 Numbers Unicode,           𝟭𝟥 + 𝟨𝟿,                            82
 Combined 1),               -5e2 + 12,                          -488
-Combined 2),               ❨4÷7❩³,                             0.18658892128
-Combined 3),               ⅔e-34,                              6.6666667e-35
+Combined 2),               ❨4÷8❩⁷,                             0.0078125
+Combined 3),               ⅕e-12,                              2e-13
 Combined 4),               3²/(2-19)(4+1.1) − 7(12-100) + 3^6, 1342.3
 Memory _ set,              17 - 39,                            -22
 Memory _ get,              _^2,                                -484
