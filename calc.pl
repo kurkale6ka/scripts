@@ -90,11 +90,14 @@ sub unicode();
 sub math_eval();
 
 # Options
+my $tests;
 GetOptions (
-   't|tests'   => sub {tests();   exit;},
+   't|tests'   => \$tests,
    'u|unicode' => sub {unicode(); exit;},
    'h|help'    => sub {help();    exit;},
 ) or die RED.'Error in command line arguments'.RESET, "\n";
+
+if ($tests) {tests(); exit;}
 
 # Arguments
 if (@ARGV)
@@ -157,7 +160,10 @@ sub math_eval()
       }
    }
 
-   warn YELLOW.'% performs integer modulus only'.RESET, "\n" if /%/;
+   if (/%/)
+   {
+      warn YELLOW.'% performs integer modulus only'.RESET, "\n" unless $tests;
+   }
 
    # replace Unicode operator symbols with ASCII ones
    tr(x×✕✖÷∕⁄➕−)(****///+-);
@@ -217,16 +223,12 @@ sub tests()
    {
       next if /^#/ or /^$/;
       chomp;
-      my ($expr, $ans, $title) = split /\h*,\h*/;
-      print "$expr = $ans ? ";
+      my ($title, $expr, $ans) = split /\h*,\h*/;
       $_ = $expr;
       $res = math_eval();
-      if ($res == $ans)
-      {
-         print GREEN."ok ($res) # $title".RESET, "\n";
-      } else {
-         print RED."fail ($res) # $title".RESET, "\n";
-      }
+      my $cl = $res == $ans ? GREEN : RED;
+      my $rs = RESET;
+      printf "$cl%-25s$rs %s = %s ? $cl%s$rs\n", $title, $expr, $ans, $res;
    }
 }
 
@@ -234,27 +236,29 @@ __DATA__
 
 # Tests
 
-15 * 5.2, 78.0, Multiplication
-179 / 16, 11.1875, Division
-8 + 88, 96, Addition
-12.3 - 14, -1.7, Substraction
-17%3, 2, Modulo
-4e3, 4000, Exponent notation (1)
-7e-2, 0.07, Exponent notation (2)
-2^3, 8, Caret for raising to a power
-4x7, 28, ASCII x for multiplication
-11✖8, 88, Unicode multiplication
-78÷3, 26, Unicode division
-50➕101, 151, Unicode addition
-231−17, 214, Unicode substraction
-3³, 27, Unicode superscript raise to a power
-⅗ / ⅚, 0.72, Unicode fractions
-⟮5+2⟯*（4-15）, -77, Unicode parens
-3(12-7), 15, Digit left parens implicit multiplication
-(4-9)7, -35, Right parens digit implicit multiplication
--5e2 + 12, -488, Combined (1)
-❨4÷7❩³, 0.18658892128, Combined (2)
-⅔e-34, 6.6666667e-35, Combined (3)
-3²/(2-19)(4+1.1) − 7(12-100) + 3^6, 1342.3, Combined (4)
-
-# todo: test _, ⅟, nums, fix floating point comparisons
+Multiplication,            15 * 5.2,                           78.0
+Multiplication ASCII x,    4x7,                                28
+Multiplication parens (,   3(12-7),                            15
+Multiplication parens ),   (4-9)7,                             -35
+Multiplication Unicode,    11✖8,                               88
+Power ^,                   2^3,                                8
+Power superscript Unicode, 3³,                                 27
+Division,                  179 / 16,                           11.1875
+Division Unicode,          78÷3,                               26
+Fractions Unicode 1),      ⅗ / ⅚,                              0.72
+Fractions Unicode 2),      ⅟4,                                 0.25
+Addition,                  8 + 88,                             96
+Addition Unicode,          50➕101,                            151
+Substraction,              12.3 - 14,                          -1.7
+Substraction Unicode,      231−17,                             214
+Exponent notation e+,      4e3,                                4000
+Exponent notation e-,      7e-2,                               0.07
+Modulo,                    17%3,                               2
+Parens Unicode,            ⟮5+2⟯*（4-15）,                     -77
+Numbers Unicode,           𝟭𝟥 + 𝟨𝟿,                            82
+Combined 1),               -5e2 + 12,                          -488
+Combined 2),               ❨4÷7❩³,                             0.18658892128
+Combined 3),               ⅔e-34,                              6.6666667e-35
+Combined 4),               3²/(2-19)(4+1.1) − 7(12-100) + 3^6, 1342.3
+Memory _ set,              17 - 39,                            -22
+Memory _ get,              _^2,                                -484
