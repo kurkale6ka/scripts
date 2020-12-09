@@ -36,7 +36,7 @@ Options:
 --unicode, -u : print supported Unicode symbols (no -- in interactive mode)
 
 Tips:
-• exponent notation is supported
+• exponent notation (meⁿ ⇔ m×10ⁿ) is supported
 • for arrows support, install Term::ReadLine::Gnu
 • symlink this script to =
 MSG
