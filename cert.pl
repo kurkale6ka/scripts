@@ -12,8 +12,10 @@ use feature 'say';
 use File::Basename 'fileparse';
 use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;
+use Term::ReadLine;
 
 my $PINK = color('ansi205');
+my $GRAY = color('ansi242');
 
 my $help = << 'MSG';
 Show Certificate/CSR info
@@ -66,11 +68,14 @@ my ($base, undef, $ext) = fileparse($cert, qr/\.[^.]*/);
 # execute or print external commands
 sub run(@)
 {
+   my $get = shift if $_[0] eq '-g';
    unless ($view)
    {
       unless ($check)
       {
          exec @_;
+      } elsif ($get) {
+         return `@_`;
       } else {
          system @_;
       }
@@ -124,70 +129,65 @@ sub csr()
 sub check()
 {
    $check = 1;
-   my $crt = -f "$base.crt" ? 'crt' : 'pem';
 
-   # Chain of Trust test
+   # Chain of Trust tests
    say $PINK.'Chain of Trust'.RESET;
 
+   # continue if it looks like a certificate
    unless (($cert =~ /chain|\bca\b/i or $ext =~ /\.ch(ai)?n/in) and not $view)
    {
-      sub get_file($$)
+      my $intermediate = "$base.ca$ext";
+
+      # ask for intermediate CAs
+      unless (-f $intermediate)
       {
-         my ($default, $message) = @_;
-         my $file;
+         warn "\n", RED.$base.BOLD.'.ca'.RESET.RED."$ext not found".RESET, "\n";
 
-         if (-f $default)
-         {
-            $file = $default;
-         } else {
-            $default =~ s/$base\.(.+)/$base.BOLD.".$1"/e;
-            warn "\n", RED.$default.RESET, RED.' not found'.RESET, "\n";
+         my $term = Term::ReadLine->new('Intermediate certificates');
+         $term->ornaments(0);
+         $intermediate = $term->readline(YELLOW.'Intermediate CA certificates'.RESET.': ', $cert);
+         chomp $intermediate;
 
-            print YELLOW.$message.RESET, ': ';
-            chomp ($file = <STDIN>);
-            warn RED.'not found'.RESET, "\n" unless -f $file;
-         }
-
-         return $file;
+         warn RED.'not found'.RESET, "\n" unless -f $intermediate;
       }
 
-      # verify
-      if (-f "$base.$crt")
+      # verify + show chain
+      if (-f $intermediate or $view)
       {
-         my $intermediate = get_file "$base.ca.$crt", 'Intermediate CA certificate';
-
-         if (-f $intermediate or $view)
+         unless (-f $intermediate)
          {
-            unless (-f $intermediate)
-            {
-               $intermediate ||= 'undef';
-               $intermediate = RED.$intermediate.RESET;
-            }
-
-            # -CAfile <root CA certificate>:
-            #  trusted (often root) CA certificate; usually not needed (except when self
-            #  signing) as these trusted certificates will be in the OS/browser store
-            #
-            # -untrusted <intermediate CA certificate>
-            run "openssl verify -untrusted $intermediate $base.$crt";
-         }
-      } else {
-         warn RED."$base.$crt certificate not found".RESET, "\n";
-      }
-
-      # show chain
-      my $chain = get_file "$base.chn", 'Full chain';
-
-      if (-f $chain or $view)
-      {
-         unless (-f $chain)
-         {
-            $chain ||= 'undef';
-            $chain = RED.$chain.RESET;
+            $intermediate ||= 'undef';
+            $intermediate = RED.$intermediate.RESET;
          }
 
+         # verify
+         #
+         # -CAfile <root CA certificate>:
+         #  trusted (often root) CA certificate; usually not needed (except when self
+         #  signing) as these trusted certificates will be in the OS/browser store
+         #
+         # -untrusted <intermediate CA certificates>
+         run "openssl verify -untrusted $intermediate $cert";
+
+         # show chain
          print "\n";
-         run "openssl crl2pkcs7 -nocrl -certfile $chain | openssl pkcs7 -noout -print_certs";
+
+         sub chain($)
+         {
+            my $cert = shift;
+            my $command = "openssl crl2pkcs7 -nocrl -certfile $cert | openssl pkcs7 -noout -print_certs";
+            unless ($view)
+            {
+               chomp ($_ = run '-g', $command);
+               s/^.*cn=/$GRAY.$&.RESET/megi;
+               say;
+            } else {
+               run $command;
+            }
+         }
+
+         chain $cert;
+         chain $intermediate unless $cert eq $intermediate;
       }
    }
    else {
@@ -197,19 +197,17 @@ sub check()
    # Certificate/key match test
    say $PINK.'Certificate/key match test'.RESET;
 
-   if (-f "$base.$crt")
-   {
-      print CYAN.'crt'.RESET.': ';
-      run "openssl x509 -in $base.$crt -noout -modulus | openssl md5";
-   }
+   print CYAN.'Crt'.RESET.': ';
+   run "openssl x509 -in $cert -noout -modulus | openssl md5";
+
    if (-f "$base.key")
    {
-      print CYAN.'key'.RESET.': ';
+      print CYAN.'Key'.RESET.': ';
       run "openssl rsa -in $base.key -noout -modulus | openssl md5";
    }
    if (-f "$base.csr")
    {
-      print CYAN.'csr'.RESET.': ';
+      print CYAN.'CSR'.RESET.': ';
       run "openssl req -in $base.csr -noout -modulus | openssl md5";
    }
 }
