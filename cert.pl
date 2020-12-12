@@ -12,6 +12,7 @@ use feature 'say';
 use File::Basename 'fileparse';
 use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;
+use List::Util 'first';
 use Term::ReadLine;
 
 my $PINK = color('ansi205');
@@ -63,7 +64,39 @@ $subject     = '-subject'     if $subject;
 -f $ARGV[0] or die RED.$!.RESET, "\n";
 
 my $cert = shift;
-my ($base, undef, $ext) = fileparse($cert, qr/\.[^.]*/);
+my ($base, undef, $ext) = fileparse($cert, qr/\.[^.]+$/);
+
+my @certificates = qw/.crt .pem/;
+
+sub change_cert()
+{
+   unless (grep /$ext/io, @certificates)
+   {
+      $ext = first {-f "${base}$_"} @certificates;
+      $cert = "${base}${ext}";
+   }
+}
+
+sub cert();
+sub csr();
+sub check();
+
+# Main
+if ($check) {
+   change_cert();
+   check();
+} elsif ($csr) {
+   $cert = "$base.csr";
+   csr();
+} elsif ($ext =~ /\.key/i) {
+   change_cert();
+   check();
+} elsif ($ext =~ /\.csr/i) {
+   csr();
+} else {
+   change_cert();
+   cert();
+}
 
 # execute or print external commands
 sub run(@)
@@ -113,15 +146,15 @@ sub csr()
       # default
       my $subj = "/C=GB/ST=State/L=London/O=Company/OU=IT/CN=$base/emailAddress=@";
 
-      # get existing
-      if (-f "$base.csr")
+      # get subject from previous CSR
+      if (-f $cert)
       {
-         chomp ($_ = `openssl req -in $base.csr -noout -subject`);
+         chomp ($_ = `openssl req -in $cert -noout -subject`);
          (undef, $subj) = split /=/, $_, 2;
       }
 
       # create
-      run qw/openssl req -nodes -newkey rsa:2048 -keyout/, "$base.key", '-out', "$base.csr", '-subj', $subj;
+      run qw/openssl req -nodes -newkey rsa:2048 -keyout/, "$base.key", '-out', $cert, '-subj', $subj;
    }
 }
 
@@ -210,17 +243,4 @@ sub check()
       print CYAN.'CSR'.RESET.': ';
       run "openssl req -in $base.csr -noout -modulus | openssl md5";
    }
-}
-
-# Main
-if ($check) {
-   check();
-} elsif ($csr) {
-   csr();
-} elsif ($ext =~ /\.key/i) {
-   check();
-} elsif ($ext =~ /\.csr/i) {
-   csr();
-} else {
-   cert();
 }
