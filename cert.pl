@@ -218,7 +218,7 @@ sub check()
             unless ($view)
             {
                chomp ($_ = run '-g', $command);
-               s/^.*cn=/$GRAY.$&.RESET/megi;
+               s/^.*cn\h*=\h*/$GRAY.$&.RESET/megi;
                say;
             } else {
                run $command;
