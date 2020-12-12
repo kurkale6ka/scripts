@@ -60,8 +60,8 @@ $issuer      = '-issuer'      if $issuer;
 $subject     = '-subject'     if $subject;
 
 # Checks
-@ARGV == 1 or die $help;
--f $ARGV[0] or die RED.$!.RESET, "\n";
+die $help unless @ARGV == 1;
+die RED.$!.RESET, "\n" unless -f $ARGV[0] or $csr;
 
 my $cert = shift;
 my ($base, undef, $ext) = fileparse($cert, qr/\.[^.]+$/);
@@ -72,14 +72,18 @@ sub change_cert()
 {
    unless (grep /$ext/io, @certificates)
    {
-      $ext = first {-f "${base}$_"} @certificates;
-      $cert = "${base}${ext}";
+      $ext = first {-f $base.$_} @certificates;
+      $cert = $base.$ext;
    }
 }
 
 sub cert();
 sub csr();
 sub check();
+
+# readline
+my $term = Term::ReadLine->new('certificates');
+$term->ornaments(0);
 
 # Main
 if ($check) {
@@ -143,14 +147,19 @@ sub csr()
       # info
       run qw/openssl req -in/, $cert, qw/-noout -subject/;
    } else {
-      # default
-      my $subj = "/C=GB/ST=State/L=London/O=Company/OU=IT/CN=$base/emailAddress=@";
+      my $subj;
 
       # get subject from previous CSR
       if (-f $cert)
       {
          chomp ($_ = `openssl req -in $cert -noout -subject`);
          (undef, $subj) = split /=/, $_, 2;
+      } else {
+         # default
+         my $fqdn = $base;
+         $fqdn .= '.com' unless $fqdn =~ /\.com$/i;
+         $subj = "/C=GB/ST=State/L=London/O=Company/OU=IT/CN=$fqdn/emailAddress=";
+         $subj = $term->readline('Subject: ', $subj);
       }
 
       # create
@@ -176,10 +185,7 @@ sub check()
       {
          warn "\n", RED.$base.BOLD.'.ca'.RESET.RED."$ext not found".RESET, "\n";
 
-         my $term = Term::ReadLine->new('Intermediate certificates');
-         $term->ornaments(0);
          $intermediate = $term->readline(YELLOW.'Intermediate CA certificates'.RESET.': ', $cert);
-         chomp $intermediate;
 
          warn RED.'not found'.RESET, "\n" unless -f $intermediate;
       }
