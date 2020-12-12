@@ -64,7 +64,7 @@ die $help unless @ARGV == 1;
 die RED.$!.RESET, "\n" unless -f $ARGV[0] or $csr;
 
 my $cert = shift;
-my ($base, undef, $ext) = fileparse($cert, qr/\.[^.]+$/);
+my ($base, $dirs, $ext) = fileparse($cert, qr/\.[^.]+$/);
 
 my @certificates = qw/.crt .pem/;
 
@@ -72,8 +72,8 @@ sub change_cert()
 {
    unless (grep /$ext/io, @certificates)
    {
-      $ext = first {-f $base.$_} @certificates;
-      $cert = $base.$ext;
+      $ext = first {-f $dirs.$base.$_} @certificates;
+      $cert = $dirs.$base.$ext;
    }
 }
 
@@ -163,7 +163,7 @@ sub csr()
       }
 
       # create
-      run qw/openssl req -nodes -newkey rsa:2048 -keyout/, "$base.key", '-out', $cert, '-subj', $subj;
+      run qw/openssl req -nodes -newkey rsa:2048 -keyout/, "${dirs}${base}.key", '-out', $cert, '-subj', $subj;
    }
 }
 
@@ -176,9 +176,9 @@ sub check()
    say $PINK.'Chain of Trust'.RESET;
 
    # continue if it looks like a certificate
-   unless (($cert =~ /chain|\bca\b/i or $ext =~ /\.ch(ai)?n/in) and not $view)
+   unless (($base =~ /chain|\bca\b/i or $ext =~ /\.ch(ai)?n/in) and not $view)
    {
-      my $intermediate = "$base.ca$ext";
+      my $intermediate = "${dirs}${base}.ca$ext";
 
       # ask for intermediate CAs
       unless (-f $intermediate)
@@ -242,11 +242,11 @@ sub check()
    if (-f "$base.key")
    {
       print CYAN.'Key'.RESET.': ';
-      run "openssl rsa -in $base.key -noout -modulus | openssl md5";
+      run "openssl rsa -in ${dirs}${base}.key -noout -modulus | openssl md5";
    }
    if (-f "$base.csr")
    {
       print CYAN.'CSR'.RESET.': ';
-      run "openssl req -in $base.csr -noout -modulus | openssl md5";
+      run "openssl req -in ${dirs}${base}.csr -noout -modulus | openssl md5";
    }
 }
