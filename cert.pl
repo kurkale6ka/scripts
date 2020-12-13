@@ -159,7 +159,15 @@ sub csr()
          my $fqdn = $base;
          $fqdn .= '.com' unless $fqdn =~ /\.com$/i;
          $subj = "/C=GB/ST=State/L=London/O=Company/OU=IT/CN=$fqdn/emailAddress=";
-         $subj = $term->readline('Subject: ', $subj);
+
+         unless (system 'perldoc -l Term::ReadLine::Gnu 1>/dev/null 2>&1')
+         {
+            $subj = $term->readline('Subject: ', $subj);
+         } else {
+            warn YELLOW.'Install Term::ReadLine::Gnu for better readline support'.RESET, "\n";
+            say $subj;
+            $subj = $term->readline('Subject: ');
+         }
       }
 
       # create
