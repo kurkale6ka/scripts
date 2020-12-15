@@ -41,7 +41,7 @@ GetOptions (
 sub Open
 {
    my $file = shift;
-   $file =~ s/^\s*|alt-v\s//;
+   $file =~ s'^\n|alt-v$\n'';
    exec 'cat', $file;
 }
 
