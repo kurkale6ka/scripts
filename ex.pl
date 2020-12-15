@@ -40,8 +40,14 @@ GetOptions (
 
 sub Open
 {
-   my $file = shift;
-   $file =~ s'^\n|alt-v$\n'';
+   # say caller;
+   my ($key, $file) = split '\n', shift;
+
+   if ($key or $view)
+   {
+      exec $ENV{EDITOR}, $file;
+   }
+
    exec 'cat', $file;
 }
 
@@ -49,6 +55,7 @@ sub Grep
 {
    chdir $dir or die RED.$!.RESET, "\n";
 
+   # FIXME: -g test -d~/help
    $_ = `rg -S --hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l @ARGV | fzf -0 -1 --cycle --expect='alt-v' --preview "rg -Sn --color=always @ARGV $dir/{}"`;
    chomp;
 
