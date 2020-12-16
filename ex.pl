@@ -28,8 +28,7 @@ MSG
 }
 
 # Arguments
-my $dir = '.';
-my ($hidden, $exact, $grep, $only, $view);
+my ($hidden, $dir, $exact, $grep, $only, $view);
 GetOptions (
    'H|hidden'      => \$hidden,
    'd|directory=s' => \$dir,
@@ -40,7 +39,7 @@ GetOptions (
    'h|help'        => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-$dir = glob $dir;
+$dir = glob $dir ||= '.';
 
 $grep and Grep();
 
