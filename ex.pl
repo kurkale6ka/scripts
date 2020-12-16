@@ -41,8 +41,6 @@ GetOptions (
 
 $dir = glob $dir ||= '.';
 
-$grep and Grep();
-
 sub Open
 {
    # say caller;
@@ -64,4 +62,26 @@ sub Grep
    chomp;
 
    Open $_ if $_;
+}
+
+if (@ARGV)
+{
+   if ($grep)
+   {
+      Grep();
+   } else {
+      # fuzzy
+      chdir $dir or die RED.$!.RESET, "\n";
+
+      $_ = `fd -tf -H -E.git -E.svn -E.hg --ignore-file ~/.gitignore -0 | fzf -q"@ARGV" --read0 -0 -1 --cycle --expect='alt-v' --preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi' || echo \${PIPESTATUS[1]}`;
+      chomp;
+
+      if (/^\n1$/) # no results
+      {
+         Grep @ARGV;
+      } elsif (!/^130$/) { # canceled with ctrl+c
+         Open $_;
+      }
+   }
+} else {
 }
