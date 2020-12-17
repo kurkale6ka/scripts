@@ -1,8 +1,6 @@
 #! /usr/bin/env perl
 
 # Fuzzy files explorer
-#
-# Usage: ex [-d{dir}] [-e] [-g] [-v] [topic]
 
 use strict;
 use warnings;
@@ -17,13 +15,14 @@ use File::Basename 'fileparse';
 sub help()
 {
    print << 'MSG';
-ex [-H] [-d{dir}] [-e] [-g] [-v] [topic]
+ex [options] [topic]
 
- -H: include hidden files
- -d: change root directory
- -e: exact filename matches
- -g: grep for occurrences of topic in files
- -v: view with your $EDITOR, use alt-v from within fzf
+--hidden,        -H: include hidden files
+--directory=dir, -d: change root directory
+--exact,         -e: exact filename matches
+--grep,          -g: grep for occurrences of topic in files
+--only,          -o: output filetred lines only
+--view,          -v: view with your $EDITOR, use alt-v from within fzf
 MSG
    exit;
 }
@@ -44,12 +43,12 @@ chdir ($dir = glob $dir ||= '.') or die RED.$!.RESET, "\n";
 
 my ($query, $key, $file);
 
-sub fzf_results
+sub fzf_results()
 {
    my @output = split '\n';
    exit 1 unless @output; # canceled with Esc or ^C
 
-   $query = $output[0] if $output[0];
+   $query = $output[0] if $output[0] and @output < 3;
    $key = $output[1];
 
    if (@output == 3) # query / key pressed / file
@@ -57,34 +56,36 @@ sub fzf_results
       $file = $output[-1];
       return 1;
    }
+   return undef;
 }
 
-# simply Open (no $_)?
-sub Open
+sub Open(;$)
 {
    exit 1 unless $file;
 
    my (undef, undef, $ext) = fileparse($file, qr/\.[^.]+$/);
 
-   # say caller;
    if ($key or $view)
    {
       # open with nvim (send to running instance)?
       if (@_ and $ENV{EDITOR} =~ /vim/i)
       {
-         # before 'modelineexpr, zv was used
          exec $ENV{EDITOR}, $file, '-c', "0/$query", '-c', 'noh|norm zz<cr>';
       } else {
          exec $ENV{EDITOR}, $file;
       }
    }
 
-   # binary files
+   # binary files, is -x test needed?
    if ($ext =~ /\.pdf$/i or -B $file and not -x _)
    {
       # prompt for yes/no?
       exec 'open', $file;
    }
+
+   # grep only
+   # use open?
+   exec qw/rg -S/, $query, $file if $only;
 
    # personal help files
    if (-f "$ENV{REPOS_BASE}/help/$file")
@@ -95,6 +96,7 @@ sub Open
       }
       elsif ($ext =~ /\.pl$/i)
       {
+         # fix ./ output
          say CYAN."$dir/$file".RESET;
          do "./$file";
          exit;
@@ -129,12 +131,13 @@ sub Grep($)
    exit;
 }
 
-# check --read0
+# check --read0, move?
 my $find = 'fd -tf -H -E.git -E.svn -E.hg --ignore-file ~/.gitignore -0';
 my $fzf_opts = q(--read0 -0 -1 --cycle --print-query --expect='alt-v' --preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi');
 
 if (@ARGV)
 {
+   # multiple args, split -e?
    Grep "@ARGV" if $grep;
 
    # Search help files matching topic
@@ -157,6 +160,5 @@ if (fzf_results)
    Open;
 } else {
    # if no matching filenames were found, list files with occurrences of topic
-   # when canceling with ctrl+c we don't want any further searches, this is why a simple Grep unless $_ isn't enough
    Grep $query;
 }
