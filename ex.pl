@@ -11,6 +11,7 @@ use re '/aa';
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 use Term::ANSIColor qw/color :constants/;
 use File::Glob ':bsd_glob';
+use File::Basename 'fileparse';
 
 # Help
 sub help()
@@ -58,13 +59,49 @@ sub Open
 {
    exit 1 unless $file;
 
+   my (undef, undef, $ext) = fileparse($file, qr/\.[^.]+$/);
+
    # say caller;
    if ($key or $view)
    {
-      exec $ENV{EDITOR}, $file;
+      # if [[ ${@[-1]} == --hls && $ENV{EDITOR} == *vim ]]
+      # open with nvim (send to running instance)?
+      # before 'modelineexpr, zv was used
+      exec $ENV{EDITOR}, $file, '-c', "0/$query", '-c', 'noh|norm zz<cr>';
+      # exec $ENV{EDITOR}, $file;
    }
 
-   exec 'cat', $file;
+   # binary files
+   if ($ext =~ /\.pdf$/i or -B $file and not -x _)
+   {
+      # prompt for yes/no?
+      exec 'open', $file;
+   }
+
+   # personal help files
+   if (-f "$ENV{REPOS_BASE}/help/$file")
+   {
+      if ($ext =~ /\.md$/i)
+      {
+         exec 'open', "https://github.com/kurkale6ka/help/blob/master/$file";
+      }
+      elsif ($ext =~ /\.pl$/i)
+      {
+         say CYAN."$dir/$file".RESET;
+         do "./$file";
+         exit;
+      }
+   }
+
+   # display path of file being viewed
+   say CYAN."$dir/$file".RESET;
+
+   if ($ext =~ /\.(?!te?xt).+$/i)
+   {
+      exec qw/bat --style snip --italic-text always --theme zenburn -mconf:ini/, $file;
+   } else {
+      exec 'cat', $file;
+   }
 }
 
 sub Grep($)
