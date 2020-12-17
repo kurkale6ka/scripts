@@ -41,11 +41,24 @@ GetOptions (
 
 chdir ($dir = glob $dir ||= '.') or die RED.$!.RESET, "\n";
 
+my ($query, $key, $file);
+my $results = 0;
+
+sub fzf_results
+{
+   ($query, $key, $file) = split '\n';
+   $_ //= '' foreach $query, $key, $file;
+
+   exit 130 if $query =~ /^130$/; # canceled with Esc or ^C
+   $results = 1 unless $file =~ /^1$/;
+}
+
+# simply Open (no $_)?
 sub Open
 {
-   # say caller;
-   my ($key, $file) = split '\n', shift;
+   exit 1 unless $file;
 
+   # say caller;
    if ($key or $view)
    {
       exec $ENV{EDITOR}, $file;
@@ -54,49 +67,52 @@ sub Open
    exec 'cat', $file;
 }
 
-sub Grep
+sub Grep($)
 {
-   $_ = `rg -S --hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l @ARGV | fzf -0 -1 --cycle --expect='alt-v' --preview "rg -Sn --color=always @ARGV {}"`;
-   chomp;
+   $query = shift;
 
-   Open $_ if $_;
+   until ($results)
+   {
+      exit 1 unless $query;
+      $_ = `rg -S --hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf -0 -1 --cycle --print-query --expect='alt-v' --preview "rg -Sn --color=always $query {}" || echo \${PIPESTATUS[1]}`;
+      chomp;
+      fzf_results;
+   }
+
+   Open $_ if $results;
+   exit;
 }
 
 # check --read0
 my $find = 'fd -tf -H -E.git -E.svn -E.hg --ignore-file ~/.gitignore -0';
-my $fzf_opts = q(--read0 -0 -1 --print-query --cycle --expect='alt-v' --preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi');
+my $fzf_opts = q(--read0 -0 -1 --cycle --print-query --expect='alt-v' --preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi');
 
 if (@ARGV)
 {
-   if ($grep)
-   {
-      Grep();
-      exit;
-   }
+   Grep "@ARGV" if $grep;
 
    # Search help files matching topic
-   # fuzzy or exact?
    # find without arg prints whole paths that we later match with fzf
    # this is why we need -p arg so we get the same behaviour
    my $mode = defined $exact ? "-p @ARGV" : '';
 
    # -q isn't required with 'exact', it's supplied to enable highlighting
    chomp ($_ = `$find $mode | fzf -q'@ARGV' $fzf_opts || echo \${PIPESTATUS[1]}`);
+   fzf_results;
 
 } else {
    # Search trough all help files
-   # fuzzy or exact?
    my $mode = defined $exact ? '-e' : '';
 
    chomp ($_ = `$find | fzf $mode $fzf_opts || echo \${PIPESTATUS[1]}`);
+   fzf_results;
 }
 
-if (/^\n1$/) # no results
+if ($results)
 {
+   Open $_;
+} else {
    # if no matching filenames were found, list files with occurrences of topic
    # when canceling with ctrl+c we don't want any further searches, this is why a simple Grep unless $_ isn't enough
-   # with 'no res', can we replace @ARGV below with our failed query string?
-   Grep @ARGV;
-} elsif (!/^130$/) { # canceled with ctrl+c
-   Open $_;
+   Grep $query;
 }
