@@ -43,15 +43,20 @@ GetOptions (
 chdir ($dir = glob $dir ||= '.') or die RED.$!.RESET, "\n";
 
 my ($query, $key, $file);
-my $results = 0;
 
 sub fzf_results
 {
-   ($query, $key, $file) = split '\n';
-   $_ //= '' foreach $query, $key, $file;
+   my @output = split '\n';
+   exit 1 unless @output; # canceled with Esc or ^C
 
-   exit 130 if $query =~ /^130$/; # canceled with Esc or ^C
-   $results = 1 unless $file =~ /^1$/;
+   $query = $output[0] if $output[0];
+   $key = $output[1];
+
+   if (@output == 3) # query / key pressed / file
+   {
+      $file = $output[-1];
+      return 1;
+   }
 }
 
 # simply Open (no $_)?
@@ -64,11 +69,14 @@ sub Open
    # say caller;
    if ($key or $view)
    {
-      # if [[ ${@[-1]} == --hls && $ENV{EDITOR} == *vim ]]
       # open with nvim (send to running instance)?
-      # before 'modelineexpr, zv was used
-      exec $ENV{EDITOR}, $file, '-c', "0/$query", '-c', 'noh|norm zz<cr>';
-      # exec $ENV{EDITOR}, $file;
+      if (@_ and $ENV{EDITOR} =~ /vim/i)
+      {
+         # before 'modelineexpr, zv was used
+         exec $ENV{EDITOR}, $file, '-c', "0/$query", '-c', 'noh|norm zz<cr>';
+      } else {
+         exec $ENV{EDITOR}, $file;
+      }
    }
 
    # binary files
@@ -108,15 +116,16 @@ sub Grep($)
 {
    $query = shift;
 
+   my $results = 0;
    until ($results)
    {
       exit 1 unless $query;
-      $_ = `rg -S --hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf -0 -1 --cycle --print-query --expect='alt-v' --preview "rg -Sn --color=always $query {}" || echo \${PIPESTATUS[1]}`;
+      $_ = `rg -S --hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf -0 -1 --cycle --print-query --expect='alt-v' --preview "rg -Sn --color=always $query {}"`;
       chomp;
-      fzf_results;
+      $results = fzf_results;
    }
 
-   Open $_ if $results;
+   Open '--hls' if $results;
    exit;
 }
 
@@ -134,20 +143,18 @@ if (@ARGV)
    my $mode = defined $exact ? "-p @ARGV" : '';
 
    # -q isn't required with 'exact', it's supplied to enable highlighting
-   chomp ($_ = `$find $mode | fzf -q'@ARGV' $fzf_opts || echo \${PIPESTATUS[1]}`);
-   fzf_results;
+   chomp ($_ = `$find $mode | fzf -q'@ARGV' $fzf_opts`);
 
 } else {
    # Search trough all help files
    my $mode = defined $exact ? '-e' : '';
 
-   chomp ($_ = `$find | fzf $mode $fzf_opts || echo \${PIPESTATUS[1]}`);
-   fzf_results;
+   chomp ($_ = `$find | fzf $mode $fzf_opts`);
 }
 
-if ($results)
+if (fzf_results)
 {
-   Open $_;
+   Open;
 } else {
    # if no matching filenames were found, list files with occurrences of topic
    # when canceling with ctrl+c we don't want any further searches, this is why a simple Grep unless $_ isn't enough
