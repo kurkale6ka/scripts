@@ -79,7 +79,7 @@ sub Open(;$)
    }
 
    # binary files, is -x test needed?
-   if ($ext =~ /\.pdf$/i or -B $file and not -x _)
+   if (not -x $file and -B _ || $ext =~ /\.pdf$/i)
    {
       # prompt for yes/no?
       exec $open, $file;
