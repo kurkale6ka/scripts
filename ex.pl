@@ -22,7 +22,7 @@ ex [options] [topic]
 --exact,         -e: exact filename matches
 --grep,          -g: grep for occurrences of topic in files
 --only,          -o: output filetred lines only
---view,          -v: view with your $EDITOR, use alt-v from within fzf
+--view,          -v: view with your $EDITOR, use Alt-v from within fzf
 MSG
    exit;
 }
@@ -42,14 +42,16 @@ GetOptions (
 chdir glob $dir ||= '.' or die RED.$!.RESET, "\n";
 $dir =~ s(/+$)();
 
+# Globals
 my ($query, $key, $file);
 
+# Functions
 sub fzf_results()
 {
    my @output = split '\n';
    exit 1 unless @output; # canceled with Esc or ^C
 
-   $query = $output[0] if $output[0] and @output < 3;
+   $query = $output[0] if $output[0] and @output < 3; # only change if no results
    $key = $output[1];
 
    if (@output == 3) # query / key pressed / file
@@ -81,7 +83,6 @@ sub Open(;$)
    # binary files, is -x test needed?
    if (not -x $file and -B _ || $ext =~ /\.pdf$/i)
    {
-      # prompt for yes/no?
       exec $open, $file;
    }
 
@@ -131,14 +132,17 @@ sub Grep()
    exit;
 }
 
+# Main
+# Search help files matching topic
 if (@ARGV)
 {
    # multiple args, split @ARGV with -e?
+   # rg -Sl patt1 | ... | xargs rg -S pattn
+   # also for fd ... $1
    $query = shift;
 
-   Grep if $grep;
+   Grep if $grep; # force searching for files with occurrences of topic
 
-   # Search help files matching topic
    # fd without query matches anything, thus fzf will filter on whole paths,
    # this is why with query (--exact), -p is needed so query can filter on whole paths too
    my $mode = defined $exact ? "-pF $query" : '';
@@ -146,10 +150,12 @@ if (@ARGV)
    # -q isn't required with 'exact', it's supplied to enable highlighting
    chomp ($_ = `$find $mode | fzf -q$query $fzf_opts`);
 
-} else {
-   # Search trough all help files
+}
+# Search trough all help files
+else
+{
+   # fuzzy (default) or exact?
    my $mode = defined $exact ? '-e' : '';
-
    chomp ($_ = `$find | fzf $mode $fzf_opts --preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi'`);
 }
 
