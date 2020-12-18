@@ -86,7 +86,6 @@ sub Open(;$)
    }
 
    # grep only
-   # use open?
    exec qw/rg -S/, $query, $file if $only;
 
    # personal help files
@@ -115,8 +114,8 @@ sub Open(;$)
    }
 }
 
-my $find = q(fd -tf -H -E.git -E.svn -E.hg --ignore-file ~/.gitignore);
-my $fzf_opts = q(-0 -1 --cycle --print-query --expect='alt-v');
+my $find = 'fd -tf -H -E.git -E.svn -E.hg --ignore-file ~/.gitignore';
+my $fzf_opts = '-0 -1 --cycle --print-query --expect=alt-v';
 
 sub Grep($)
 {
@@ -126,7 +125,7 @@ sub Grep($)
    until ($results)
    {
       exit 1 unless $query;
-      chomp ($_ = `rg -S --hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf $fzf_opts --preview "rg -Sn --color=always $query {}"`);
+      chomp ($_ = `rg -S --hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf $fzf_opts --preview 'rg -S --color=always $query {}'`);
       $results = fzf_results;
    }
 
