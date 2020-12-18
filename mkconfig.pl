@@ -353,6 +353,7 @@ sub links($)
       [qw( srf bash/.bashrc       ~ )],
       [qw( srf bash/.bash_logout  ~ )],
       # scripts
+      [qw( sf scripts/ex.pl            ~/bin/ex           )],
       [qw( sf scripts/calc.pl          ~/bin/calc         )],
       [qw( sf scripts/cert.pl          ~/bin/cert         )],
       [qw( sf scripts/mkconfig.pl      ~/bin/mkconfig     )],
