@@ -139,12 +139,11 @@ if (@ARGV)
    Grep if $grep;
 
    # Search help files matching topic
-   # fd without arg prints whole paths that we later match with fzf
-   # this is why we need -p arg so we get the same behaviour
+   # fd without query matches anything, thus fzf will filter on whole paths,
+   # this is why with query (--exact), -p is needed so query can filter on whole paths too
    my $mode = defined $exact ? "-pF $query" : '';
 
    # -q isn't required with 'exact', it's supplied to enable highlighting
-   # remove from fzf when not exact in case fd used a regex?
    chomp ($_ = `$find $mode | fzf -q$query $fzf_opts`);
 
 } else {
