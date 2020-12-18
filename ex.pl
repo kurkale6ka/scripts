@@ -63,6 +63,7 @@ sub fzf_results()
 sub Open(;$)
 {
    exit 1 unless $file;
+   my $open = $^O eq 'darwin' ? 'open' : 'xdg-open';
 
    my (undef, undef, $ext) = fileparse($file, qr/\.[^.]+$/);
 
@@ -81,7 +82,7 @@ sub Open(;$)
    if ($ext =~ /\.pdf$/i or -B $file and not -x _)
    {
       # prompt for yes/no?
-      exec 'open', $file;
+      exec $open, $file;
    }
 
    # grep only
@@ -93,7 +94,7 @@ sub Open(;$)
    {
       if ($ext =~ /\.md$/i)
       {
-         exec 'open', "https://github.com/kurkale6ka/help/blob/master/$file";
+         exec $open, "https://github.com/kurkale6ka/help/blob/master/$file";
       }
       elsif ($ext =~ /\.pl$/i)
       {
