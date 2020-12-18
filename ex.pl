@@ -115,6 +115,9 @@ sub Open(;$)
    }
 }
 
+my $find = q(fd -tf -H -E.git -E.svn -E.hg --ignore-file ~/.gitignore);
+my $fzf_opts = q(-0 -1 --cycle --print-query --expect='alt-v');
+
 sub Grep($)
 {
    $query = shift;
@@ -123,18 +126,13 @@ sub Grep($)
    until ($results)
    {
       exit 1 unless $query;
-      $_ = `rg -S --hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf -0 -1 --cycle --print-query --expect='alt-v' --preview "rg -Sn --color=always $query {}"`;
-      chomp;
+      chomp ($_ = `rg -S --hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf $fzf_opts --preview "rg -Sn --color=always $query {}"`);
       $results = fzf_results;
    }
 
    Open '--hls' if $results;
    exit;
 }
-
-# check --read0, move?
-my $find = 'fd -tf -H -E.git -E.svn -E.hg --ignore-file ~/.gitignore -0';
-my $fzf_opts = q(--read0 -0 -1 --cycle --print-query --expect='alt-v' --preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi');
 
 if (@ARGV)
 {
@@ -144,16 +142,17 @@ if (@ARGV)
    # Search help files matching topic
    # find without arg prints whole paths that we later match with fzf
    # this is why we need -p arg so we get the same behaviour
-   my $mode = defined $exact ? "-p @ARGV" : '';
+   # -F?
+   my $mode = defined $exact ? '-p' : '';
 
    # -q isn't required with 'exact', it's supplied to enable highlighting
-   chomp ($_ = `$find $mode | fzf -q'@ARGV' $fzf_opts`);
+   chomp ($_ = `$find $mode '@ARGV' | fzf -q'@ARGV' $fzf_opts`);
 
 } else {
    # Search trough all help files
    my $mode = defined $exact ? '-e' : '';
 
-   chomp ($_ = `$find | fzf $mode $fzf_opts`);
+   chomp ($_ = `$find | fzf $mode $fzf_opts --preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi'`);
 }
 
 if (fzf_results)
