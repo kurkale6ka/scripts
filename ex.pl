@@ -39,7 +39,8 @@ GetOptions (
    'h|help'        => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-chdir ($dir = glob $dir ||= '.') or die RED.$!.RESET, "\n";
+chdir glob $dir ||= '.' or die RED.$!.RESET, "\n";
+$dir =~ s(/+$)();
 
 my ($query, $key, $file);
 
@@ -96,15 +97,14 @@ sub Open(;$)
       }
       elsif ($ext =~ /\.pl$/i)
       {
-         # fix ./ output
-         say CYAN."$dir/$file".RESET;
+         say CYAN, $dir ne '.' ? "$dir/":'', $file, RESET;
          do "./$file";
          exit;
       }
    }
 
    # display path of file being viewed
-   say CYAN."$dir/$file".RESET;
+   say CYAN, $dir ne '.' ? "$dir/":'', $file, RESET;
 
    if ($ext =~ /\.(?!te?xt).+$/i)
    {
