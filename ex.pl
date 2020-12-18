@@ -117,10 +117,8 @@ sub Open(;$)
 my $find = 'fd -tf -H -E.git -E.svn -E.hg --ignore-file ~/.gitignore';
 my $fzf_opts = '-0 -1 --cycle --print-query --expect=alt-v';
 
-sub Grep($)
+sub Grep()
 {
-   $query = shift;
-
    my $results = 0;
    until ($results)
    {
@@ -135,17 +133,19 @@ sub Grep($)
 
 if (@ARGV)
 {
-   # multiple args, split -e?
-   Grep "@ARGV" if $grep;
+   # multiple args, split @ARGV with -e?
+   $query = shift;
+
+   Grep if $grep;
 
    # Search help files matching topic
-   # find without arg prints whole paths that we later match with fzf
+   # fd without arg prints whole paths that we later match with fzf
    # this is why we need -p arg so we get the same behaviour
-   # -F?
-   my $mode = defined $exact ? '-p' : '';
+   my $mode = defined $exact ? "-pF $query" : '';
 
    # -q isn't required with 'exact', it's supplied to enable highlighting
-   chomp ($_ = `$find $mode '@ARGV' | fzf -q'@ARGV' $fzf_opts`);
+   # remove from fzf when not exact in case fd used a regex?
+   chomp ($_ = `$find $mode | fzf -q$query $fzf_opts`);
 
 } else {
    # Search trough all help files
@@ -159,5 +159,5 @@ if (fzf_results)
    Open;
 } else {
    # if no matching filenames were found, list files with occurrences of topic
-   Grep $query;
+   Grep;
 }
