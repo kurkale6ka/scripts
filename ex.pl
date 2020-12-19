@@ -17,7 +17,7 @@ sub help()
    print << 'MSG';
 ex [options] [topic]
 
---hidden,        -H: include hidden files
+--(no-)hidden,   -H: include hidden files
 --directory=dir, -d: change root directory
 --exact,         -e: exact filename matches
 --grep,          -g: grep for occurrences of topic in files
@@ -28,9 +28,10 @@ MSG
 }
 
 # Arguments
-my ($hidden, $dir, $exact, $grep, $only, $view);
+my $hidden = '--hidden';
+my ($dir, $exact, $grep, $only, $view);
 GetOptions (
-   'H|hidden'      => \$hidden,
+   'H|hidden!'     => \$hidden,
    'd|directory=s' => \$dir,
    'e|exact'       => \$exact,
    'g|grep'        => \$grep,
@@ -41,6 +42,8 @@ GetOptions (
 
 chdir glob $dir ||= '.' or die RED.$!.RESET, "\n";
 $dir =~ s(/+$)();
+
+$hidden ||= '';
 
 # Globals
 my ($query, $key, $file);
@@ -69,6 +72,7 @@ sub Open(;$)
 
    my (undef, undef, $ext) = fileparse($file, qr/\.[^.]+$/);
 
+   # open with your EDITOR
    if ($key or $view)
    {
       # open with nvim (send to running instance)?
@@ -80,6 +84,7 @@ sub Open(;$)
       }
    }
 
+   # open with adequate app
    # binary files, is -x test needed?
    if (not -x $file and -B _ || $ext =~ /\.pdf$/i)
    {
@@ -94,10 +99,12 @@ sub Open(;$)
    {
       if ($ext =~ /\.md$/i)
       {
+         # open markdown docs in the browser
          exec $open, "https://github.com/kurkale6ka/help/blob/master/$file";
       }
       elsif ($ext =~ /\.pl$/i)
       {
+         # run perl programs
          say CYAN, $dir ne '.' ? "$dir/":'', $file, RESET;
          do "./$file";
          exit;
@@ -107,6 +114,7 @@ sub Open(;$)
    # display path of file being viewed
    say CYAN, $dir ne '.' ? "$dir/":'', $file, RESET;
 
+   # cat
    if ($ext =~ /\.(?!te?xt).+$/i)
    {
       exec qw/bat --style snip --italic-text always --theme zenburn -mconf:ini/, $file;
@@ -115,7 +123,7 @@ sub Open(;$)
    }
 }
 
-my $find = 'fd -tf -H -E.git -E.svn -E.hg --ignore-file ~/.gitignore';
+my $find = "fd -tf $hidden -E.git -E.svn -E.hg --ignore-file ~/.gitignore";
 my $fzf_opts = '-0 -1 --cycle --print-query --expect=alt-v';
 
 sub Grep()
@@ -124,7 +132,7 @@ sub Grep()
    until ($results)
    {
       exit 1 unless $query;
-      chomp ($_ = `rg -S --hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf $fzf_opts --preview 'rg -S --color=always $query {}'`);
+      chomp ($_ = `rg -S $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf $fzf_opts --preview 'rg -S --color=always $query {}'`);
       $results = fzf_results;
    }
 
