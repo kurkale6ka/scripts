@@ -1,3 +1,4 @@
+* [Fuzzy files explorer](ex.pl)
 * [Human readable pgrep](pg.pl)
 * [Fuzzy search & open of websites loaded from a file](www.pl)
 * [Show Certificate/CSR info (openssl helper)](cert.pl)
