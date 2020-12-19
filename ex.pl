@@ -54,7 +54,11 @@ sub fzf_results()
    my @output = split '\n';
    exit 1 unless @output; # canceled with Esc or ^C
 
-   $query = $output[0] if $output[0] and @output < 3; # only if no results
+   if ($output[0] and @output < 3) # only if no results
+   {
+      $query = $output[0];
+      $query =~ tr/^$\'//d; # partial support of fzf's extended search mode
+   }
    $key = $output[1];
 
    if (@output == 3) # query / key pressed / file
@@ -102,9 +106,8 @@ sub Open(;$)
          # open markdown docs in the browser
          exec $open, "https://github.com/kurkale6ka/help/blob/master/$file";
       }
-      elsif ($ext =~ /\.pl$/i)
+      elsif ($file eq 'printf.pl')
       {
-         # run perl programs
          say CYAN, $dir ne '.' ? "$dir/":'', $file, RESET;
          do "./$file";
          exit;
