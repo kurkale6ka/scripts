@@ -9,6 +9,7 @@
 use strict;
 use warnings;
 use feature 'say';
+use utf8;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 use List::Util 'any';
@@ -22,24 +23,24 @@ sub help()
 {
    print <<MSG;
 vpn.pl [-a|--auth ...]                : credentials file ($vpn/details)
-       [-b|--batch]                   : no codes with --show
        [-c|--config ...] or [pattern] : config file ($vpn/ovpn_<proto>/...)
        [-d|--download]                : download config files
        [-p|--protocol ...]            : defaults to udp
        [-s|--show [pattern]]          : show countries
+       [-b|--batch]                   : no codes with --show
 MSG
    exit;
 }
 
 # Arguments
-my ($batch, $config, $download, $show);
+my ($config, $download, $show, $batch);
 GetOptions (
    'a|auth=s'     => \$auth,
-   'b|batch'      => \$batch,
    'c|config=s'   => \$config,
    'd|download'   => \$download,
    'p|protocol=s' => \$protocol,
    's|show:s'     => \$show,
+   'b|batch'      => \$batch,
    'h|help'       => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
