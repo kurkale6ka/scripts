@@ -8,8 +8,11 @@ use feature 'say';
 use re '/aa';
 use File::Find;
 use Getopt::Long qw/GetOptions :config bundling/;
-use Term::ANSIColor qw/color :constants/;
 use List::Util 'any';
+use Term::ANSIColor qw/color :constants/;
+
+my $BLUE = color('ansi69');
+my $GRAY = color('ansi242');
 
 # extra backup extensions, in addition to ~
 my @extensions = qw/bak old/;
@@ -24,11 +27,11 @@ sub help()
    print <<MSG;
 SYNOPSIS
 
-backup    :   list (-a) backup~ files
-backup -d : delete (-a) backup~ files
+backup    :   list [-a] backup~ files
+backup -d : delete [-a] backup~ files
 
-backup    file       : create file.bak
-backup -s file(.bak) : swap backup with original, file <~> file.bak
+backup    file         : create file.bak
+backup -s [file[.bak]] : swap backup with original, file <~> file.bak
 
 OPTIONS
 
@@ -44,7 +47,7 @@ my ($all, $delete, $swap);
 GetOptions (
    'a|all'    => \$all,
    'd|delete' => \$delete,
-   's|swap=s' => \$swap,
+   's|swap:s' => \$swap,
    'h|help'   => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
@@ -63,7 +66,7 @@ elsif (@ARGV > 1)
 # Swap backup file with original
 sub swap($)
 {
-   # todo
+   # todo + infer name if only one present
    my $file = shift;
    say "Swapped $file";
    exit;
@@ -75,8 +78,23 @@ swap $swap if $swap and -f $swap;
 my $del_pattern = qr/.+(?<!un)~$/;
 my @deletes;
 
+my @cvs = map qr/\.$_/, qw/git hg svn/;
+my $cache = qr/\..*cache/i;
+
 # Find backup files
-find (\&wanted, '.');
+find ({wanted => \&wanted, preprocess => \&preprocess}, '.');
+
+# exclude CVS + cache folders
+sub preprocess
+{
+   my @inodes;
+   foreach my $inode (@_)
+   {
+      next if any {$inode =~ /$_/} @cvs, $cache;
+      push @inodes, $inode;
+   }
+   return @inodes;
+}
 
 # actions
 sub wanted()
@@ -97,7 +115,12 @@ sub wanted()
    }
 
    # List
-   say substr $name, 2 if $name =~ /$del_pattern/ or $all;
+   if ($name =~ /$del_pattern/ or $all)
+   {
+      # ./ stripped, blue dirs / gray backup~
+      $name =~ s/..(.*)($basename)/$BLUE.$1.$GRAY.$2.RESET/e;
+      say $name;
+   }
 }
 
 # Delete in bulk
