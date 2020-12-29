@@ -54,9 +54,8 @@ GetOptions (
 # Create a backup
 if (@ARGV == 1)
 {
-   # todo: fix --
    my $file = shift;
-   exec qw/cp -i/, $file, "$file.bak";
+   exec qw/cp -i --/, $file, "$file.bak";
 }
 elsif (@ARGV > 1)
 {
