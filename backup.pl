@@ -15,10 +15,7 @@ my $BLUE = color('ansi69');
 my $GRAY = color('ansi242');
 
 # extra backup extensions, in addition to ~
-my @extensions = qw/bak old/;
-my @includes = map {".$_"} @extensions;
-
-@extensions = map {qr/\.$_$/i} @extensions;
+my @extensions = qw/.bak .old .origin .backup .save/;
 
 # Help
 sub help()
@@ -35,7 +32,7 @@ backup -s [file[.bak]] : swap backup with original, file <~> file.bak
 
 OPTIONS
 
---all,    -a => include @includes + any match of 'backup'
+--all,    -a => include @extensions
 --delete, -d
 --swap,   -s
 MSG
@@ -50,6 +47,16 @@ GetOptions (
    's|swap:s' => \$swap,
    'h|help'   => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
+
+# turn extensions into compiled patterns
+@extensions = map {
+   if (/^backup/ or /^save/)
+   {
+      qr/\..*$_/i; # .10_backup_2012 .rpmsave
+   } else {
+      qr/\.$_$/i;  # .bak, .old, ...
+   }
+} map {substr $_, 1} @extensions;
 
 # Create a backup
 if (@ARGV == 1)
@@ -74,7 +81,7 @@ sub swap($)
 swap $swap if $swap and -f $swap;
 
 # Exclude CVS + cache folders
-my @cvs = map qr/\.$_/, qw/git hg svn/;
+my @cvs = map qr/\.$_\b/, qw/git hg svn/;
 my $cache = qr/\..*cache/i;
 
 sub preprocess()
@@ -97,9 +104,8 @@ sub wanted()
    my $basename = $_;
 
    # skip non backup files
-   return unless $basename =~ /$del_pattern/ # .pl~
-      or any {$basename =~ /$_/} @extensions # .bak, .old, ...
-      or /\..*backup[^.]*$/i;                # .backup_2012
+   return unless $basename =~ /$del_pattern/
+      or any {$basename =~ /$_/} @extensions;
 
    my $name = $File::Find::name;
 
