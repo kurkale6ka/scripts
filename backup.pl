@@ -10,6 +10,8 @@ use File::Find;
 use Getopt::Long qw/GetOptions :config bundling/;
 use List::Util 'any';
 use Term::ANSIColor qw/color :constants/;
+use File::Glob ':bsd_glob';
+use File::Basename 'fileparse';
 
 my $BLUE = color('ansi69');
 my $GRAY = color('ansi242');
@@ -22,16 +24,13 @@ sub help()
 {
    $" = ', ';
    print <<MSG;
-SYNOPSIS
-
-backup    :   list [-a] backup~ files
-backup -d : delete [-a] backup~ files
+backup    :   list [-a] backups~
+backup -d : delete [-a] backups~
 
 backup    file         : create file.bak
 backup -s [file[.bak]] : swap backup with original, file <~> file.bak
 
-OPTIONS
-
+Options
 --all,    -a => include @extensions
 --delete, -d
 --swap,   -s
@@ -70,15 +69,36 @@ elsif (@ARGV > 1)
 }
 
 # Swap backup file with original
-sub swap($)
+sub swap()
 {
-   # todo + infer name if only one present
-   my $file = shift;
-   say "Swapped $file";
+   unless ($swap)
+   {
+      my @file = glob '*.bak';
+
+      if (@file == 1)
+      {
+         $swap = shift @file;
+      } elsif (@file > 1) {
+         die "Found multiple backups. Please select one with -s\n";
+      } else {
+         die "No backups found.\n";
+      }
+   }
+
+   # get the file without the extension
+   my $swap = fileparse($swap, qr/\.[^.]+$/);
+
+   # .bak present
+   # mv $swap $swap.new
+   # mv $swap.bak $swap
+
+   # .new present
+   # mv $swap $swap.bak
+   # mv $swap.new $swap
    exit;
 }
 
-swap $swap if $swap and -f $swap;
+swap if defined $swap;
 
 # Exclude CVS + cache folders
 my @cvs = map qr/\.$_\b/, qw/git hg svn/;
