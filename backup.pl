@@ -73,18 +73,11 @@ sub swap($)
 
 swap $swap if $swap and -f $swap;
 
-# Backup files to delete, bar vim undo files, *.un~
-my $del_pattern = qr/.+(?<!un)~$/;
-my @deletes;
-
+# Exclude CVS + cache folders
 my @cvs = map qr/\.$_/, qw/git hg svn/;
 my $cache = qr/\..*cache/i;
 
-# Find backup files
-find ({wanted => \&wanted, preprocess => \&preprocess}, '.');
-
-# exclude CVS + cache folders
-sub preprocess
+sub preprocess()
 {
    my @inodes;
    foreach my $inode (@_)
@@ -95,14 +88,18 @@ sub preprocess
    return @inodes;
 }
 
-# actions
+# Backup files to delete, bar vim undo files, *.un~
+my $del_pattern = qr/.+(?<!un)~$/;
+my @deletes;
+
 sub wanted()
 {
    my $basename = $_;
 
-   return unless $basename =~ /$del_pattern/
-      or any {$basename =~ /$_/} @extensions
-      or /backup/i;
+   # skip non backup files
+   return unless $basename =~ /$del_pattern/ # .pl~
+      or any {$basename =~ /$_/} @extensions # .bak, .old, ...
+      or /\..*backup[^.]*$/i;                # .backup_2012
 
    my $name = $File::Find::name;
 
@@ -121,6 +118,9 @@ sub wanted()
       say $name;
    }
 }
+
+# Find backup files
+find ({preprocess => \&preprocess, wanted => \&wanted}, '.');
 
 # Delete in bulk
 unlink @deletes if $delete;
