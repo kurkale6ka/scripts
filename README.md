@@ -2,6 +2,7 @@
 * [Human readable pgrep](pg.pl)
 * [Fuzzy search & open of websites loaded from a file](www.pl)
 * [Show Certificate/CSR info (openssl helper)](cert.pl)
+* [Backups: create, cleanup, manage](backup.pl)
 * [SSH setup](mkssh.pl)
 * [Simple calculator](calc.pl)
 * [Dot files setup](mkconfig.pl)
