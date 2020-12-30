@@ -76,7 +76,7 @@ sub swap()
    # not a file or one without extension
    if (not -f $swap or $swap !~ /\./)
    {
-      opendir my $dh, '.' or die "$!\n";
+      opendir my $dh, '.' or die RED.$!.RESET, "\n";
 
       my
       @backups = grep { /$ext_rg[0]/ or /$ext_rg[1]/ } readdir $dh;
@@ -84,15 +84,18 @@ sub swap()
 
       if (@backups)
       {
-         die "Found multiple backups. Please select one with -s\n" if @backups > 1;
+         if (@backups > 1)
+         {
+            die RED.'Found multiple backups. Please select one with -s'.RESET, "\n"
+         }
          $swap = shift @backups;
       } else {
-         die "No backups found.\n";
+         die RED.'No backups found'.RESET, "\n";
       }
    }
    elsif (none {$swap =~ /$_/} @ext_rg)
    {
-      die "Wrong extension\n";
+      die RED.'Wrong extension'.RESET, "\n";
    }
 
    my ($name, undef, $ext) = fileparse($swap, qr/\.[^.]+$/);
@@ -104,14 +107,15 @@ sub swap()
       if (system (qw/mv -i --/, $swap, $name) == 0)
       {
          say "$swap -> $name $GRAY-> ${name}${ext}".RESET;
-         exit;
       }
-   } else {
-      exit 1;
    }
 }
 
-swap if defined $swap;
+if (defined $swap)
+{
+   swap();
+   exit;
+}
 
 # Exclude CVS + cache folders
 my @cvs = map qr/\.$_\b/, qw/git hg svn/;
