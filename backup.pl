@@ -26,8 +26,8 @@ sub help()
 backup    :   list [-a] backups~
 backup -d : delete [-a] backups~
 
-backup    file         : create file.bak
-backup -s [file[.bak]] : swap backup with original, file <~> file.bak
+backup    file      : create file.bak
+backup -s [pattern] : swap backup with original
 
 Options
 --all,    -a => include @extensions
