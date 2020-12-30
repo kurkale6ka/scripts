@@ -8,9 +8,8 @@ use feature 'say';
 use re '/aa';
 use File::Find;
 use Getopt::Long qw/GetOptions :config bundling/;
-use List::Util 'any';
+use List::Util qw/any none/;
 use Term::ANSIColor qw/color :constants/;
-use File::Glob ':bsd_glob';
 use File::Basename 'fileparse';
 
 my $BLUE = color('ansi69');
@@ -71,31 +70,45 @@ elsif (@ARGV > 1)
 # Swap backup file with original
 sub swap()
 {
-   unless ($swap)
-   {
-      my @file = glob '*.bak';
+   my @ext = qw/bak new/;
+   my @ext_rg = map qr/\.$_$/i, @ext;
 
-      if (@file == 1)
+   # not a file or one without extension
+   if (not -f $swap or $swap !~ /\./)
+   {
+      opendir my $dh, '.' or die "$!\n";
+
+      my
+      @backups = grep { /$ext_rg[0]/ or /$ext_rg[1]/ } readdir $dh;
+      @backups = grep { /$swap/ } @backups if $swap;
+
+      if (@backups)
       {
-         $swap = shift @file;
-      } elsif (@file > 1) {
-         die "Found multiple backups. Please select one with -s\n";
+         die "Found multiple backups. Please select one with -s\n" if @backups > 1;
+         $swap = shift @backups;
       } else {
          die "No backups found.\n";
       }
    }
+   elsif (none {$swap =~ /$_/} @ext_rg)
+   {
+      die "Wrong extension\n";
+   }
 
-   # get the file without the extension
-   my $swap = fileparse($swap, qr/\.[^.]+$/);
+   my ($name, undef, $ext) = fileparse($swap, qr/\.[^.]+$/);
 
-   # .bak present
-   # mv $swap $swap.new
-   # mv $swap.bak $swap
+   $ext = $ext =~ /$ext_rg[1]/ ? ".$ext[0]" : ".$ext[1]";
 
-   # .new present
-   # mv $swap $swap.bak
-   # mv $swap.new $swap
-   exit;
+   if (system (qw/mv -i --/, $name, $name.$ext) == 0)
+   {
+      if (system (qw/mv -i --/, $swap, $name) == 0)
+      {
+         say "$swap -> $name $GRAY-> ${name}${ext}".RESET;
+         exit;
+      }
+   } else {
+      exit 1;
+   }
 }
 
 swap if defined $swap;
