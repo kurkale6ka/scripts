@@ -8,7 +8,6 @@ use feature 'say';
 use re '/aa';
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 use Term::ANSIColor qw/color :constants/;
-use File::Glob ':bsd_glob';
 use File::Basename 'fileparse';
 
 # Help
@@ -28,8 +27,10 @@ MSG
 }
 
 # Arguments
+my $dir = '.';
 my $hidden = '--hidden';
-my ($dir, $exact, $grep, $only, $view);
+
+my ($exact, $grep, $only, $view);
 GetOptions (
    'H|hidden!'     => \$hidden,
    'd|directory=s' => \$dir,
@@ -40,8 +41,9 @@ GetOptions (
    'h|help'        => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-chdir glob $dir ||= '.' or die RED.$!.RESET, "\n";
-$dir =~ s(/+$)();
+$dir = glob $dir if $dir =~ /^~/;
+$dir =~ s@/+$@@;
+chdir $dir or die RED.$!.RESET, "\n";
 
 $hidden ||= '';
 
