@@ -16,7 +16,7 @@ sub help()
    print << 'MSG';
 ex [options] [topic]
 
---(no-)hidden,   -H: include hidden files
+--(no-)hidden,   -H: include hidden files (default)
 --directory=dir, -d: change root directory
 --exact,         -e: exact filename matches
 --grep,          -g: grep for occurrences of topic in files
@@ -28,7 +28,7 @@ MSG
 
 # Arguments
 my $dir = '.';
-my $hidden = '--hidden';
+my $hidden = 1;
 
 my ($exact, $grep, $only, $view);
 GetOptions (
@@ -42,10 +42,11 @@ GetOptions (
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 $dir = glob $dir if $dir =~ /^~/;
-$dir =~ s@/+$@@;
+$dir =~ s'/+$'';
+
 chdir $dir or die RED.$!.RESET, "\n";
 
-$hidden ||= '';
+$hidden = $hidden ? '--hidden' : '';
 
 # Globals
 my ($query, $key, $file);
