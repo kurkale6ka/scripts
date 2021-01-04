@@ -59,8 +59,10 @@ sub sync($)
    '-f', '- .gitignore',
    '-f', '- LICENSE*',
    '-f', '- README*',
-   '-f', '- bash/.bash_history',
-   '-f', 'P bash/.bash_history',
+   '-f', '- bash/.bash_history', # exclude from transfer,
+   '-f', 'P bash/.bash_history', # but Protect against deletion
+   '-f', '- bash/.bashrc_after',
+   '-f', 'P bash/.bashrc_after',
    '-f', '- bash/.bashrc.mini',
    '-f', ".- $ENV{REPOS_BASE}/config/dotfiles/.gitignore",
    '-f', '- config/dotfiles/.inputrc.mini',
