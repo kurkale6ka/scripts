@@ -35,13 +35,16 @@ GetOptions(
 
 @ARGV == 1 or die $help;
 
+# Get user
 my $user = shift;
 my $uid = getpwnam $user;
+die RED.'Wrong user'.RESET, "\n" unless $uid;
 
 # Main
 print CYAN.'Public key: '.RESET;
 chomp ($_ = <STDIN>);
 
+# check key
 system ("echo '$_' | ssh-keygen -lf - >/dev/null") == 0 or die RED.$!.RESET, "\n";
 
 my @key = split ' ', $_, 3;
