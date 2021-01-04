@@ -1,10 +1,15 @@
 #! /usr/bin/env perl
 
-# Install ssh keys in ~/.ssh/authorized_keys,
-# enforce correct modes (700/600) + ownership
-#
-# root: create one user per key
-# else: put all keys under the current user
+# - create ssh folder, check sshd_config?
+# - get/validate/install keys
+# - change permissions
+# - reload ssh? check messages, secure?
+
+# non root
+# get key
+# display permissions, namei, other info?
+
+# Install ssh key in ~/.ssh/authorized_keys,
 #
 # run this script with:
 # perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkssh.pl)
@@ -14,145 +19,53 @@ use warnings;
 use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
-use File::Path 'make_path';
-use Term::ReadLine;
-
-my $BLUE  = color('ansi69');
-my $CYAN  = color('ansi45');
-my $GREEN = color('green');
-my $S = color('bold');
-my $E = color('italic');
-my $R = color('reset');
 
 # Help
-sub help() {
-   print <<MSG;
-${S}SYNOPSIS${R}
-mkssh      : read key on STDIN
-mkssh ${CYAN}file${R} : read keys from file
-
-${S}OPTIONS${R}
--d|--home-dir ${BLUE}/home${R}
-
-${S}DESCRIPTION${R}
-Install ssh keys in ${BLUE}~/.ssh/${R}authorized_keys,
-enforce correct modes (700/600) + ownership
-
-root: create one user per key
-else: put all keys under the current user
+my $help = << 'MSG';
+mkssh <user>
+append key to ~/.ssh/authorized_keys
+- check/fix modes
+- get fingerprint?
 MSG
-exit;
-}
 
 # Arguments
-my $home = $^O eq 'linux' ? '/home' : '/Users';
-
 GetOptions(
-   'd|home-dir=s' => \$home,
-   'h|help'       => \&help
+   'h|help' => sub {print $help; exit}
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-$home and $home =~ s@/$@@;
+@ARGV == 1 or die $help;
 
-@ARGV <= 1
-   or die RED.'Wrong number of arguments'.RESET, "\n";
-
-# Declarations
-sub validate_key ($);
-sub install_keys (@);
+my $user = shift;
+my $uid = getpwnam $user;
 
 # Main
-unless (@ARGV)
-{
-   print 'Public key: ';
-   chomp ($_ = <STDIN>);
-   validate_key $_;
-   install_keys $_;
-} else {
-   my @keys;
-   open my $keys, '<', shift or die RED.$!.RESET, "\n";
-   while (<$keys>)
-   {
-      next if /^#/ or /^$/;
-      chomp;
-      validate_key $_;
-      push @keys, $_;
-   }
-   install_keys @keys;
+print CYAN.'Public key: '.RESET;
+chomp ($_ = <STDIN>);
+
+system ("echo '$_' | ssh-keygen -lf - >/dev/null") == 0 or die RED.$!.RESET, "\n";
+
+my @key = split ' ', $_, 3;
+my $key = quotemeta $key[1];
+$key = qr/$key/;
+
+# local/remote differentiation ...
+mkdir glob("~$user/.ssh"), 0700;
+
+# Write key
+# todo: skip if local
+open my $KEYS, '+>>', glob "~$user/.ssh/authorized_keys" or die RED.$!.RESET, "\n";
+seek $KEYS, 0, 0;
+
+while (<$KEYS>) {
+   die RED.'Key already installed: '.RESET.$_ if /$key/;
 }
 
-# Functions
-sub validate_key ($)
-{
-   $_ = shift;
-   my @key = split;
-   @key > 2
-      or die RED.'Wrong ssh key format. "type key comment" expected'.RESET, "\n";
-}
+say $KEYS "@key";
 
-sub install_keys (@)
-{
-   my @keys = @_;
+# Set mode + ownership
+# todo: print changes, get mode first
+chmod 0600, glob "~$user/.ssh/authorized_keys";
 
-   # get current user
-   my ($name, $passwd, $uid, $gid) = getpwuid $>;
-
-   my $user = $name unless $name eq 'root';
-
-   foreach my $ssh_key (@keys)
-   {
-      my @key = split ' ', $ssh_key;
-      my $key = $key[1];
-
-      # add user
-      if ($name eq 'root')
-      {
-         my $comment = "@key[2..$#key]";
-
-         if (length ($comment) < 31)
-         {
-            say "${CYAN}Adding user for ${GREEN}${E}$comment${R}";
-         } else {
-            say "${CYAN}Adding user for ${GREEN}${E}", substr ($comment, 0, 30) . "<...${R}";
-         }
-
-         # propose username from email if Perl GNU readline installed
-         if ($comment =~ /@/)
-         {
-            my $term = Term::ReadLine->new('RL');
-            $term->ornaments(0);
-            $user = $term->readline ('user: ', split '@', $comment);
-         } else {
-            print 'user: ';
-            chomp ($user = <STDIN>);
-         }
-
-         print 'comment: ';
-         chomp (my $gcomment = <STDIN>);
-
-         system qw(useradd -m -c), $gcomment, $user;
-         $? == 0 or die RED.$!.RESET, "\n";
-
-         $uid = getpwnam $user;
-         $gid = getgrnam $user;
-      }
-
-      # write key
-      make_path "$home/$user/.ssh";
-
-      unless (system (qw/grep -q -s/, $key, "$home/$user/.ssh/authorized_keys") == 0)
-      {
-         open my $auth_keys, '>>', "$home/$user/.ssh/authorized_keys"
-            or die RED.$!.RESET, "\n";
-         say $auth_keys $ssh_key;
-      }
-
-      # mode and ownership
-      chmod 0700, "$home/$user/.ssh";
-      chmod 0600, "$home/$user/.ssh/authorized_keys";
-
-      chown $uid, $gid, "$home/$user";
-      chown $uid, $gid, "$home/$user/.ssh";
-      chown $uid, $gid, "$home/$user/.ssh/authorized_keys";
-   }
-}
+chown $uid, -1, glob "~$user";
+chown $uid, -1, glob "~$user/.ssh";
+chown $uid, -1, glob "~$user/.ssh/authorized_keys";
