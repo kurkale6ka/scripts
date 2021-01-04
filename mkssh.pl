@@ -35,22 +35,21 @@ GetOptions(
 
 @ARGV == 1 or die $help;
 
-# Get user
+# Get user and key
 my $user = shift;
-my $uid = getpwnam $user;
-die RED.'Wrong user'.RESET, "\n" unless $uid;
+my $uid = getpwnam $user or die RED.'Wrong user'.RESET, "\n";
 
-# Main
 print CYAN.'Public key: '.RESET;
 chomp ($_ = <STDIN>);
 
 # check key
-system ("echo '$_' | ssh-keygen -lf - >/dev/null") == 0 or die RED.$!.RESET, "\n";
+system ("echo '$_' | ssh-keygen -lf - >/dev/null") == 0 or exit 1;
 
 my @key = split ' ', $_, 3;
 my $key = quotemeta $key[1];
 $key = qr/$key/;
 
+# Create ssh folder
 # local/remote differentiation ...
 mkdir glob("~$user/.ssh"), 0700;
 
