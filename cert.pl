@@ -183,6 +183,20 @@ sub check()
    # Chain of Trust tests
    say $PINK.'Chain of Trust'.RESET;
 
+   sub chain($)
+   {
+      my $cert = shift;
+      my $command = "openssl crl2pkcs7 -nocrl -certfile $cert | openssl pkcs7 -noout -print_certs";
+      unless ($view)
+      {
+         chomp ($_ = run '-g', $command);
+         s/^.*cn\h*=\h*/$GRAY.$&.RESET/megi;
+         say;
+      } else {
+         run $command;
+      }
+   }
+
    # continue if it looks like a certificate
    unless (($base =~ /chain|\bca\b/i or $ext =~ /\.ch(ai)?n/in) and not $view)
    {
@@ -219,26 +233,13 @@ sub check()
          # show chain
          print "\n";
 
-         sub chain($)
-         {
-            my $cert = shift;
-            my $command = "openssl crl2pkcs7 -nocrl -certfile $cert | openssl pkcs7 -noout -print_certs";
-            unless ($view)
-            {
-               chomp ($_ = run '-g', $command);
-               s/^.*cn\h*=\h*/$GRAY.$&.RESET/megi;
-               say;
-            } else {
-               run $command;
-            }
-         }
-
          chain $cert;
          chain $intermediate unless $cert eq $intermediate;
       }
    }
    else {
-      warn RED.'Certificate needed but got intermediate certificates (view with -v)'.RESET, "\n";
+      chain $cert;
+      die RED.'Certificate needed but got intermediate certificates'.RESET, "\n";
    }
 
    # Certificate/key match test
