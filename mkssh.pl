@@ -1,15 +1,14 @@
 #! /usr/bin/env perl
 
-# - create ssh folder, check sshd_config?
-# - get/validate/install keys
-# - change permissions
-# - reload ssh? check messages, secure?
-
-# non root
-# get key
-# display permissions, namei, other info?
-
-# Install ssh key in ~/.ssh/authorized_keys,
+# Append SSH key to ~/.ssh/authorized_keys
+#
+# if PasswordAuthentication yes, use:
+# ssh-copy-id -i ~/.ssh/id_rsa.pub user@host
+#
+# This script only installs the key. You still need to:
+# - openssl rand -base64 25 | cut -c-20 | passwd --stdin <user>
+# - AllowUsers <user>
+# - systemctl reload sshd
 #
 # run this script with:
 # perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkssh.pl)
@@ -17,6 +16,7 @@
 use strict;
 use warnings;
 use feature 'say';
+use re '/aa';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
@@ -24,8 +24,6 @@ use Getopt::Long qw/GetOptions :config bundling/;
 my $help = << 'MSG';
 mkssh <user>
 append key to ~/.ssh/authorized_keys
-- check/fix modes
-- get fingerprint?
 MSG
 
 # Arguments
@@ -34,6 +32,21 @@ GetOptions(
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 @ARGV == 1 or die $help;
+
+# Run as 'root' only
+die RED.'Attempt to run unprivileged. Aborting!'.RESET, "\n" if $>;
+
+# Emit warning if trying to use this script locally
+unless ($ENV{SSH_CONNECTION}) {
+   my $local = 1;
+   open my $pipe, '-|', 'who' or die RED.$!.RESET, "\n";
+   while (<$pipe>) {
+      if (/\( (?:\d{1,3}\.){3} \d{1,3} \)/x) { # (IP)
+         undef $local; last;
+      }
+   }
+   die RED.'Attempt to run locally. Aborting!'.RESET, "\n" if $local;
+}
 
 # Get user and key
 my $user = shift;
@@ -52,11 +65,9 @@ my $key = quotemeta $key[1];
 $key = qr/$key/;
 
 # Create ssh folder
-# local/remote differentiation ...
 mkdir glob("~$user/.ssh"), 0700;
 
 # Write key
-# todo: skip if local
 open my $KEYS, '+>>', glob "~$user/.ssh/authorized_keys" or die RED.$!.RESET, "\n";
 seek $KEYS, 0, 0;
 
@@ -67,7 +78,6 @@ while (<$KEYS>) {
 
 say $KEYS "@key";
 
-# todo: print changes, get mode first
 # Set mode
 chmod 0600, glob "~$user/.ssh/authorized_keys";
 
