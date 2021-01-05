@@ -64,10 +64,12 @@ die $help unless @ARGV == 1;
 die RED.$!.RESET, "\n" unless -f $ARGV[0] or $csr;
 
 my $cert = shift;
-my ($base, $dirs, $ext) = fileparse($cert, qr/\.[^.]+$/);
-
 my @certificates = qw/.crt .pem/;
 
+my ($base, $dirs, $ext) = fileparse($cert, qr/\.[^.]+$/);
+$dirs = '' if $dirs eq './';
+
+# use certificate.crt if given certificate.key for instance
 sub change_cert()
 {
    unless (grep /$ext/io, @certificates)
@@ -239,7 +241,7 @@ sub check()
    }
    else {
       chain $cert;
-      die RED.'Certificate needed but got intermediate certificates'.RESET, "\n";
+      die YELLOW.'Certificate needed but got intermediate certificates'.RESET, "\n";
    }
 
    # Certificate/key match test
