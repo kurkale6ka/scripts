@@ -37,7 +37,9 @@ GetOptions(
 
 # Get user and key
 my $user = shift;
+
 my $uid = getpwnam $user or die RED.'Wrong user'.RESET, "\n";
+my $gid = getgrnam $user;
 
 print CYAN.'Public key: '.RESET;
 chomp ($_ = <STDIN>);
@@ -59,15 +61,15 @@ open my $KEYS, '+>>', glob "~$user/.ssh/authorized_keys" or die RED.$!.RESET, "\
 seek $KEYS, 0, 0;
 
 while (<$KEYS>) {
+   next if /^\h*#/;
    die RED.'Key already installed: '.RESET.$_ if /$key/;
 }
 
 say $KEYS "@key";
 
-# Set mode + ownership
 # todo: print changes, get mode first
+# Set mode
 chmod 0600, glob "~$user/.ssh/authorized_keys";
 
-chown $uid, -1, glob "~$user";
-chown $uid, -1, glob "~$user/.ssh";
-chown $uid, -1, glob "~$user/.ssh/authorized_keys";
+# Set ownership
+chown $uid, $gid, map glob, ("~$user/.ssh", "~$user/.ssh/authorized_keys");
