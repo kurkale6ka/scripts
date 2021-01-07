@@ -131,6 +131,7 @@ sub Open(;$)
 
 my $find = "fd -tf $hidden -E.git -E.svn -E.hg --ignore-file ~/.gitignore";
 my $fzf_opts = '-0 -1 --cycle --print-query --expect=alt-v';
+my $preview = q/--preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi'/;
 
 sub Grep()
 {
@@ -162,7 +163,7 @@ if (@ARGV)
    my $mode = defined $exact ? "-pF $query" : '';
 
    # -q isn't required with 'exact', it's supplied to enable highlighting
-   chomp ($_ = `$find $mode | fzf -q$query $fzf_opts`);
+   chomp ($_ = `$find $mode | fzf -q$query $fzf_opts $preview`);
 
 }
 # Search trough all help files
@@ -170,7 +171,7 @@ else
 {
    # fuzzy (default) or exact?
    my $mode = defined $exact ? '-e' : '';
-   chomp ($_ = `$find | fzf $mode $fzf_opts --preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi'`);
+   chomp ($_ = `$find | fzf $mode $fzf_opts $preview`);
 }
 
 if (fzf_results)
