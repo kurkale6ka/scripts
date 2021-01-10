@@ -8,4 +8,5 @@
 * [Dot files setup](mkconfig.pl)
 * [OpenVPN helper for NordVPN](vpn.pl)
 * [Sort camera shots into timestamped folders](pics.pl)
+* [Perl Help](man.pl)
 * [Generate a Makefile for postfix Berkeley DB (.db) files](mail/makefile-db.pl)
