@@ -1,5 +1,7 @@
 #! /usr/bin/env perl
 
+# Easier access to Perl help topics
+
 use strict;
 use warnings;
 use feature 'say';
@@ -11,9 +13,12 @@ use Module::CoreList;
 sub info
 {
    my $topic = shift;
-   unless (system ('man', $topic) == 0)
+   unless (system ("man $topic 2>/dev/null") == 0)
    {
-      exec 'perldoc', $topic;
+      unless (system ("man perl$topic 2>/dev/null") == 0)
+      {
+         exec 'perldoc', $topic;
+      }
    }
    exit;
 }
@@ -25,11 +30,11 @@ sub help
 mp            : perldoc
 mp <function> : builtin function
 mp v.         : variable $. (can also be invoked with \$.)
-mp -v         : all variables
-mp -m         : core modules
-mp -r         : command line options
+mp <section>  : (perl)re, (perl)run, ...
 mp -s         : help sections
-mp -q topic   : extra options are passed to perldoc
+mp -m         : core modules
+
+Extra options will be passed through to perldoc
 MSG
    exit;
 }
@@ -37,11 +42,9 @@ MSG
 # Arguments
 GetOptions (
    'module'       => \&module,
-   'run'          => sub {info 'perlrun'}, # command line options
-   'p|s|sections' => sub {info 'perl'},    # help on Perl (which lists help sections)
-   'var'          => sub {info 'perlvar'}, # variables
+   'p|s|sections' => sub {info 'perl'}, # help on Perl (which lists help sections)
    'help'         => \&help,
-   '<>'           => \&extra,
+   '<>'           => \&extra
 ) or die "Error in command line arguments\n";
 
 sub extra
@@ -61,7 +64,7 @@ sub module
    my $modules = Module::CoreList::find_version $];
    my @modules = keys %$modules;
    chomp (my $page = `printf '%s\n' @modules | fzf -0 -1 --cycle`);
-   info $page;
+   info $page if $page;
    exit;
 }
 
@@ -77,5 +80,9 @@ if ($page =~ /^[\$v].$/)
    exec qw/perldoc -v/, $page;
 }
 
-# Default: builtin functions
-exec qw/perldoc -f/, $page;
+# Builtin functions
+unless (system ("perldoc -f $page 2>/dev/null") == 0)
+{
+   # Sections & misc
+   info $page;
+}
