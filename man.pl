@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use feature 'say';
 use re '/aa';
-use Getopt::Long qw/GetOptions :config pass_through/;
+use Getopt::Long qw/GetOptions :config no_ignore_case pass_through/;
 use Module::CoreList;
 
 # Help: man, perldoc
@@ -32,7 +32,7 @@ mp <function> : builtin function
 mp v.         : variable $. (can also be invoked with \$.)
 mp <section>  : (perl)re, (perl)run, ...
 mp -s         : help sections
-mp -m         : core modules
+mp -m         : core module, -M can be used to view the code
 
 Extra options will be passed through to perldoc
 MSG
@@ -41,10 +41,11 @@ MSG
 
 # Arguments
 GetOptions (
-   'module'       => \&module,
-   'p|s|sections' => sub {info 'perl'}, # help on Perl (which lists help sections)
-   'help'         => \&help,
-   '<>'           => \&extra
+   'module:s'        => \&module,
+   'M|view-module:s' => \&module,
+   'p|s|sections'    => sub {info 'perl'}, # help on Perl (which lists help sections)
+   'help'            => \&help,
+   '<>'              => \&extra
 ) or die "Error in command line arguments\n";
 
 sub extra
@@ -58,14 +59,29 @@ sub extra
    }
 }
 
-# todo: prefilter, view module with alt-v
+# todo: view module with alt-v
 sub module
 {
+   my ($opt, $val) = @_;
+
+   my $page;
    my $modules = Module::CoreList::find_version $];
    my @modules = keys %$modules;
-   chomp (my $page = `printf '%s\n' @modules | fzf -0 -1 --cycle`);
-   info $page if $page;
-   exit;
+
+   unless ($val)
+   {
+      chomp ($page = `printf '%s\n' @modules | fzf -0 -1 --cycle`);
+   } else {
+      chomp ($page = `printf '%s\n' @modules | fzf -q'$val' -0 -1 --cycle`);
+   }
+   exit unless $page;
+
+   unless ($opt eq 'M')
+   {
+      info $page if $page;
+   } else {
+      exec qw/perldoc -m/, $page;
+   }
 }
 
 # checks
