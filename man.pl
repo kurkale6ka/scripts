@@ -1,8 +1,6 @@
 #! /usr/bin/env perl
 
 # todo:
-# opts passtrough for perldoc (-q, ...)
-#
 # perl -h
 # man perl
 
@@ -10,7 +8,7 @@ use strict;
 use warnings;
 use feature 'say';
 use re '/aa';
-use Getopt::Long;
+use Getopt::Long qw/GetOptions :config pass_through/;
 use Module::CoreList;
 
 # Help: man, perldoc
@@ -42,8 +40,20 @@ GetOptions (
    'module' => \&module,
    'run'    => sub {info 'perlrun'}, # command line options
    'var'    => sub {info 'perlvar'}, # variables
-   'help'   => \&help
+   'help'   => \&help,
+   '<>'     => \&extra,
 ) or die "Error in command line arguments\n";
+
+sub extra
+{
+   if ($_[0] =~ /^-/)
+   {
+      exec 'perldoc', @_, @ARGV;
+   } else {
+      unshift @ARGV, @_;
+      die("!FINISH");
+   }
+}
 
 # todo: prefilter, view module with alt-v
 sub module
