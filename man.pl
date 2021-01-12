@@ -1,10 +1,17 @@
 #! /usr/bin/env perl
 
+# todo:
+# opts passtrough for perldoc (-q, ...)
+#
+# perl -h
+# man perl
+
 use strict;
 use warnings;
 use feature 'say';
 use re '/aa';
 use Getopt::Long;
+use Module::CoreList;
 
 # Help: man, perldoc
 sub info
@@ -23,9 +30,8 @@ sub help
    print << 'MSG';
 mp
 mp split
-mp --op,   -o
+mp -m : core modules
 mp --run,  -r
-mp --regex
 mp --var,  -v, v. ($.)
 MSG
    exit;
@@ -33,15 +39,24 @@ MSG
 
 # Arguments
 GetOptions (
-   'op'    => sub {info 'perlop'},  # operators
-   'r|run' => sub {info 'perlrun'}, # command line options
-   'regex' => sub {info 'perlre'},  # regex
-   'var'   => sub {info 'perlvar'}, # variables
-   'help'  => \&help
+   'module' => \&module,
+   'run'    => sub {info 'perlrun'}, # command line options
+   'var'    => sub {info 'perlvar'}, # variables
+   'help'   => \&help
 ) or die "Error in command line arguments\n";
 
+# todo: prefilter, view module with alt-v
+sub module
+{
+   my $modules = Module::CoreList::find_version $];
+   my @modules = keys %$modules;
+   chomp (my $page = `printf '%s\n' @modules | fzf -0 -1 --cycle`);
+   info $page;
+   exit;
+}
+
 # checks
-info 'perl' unless @ARGV;
+info 'perldoc' unless @ARGV;
 
 my $page = shift;
 
