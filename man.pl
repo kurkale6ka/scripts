@@ -1,9 +1,5 @@
 #! /usr/bin/env perl
 
-# todo:
-# perl -h
-# man perl
-
 use strict;
 use warnings;
 use feature 'say';
@@ -26,22 +22,26 @@ sub info
 sub help
 {
    print << 'MSG';
-mp
-mp split
-mp -m : core modules
-mp --run,  -r
-mp --var,  -v, v. ($.)
+mp            : perldoc
+mp <function> : builtin function
+mp v.         : variable $. (can also be invoked with \$.)
+mp -v         : all variables
+mp -m         : core modules
+mp -r         : command line options
+mp -s         : help sections
+mp -q topic   : extra options are passed to perldoc
 MSG
    exit;
 }
 
 # Arguments
 GetOptions (
-   'module' => \&module,
-   'run'    => sub {info 'perlrun'}, # command line options
-   'var'    => sub {info 'perlvar'}, # variables
-   'help'   => \&help,
-   '<>'     => \&extra,
+   'module'       => \&module,
+   'run'          => sub {info 'perlrun'}, # command line options
+   'p|s|sections' => sub {info 'perl'},    # help on Perl (which lists help sections)
+   'var'          => sub {info 'perlvar'}, # variables
+   'help'         => \&help,
+   '<>'           => \&extra,
 ) or die "Error in command line arguments\n";
 
 sub extra
