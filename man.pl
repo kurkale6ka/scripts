@@ -27,14 +27,17 @@ sub info
 sub help
 {
    print << 'MSG';
+Easier access to Perl help topics
+
 mp            : perldoc
 mp <function> : builtin function
 mp v.         : variable $. (can also be invoked with \$.)
 mp <section>  : (perl)re, (perl)run, ...
 mp -s         : help sections
-mp -m         : core module, -M can be used to view the code
+mp -m         : core module, -M can be used to view the code <= fzf needed
 
-Extra options will be passed through to perldoc
+- extra options will be passed through to perldoc
+- mp aka 'man Perl' is an alias to this script
 MSG
    exit;
 }
@@ -59,7 +62,6 @@ sub extra
    }
 }
 
-# todo: view module with alt-v
 sub module
 {
    my ($opt, $val) = @_;
