@@ -7,13 +7,23 @@ use warnings;
 use feature 'say';
 use re '/aa';
 use Getopt::Long qw/GetOptions :config no_ignore_case pass_through/;
+use Config;
 use Module::CoreList;
+use File::Spec;
+use List::Util 'uniq';
+
+sub dirname {
+   ( File::Spec->splitpath ($_[0]) )[1];
+}
+
+my @manpath = map {substr $_, 0, 7} Config::config_re qr/^man.dir/;
+my $MANPATH = join ':', uniq map {dirname $Config{$_}} @manpath;
 
 # Help: man, perldoc
 sub info
 {
    my $topic = shift;
-   unless (system ("man $topic 2>/dev/null") == 0)
+   unless (system ("man -M$MANPATH $topic 2>/dev/null") == 0)
    {
       unless (system ("man perl$topic 2>/dev/null") == 0)
       {
