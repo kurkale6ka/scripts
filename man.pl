@@ -127,7 +127,8 @@ unless (system ("perldoc -f $page 2>/dev/null") == 0)
 
    if (@pages)
    {
-      if (chomp ($page = `printf '%s\n' @pages | fzf -0 -1 --cycle`))
+      # -q isn't needed, it's supplied to enable highlighting
+      if (chomp ($page = `printf '%s\n' @pages | fzf -q'$page' -0 -1 --cycle`))
       {
          exec 'man', reverse split /\./, $page;
       }
