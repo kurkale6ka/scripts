@@ -12,7 +12,7 @@ use Module::CoreList;
 use File::Spec;
 use List::Util 'uniq';
 
-sub dirname
+sub dirname(_)
 {
    ( File::Spec->splitpath ($_[0]) )[1];
 }
@@ -24,13 +24,13 @@ my @manpath = map
 }
 Config::config_re qr/^man.dir/;
 
-my $MANPATH = join ':', uniq map {dirname $_} @manpath;
+my $MANPATH = join ':', uniq map {dirname} @manpath;
 
 # Get info: try man, then perldoc
 sub info
 {
    my $topic = shift;
-   unless (system ("man -M$MANPATH $topic 2>/dev/null") == 0)
+   unless (system ("man -M $MANPATH $topic 2>/dev/null") == 0)
    {
       exec 'perldoc', $topic;
    }
@@ -130,7 +130,7 @@ unless (system ("perldoc -f $page 2>/dev/null") == 0)
       # -q isn't needed, it's supplied to enable highlighting
       if (chomp ($page = `printf '%s\n' @pages | fzf -q'$page' -0 -1 --cycle`))
       {
-         exec 'man', reverse split /\./, $page;
+         exec qw/man -M/, $MANPATH, reverse split /\./, $page;
       }
    } else {
       exec 'perldoc', $page;
