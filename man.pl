@@ -12,23 +12,27 @@ use Module::CoreList;
 use File::Spec;
 use List::Util 'uniq';
 
-sub dirname {
+sub dirname
+{
    ( File::Spec->splitpath ($_[0]) )[1];
 }
 
-my @manpath = map {substr $_, 0, 7} Config::config_re qr/^man.dir/;
-my $MANPATH = join ':', uniq map {dirname $Config{$_}} @manpath;
+# Get Perl MANPATH
+my @manpath = map
+{
+   $Config{substr $_, 0, 7}
+}
+Config::config_re qr/^man.dir/;
 
-# Help: man, perldoc
+my $MANPATH = join ':', uniq map {dirname $_} @manpath;
+
+# Get info: try man, then perldoc
 sub info
 {
    my $topic = shift;
    unless (system ("man -M$MANPATH $topic 2>/dev/null") == 0)
    {
-      unless (system ("man perl$topic 2>/dev/null") == 0)
-      {
-         exec 'perldoc', $topic;
-      }
+      exec 'perldoc', $topic;
    }
    exit;
 }
@@ -86,11 +90,12 @@ sub module
    } else {
       chomp ($page = `printf '%s\n' @modules | fzf -q'$val' -0 -1 --cycle`);
    }
+
    exit unless $page;
 
    unless ($opt eq 'M')
    {
-      info $page if $page;
+      info $page;
    } else {
       exec qw/perldoc -m/, $page;
    }
@@ -111,6 +116,22 @@ if ($page =~ /^[\$v].$/)
 # Builtin functions
 unless (system ("perldoc -f $page 2>/dev/null") == 0)
 {
+   my @pages;
+
    # Sections & misc
-   info $page;
+   foreach (@manpath)
+   {
+      opendir my $dh, $_ or die "$!\n";
+      push @pages, grep {!/::/ and /$page/oi} readdir $dh;
+   }
+
+   if (@pages)
+   {
+      if (chomp ($page = `printf '%s\n' @pages | fzf -0 -1 --cycle`))
+      {
+         exec 'man', reverse split /\./, $page;
+      }
+   } else {
+      exec 'perldoc', $page;
+   }
 }
