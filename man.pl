@@ -27,7 +27,13 @@ my $man_re = qr/(man\d)(dir|ext)/;
 foreach (Config::config_re($man_re), Config::config_re(qr/config_arg\d+/))
 {
    next unless /$man_re/;
-   $man{$1}->[$2 eq 'dir'? 0 : 1] = $Config{$&};
+   my ($name, $type) = ($1, $2);
+   unless (/config_arg\d+/)
+   {
+      $man{$name}->[$type eq 'dir'? 0 : 1] = $Config{$&};
+   } else {
+      $man{$name}->[$type eq 'dir'? 0 : 1] = (split /=/, $Config{$&})[1];
+   }
 }
 
 my $MANPATH = join ':', uniq map {dirname @$_[0]} values %man;
