@@ -128,9 +128,9 @@ unless (system ("perldoc -f $page 2>/dev/null") == 0)
    if (@pages)
    {
       # -q isn't needed, it's supplied to enable highlighting
-      if (chomp ($page = `printf '%s\n' @pages | fzf -q'$page' -0 -1 --cycle`))
+      if (chomp ($_ = `printf '%s\n' @pages | fzf -q'$page' -0 -1 --cycle`))
       {
-         my @parts = split /\./, $page; # topic.section(.gz)
+         my @parts = split /\./; # topic.section(.gz)
          exec qw/man -M/, $MANPATH, @parts > 1 ? @parts[1,0] : @parts;
       }
    } else {
