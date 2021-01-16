@@ -43,14 +43,13 @@ sub help
    print << 'MSG';
 Easier access to Perl help topics
 
-mp            : perldoc
+mp            : locate help sections
+mp <section>  : (perl)re, (perl)run, ...
 mp <function> : builtin function
 mp v.         : variable $. (can also be invoked with \$.)
-mp <section>  : (perl)re, (perl)run, ...
-mp -s         : help sections
 mp -m         : core module, -M can be used to view the code <= fzf needed
 
-- extra options will be passed through to perldoc
+- extra options will be passed through to perldoc (ex: -q for FAQ search)
 - mp aka 'man Perl' is an alias to this script
 MSG
    exit;
@@ -60,7 +59,6 @@ MSG
 GetOptions (
    'module:s'        => \&module,
    'M|view-module:s' => \&module,
-   'p|s|sections'    => sub {info 'perl'}, # help on Perl (which lists help sections)
    'help'            => \&help,
    '<>'              => \&extra
 ) or die "Error in command line arguments\n";
@@ -102,7 +100,7 @@ sub module
 }
 
 # checks
-info 'perldoc' unless @ARGV;
+info 'perltoc' unless @ARGV;
 
 my $page = shift;
 
