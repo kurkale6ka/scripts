@@ -17,14 +17,19 @@ sub dirname(_)
    ( File::Spec->splitpath ($_[0]) )[1];
 }
 
-# Get Perl MANPATH
-my @manpath = map
-{
-   $Config{substr $_, 0, 7}
-}
-Config::config_re qr/^man.dir/;
+# Get man dirs plus associated pages extensions (man 3 Config)
+# man1 => [man1dir, man1ext],
+# man3 => [man3dir, man3ext],
+my %man;
+my $man_re = qr/(man\d)(dir|ext)/;
 
-my $MANPATH = join ':', uniq map {dirname} @manpath;
+foreach (Config::config_re($man_re), Config::config_re(qr/config_arg\d+/))
+{
+   next unless /$man_re/;
+   $man{$1}->[$2 eq 'dir'? 0 : 1] = $Config{$&};
+}
+
+my $MANPATH = join ':', uniq map {dirname @$_[0]} values %man;
 
 # Get info: try man, then perldoc
 sub info
@@ -117,10 +122,11 @@ unless (system ("perldoc -f $page 2>/dev/null") == 0)
    my @pages;
 
    # Sections & misc
-   foreach (@manpath)
+   foreach (values %man)
    {
-      opendir my $dh, $_ or die "$!\n";
-      push @pages, grep {!/::/ and /$page/oi} readdir $dh;
+      my ($dir, $ext) = @$_;
+      opendir my $dh, $dir or die "$!\n";
+      push @pages, grep {!/::/ and /$page.*\.$ext/i} readdir $dh;
    }
 
    if (@pages)
