@@ -23,6 +23,7 @@ sub dirname(_)
 my %man;
 my $man_re = qr/(man\d)(dir|ext)/;
 
+# config values (-Dman1dir=...) overwrite default values
 foreach (Config::config_re($man_re), Config::config_re(qr/config_arg\d+/))
 {
    next unless /$man_re/;
