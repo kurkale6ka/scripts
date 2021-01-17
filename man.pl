@@ -37,12 +37,13 @@ foreach (Config::config_re($man_re), Config::config_re(qr/config_arg\d+/))
 }
 
 my $MANPATH = join ':', uniq map {dirname @$_[0]} values %man;
+my $MANSECT = join ':', uniq map {@$_[1]} values %man;
 
 # Get info: try man, then perldoc
 sub info
 {
    my $topic = shift;
-   unless (system ("man -M $MANPATH $topic 2>/dev/null") == 0)
+   unless (system ("man -M $MANPATH -S$MANSECT $topic 2>/dev/null") == 0)
    {
       exec 'perldoc', $topic;
    }
