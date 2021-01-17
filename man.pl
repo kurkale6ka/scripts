@@ -14,7 +14,7 @@ use List::Util 'uniq';
 
 sub dirname(_)
 {
-   ( File::Spec->splitpath ($_[0]) )[1];
+   ( File::Spec->splitpath($_[0]) )[1];
 }
 
 # Get man dirs plus associated pages extensions (man 3 Config)
