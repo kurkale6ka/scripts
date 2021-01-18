@@ -22,7 +22,7 @@ use Getopt::Long qw/GetOptions :config bundling/;
 
 # Help
 my $help = << 'MSG';
-mkssh <user>
+mkssh [user]
 append key to ~/.ssh/authorized_keys
 MSG
 
@@ -31,17 +31,14 @@ GetOptions(
    'h|help' => sub {print $help; exit}
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-@ARGV == 1 or die $help;
-
-# Run as 'root' only
-die RED.'Attempt to run unprivileged. Aborting!'.RESET, "\n" if $>;
+die $help if @ARGV > 1;
 
 # Emit warning if trying to use this script locally
 unless ($ENV{SSH_CONNECTION}) {
    my $local = 1;
    open my $pipe, '-|', 'who' or die RED.$!.RESET, "\n";
    while (<$pipe>) {
-      if (/\( (?:\d{1,3}\.){3} \d{1,3} \)/x) { # (IP)
+      if (/\( (?:\d{1,3}\.){3} \d{1,3} \)/x or /\( :\d\.\d \)/x) { # (IP) or (:D.S) - localhost:display.screen, ref. DISPLAY
          undef $local; last;
       }
    }
@@ -49,7 +46,7 @@ unless ($ENV{SSH_CONNECTION}) {
 }
 
 # Get user and key
-my $user = shift;
+my $user = @ARGV ? shift : getpwuid $>;
 
 my $uid = getpwnam $user or die RED.'Wrong user'.RESET, "\n";
 my $gid = getgrnam $user;
