@@ -38,7 +38,7 @@ unless ($ENV{SSH_CONNECTION}) {
    my $local = 1;
    open my $pipe, '-|', 'who' or die RED.$!.RESET, "\n";
    while (<$pipe>) {
-      if (/\( (?:\d{1,3}\.){3} \d{1,3} \)/x or /\( :\d\.\d \)/x) { # (IP) or (:D.S) - localhost:display.screen, ref. DISPLAY
+      if (/\( (?:\d{1,3}\.){3} \d{1,3} \)/x or /\( :\d(?:\.\d)? \)/x) { # (IP) or (:D.S) - localhost:display.screen, ref. DISPLAY
          undef $local; last;
       }
    }
