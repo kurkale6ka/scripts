@@ -21,24 +21,24 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
 # Help
-my $help = << 'MSG';
-mkssh [user]
-append key to ~/.ssh/authorized_keys
-MSG
+my $help = "mkssh [user] # install user's SSH key";
 
 # Arguments
-GetOptions(
-   'h|help' => sub {print $help; exit}
+GetOptions (
+   'h|help' => sub { say $help; exit; }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-die $help if @ARGV > 1;
+die "$help\n" if @ARGV > 1;
 
 # Emit warning if trying to use this script locally
 unless ($ENV{SSH_CONNECTION}) {
    my $local = 1;
    open my $pipe, '-|', 'who' or die RED.$!.RESET, "\n";
-   while (<$pipe>) {
-      if (/\( (?:\d{1,3}\.){3} \d{1,3} \)/x or /\( :\d(?:\.\d)? \)/x) { # (IP) or (:D.S) - localhost:display.screen, ref. DISPLAY
+   while (<$pipe>)
+   {
+      # (IP) or (:D.S) - localhost:display.screen, ref. DISPLAY
+      if (/\( (?:\d{1,3}\.){3} \d{1,3} \)/x or /\( :\d(?:\.\d)? \)/x)
+      {
          undef $local; last;
       }
    }
@@ -55,7 +55,7 @@ print CYAN.'Public key: '.RESET;
 chomp ($_ = <STDIN>);
 
 # check key
-system ("echo '$_' | ssh-keygen -lf - >/dev/null") == 0 or exit 1;
+system ("ssh-keygen -lf <(echo '$_') >/dev/null") == 0 or exit 1;
 
 my @key = split ' ', $_, 3;
 my $key = quotemeta $key[1];
@@ -68,7 +68,8 @@ mkdir glob("~$user/.ssh"), 0700;
 open my $KEYS, '+>>', glob "~$user/.ssh/authorized_keys" or die RED.$!.RESET, "\n";
 seek $KEYS, 0, 0;
 
-while (<$KEYS>) {
+while (<$KEYS>)
+{
    next if /^\h*#/;
    die RED.'Key already installed: '.RESET.$_ if /$key/;
 }
