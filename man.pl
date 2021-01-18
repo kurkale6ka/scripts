@@ -60,8 +60,10 @@ mp            : locate help sections
 mp <section>  : (perl)re, (perl)run, ...
 mp <function> : builtin function
 mp v.         : variable $. (can also be invoked with \$.)
-mp -m         : core module, -M can be used to view the code <= fzf needed
+mp -m         : core module
+mp -M         : core module code <= export PERLDOC_SRC_PAGER=$EDITOR
 
+- fzf is needed for -m, -M and <section/topic> lookup
 - extra options will be passed through to perldoc (ex: -q for FAQ search)
 - mp aka 'man Perl' is an alias to this script
 MSG
@@ -70,8 +72,8 @@ MSG
 
 # Arguments
 GetOptions (
-   'module:s'        => \&module,
-   'M|view-module:s' => \&module,
+   'm|module:s'      => \&module,
+   'M|module-view:s' => \&module,
    'help'            => \&help,
    '<>'              => \&extra
 ) or die "Error in command line arguments\n";
