@@ -21,17 +21,28 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
 # Help
-my $help = "mkssh [user] # install user's SSH key";
+my $help = << 'MSG';
+mkssh [user]
+
+-f, --force : allow local install
+
+Install user's SSH key (unless present)
+* validate with ssh-keygen -lf
+* create ~/.ssh/authorized_keys if needed
+* enforce correct modes + ownership
+MSG
 
 # Arguments
+my $force;
 GetOptions (
-   'h|help' => sub { say $help; exit; }
+   'f|force' => \$force,
+   'h|help'  => sub { print $help; exit; }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-die "$help\n" if @ARGV > 1;
+die $help if @ARGV > 1;
 
 # Emit warning if trying to use this script locally
-unless ($ENV{SSH_CONNECTION}) {
+unless ($ENV{SSH_CONNECTION} or $force) {
    my $local = 1;
    open my $pipe, '-|', 'who' or die RED.$!.RESET, "\n";
    while (<$pipe>)
@@ -47,15 +58,15 @@ unless ($ENV{SSH_CONNECTION}) {
 
 # Get user and key
 my $user = @ARGV ? shift : getpwuid $>;
+my (undef, undef, $uid, $gid) = getpwnam $user;
 
-my $uid = getpwnam $user or die RED.'Wrong user'.RESET, "\n";
-my $gid = getgrnam $user;
+$uid or die RED.'Wrong user'.RESET, "\n";
 
 print CYAN.'Public key: '.RESET;
 chomp ($_ = <STDIN>);
 
 # check key
-system ("ssh-keygen -lf <(echo '$_') >/dev/null") == 0 or exit 1;
+system (qq.bash -c 'ssh-keygen -lf <(echo "$_") >/dev/null'.) == 0 or exit 1;
 
 my @key = split ' ', $_, 3;
 my $key = quotemeta $key[1];
@@ -77,6 +88,7 @@ while (<$KEYS>)
 say $KEYS "@key";
 
 # Set mode
+chmod 0700, glob "~$user/.ssh";
 chmod 0600, glob "~$user/.ssh/authorized_keys";
 
 # Set ownership
