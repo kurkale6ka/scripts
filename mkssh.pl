@@ -2,15 +2,15 @@
 
 # Install user's SSH key
 #
-# if PasswordAuthentication yes, use:
+# use this script if ssh-copy-id isn't suitable (e.g PasswordAuthentication no)
 # ssh-copy-id -i ~/.ssh/id_rsa.pub user@host
 #
-# This script only installs the key. You still need to:
+# this script only installs the key. You still need to:
 # - openssl rand -base64 25 | cut -c-20 | passwd --stdin <user>
 # - AllowUsers <user>
 # - systemctl reload sshd
 #
-# run this script with:
+# run with:
 # perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkssh.pl)
 
 use strict;
@@ -93,9 +93,8 @@ unless ($dry_run)
    say $KEYS "@key";
 }
 
-# Set mode
+# Mode + ownership
 chmod 0700, glob "~$user/.ssh";
 chmod 0600, glob "~$user/.ssh/authorized_keys";
 
-# Set ownership
 chown $uid, $gid, map {glob} ("~$user/.ssh", "~$user/.ssh/authorized_keys");
