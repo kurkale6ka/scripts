@@ -30,9 +30,9 @@ foreach (Config::config_re($man_re), Config::config_re(qr/config_arg\d+/))
    my ($name, $type) = ($1, $2);
    unless (/config_arg\d+/)
    {
-      $man{$name}->[$type eq 'dir'? 0 : 1] = $Config{$&};
+      $man{$name}[$type eq 'dir'? 0 : 1] = $Config{$&};
    } else {
-      $man{$name}->[$type eq 'dir'? 0 : 1] = (split /=/, $Config{$&})[1];
+      $man{$name}[$type eq 'dir'? 0 : 1] = (split /=/, $Config{$&})[1];
    }
 }
 
