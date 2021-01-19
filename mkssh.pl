@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 
-# Append SSH key to ~/.ssh/authorized_keys
+# Install user's SSH key
 #
 # if PasswordAuthentication yes, use:
 # ssh-copy-id -i ~/.ssh/id_rsa.pub user@host
@@ -24,7 +24,8 @@ use Getopt::Long qw/GetOptions :config bundling/;
 my $help = << 'MSG';
 mkssh [user]
 
--f, --force : allow local install
+-n, --dry-run : modes + ownership only (no key install)
+-f, --force   : allow local install
 
 Install user's SSH key (unless present)
 * validate with ssh-keygen -lf
@@ -33,10 +34,11 @@ Install user's SSH key (unless present)
 MSG
 
 # Arguments
-my $force;
+my ($dry_run, $force);
 GetOptions (
-   'f|force' => \$force,
-   'h|help'  => sub { print $help; exit; }
+   'n|dry-run' => \$dry_run,
+   'f|force'   => \$force,
+   'h|help'    => sub { print $help; exit; }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 die $help if @ARGV > 1;
@@ -62,34 +64,38 @@ my (undef, undef, $uid, $gid) = getpwnam $user;
 
 $uid or die RED.'Wrong user'.RESET, "\n";
 
-print CYAN.'Public key: '.RESET;
-chomp ($_ = <STDIN>);
-
-# check key
-system (qq.bash -c 'ssh-keygen -lf <(echo "$_") >/dev/null'.) == 0 or exit 1;
-
-my @key = split ' ', $_, 3;
-my $key = quotemeta $key[1];
-$key = qr/$key/;
-
 # Create ssh folder
 mkdir glob("~$user/.ssh"), 0700;
 
-# Write key
-open my $KEYS, '+>>', glob "~$user/.ssh/authorized_keys" or die RED.$!.RESET, "\n";
-seek $KEYS, 0, 0;
-
-while (<$KEYS>)
+# SSH key
+unless ($dry_run)
 {
-   next if /^\h*#/;
-   die RED.'Key already installed: '.RESET.$_ if /$key/;
-}
+   print CYAN.'Public key: '.RESET;
+   chomp ($_ = <STDIN>);
 
-say $KEYS "@key";
+   # validate
+   system (qq.bash -c 'ssh-keygen -lf <(echo "$_") >/dev/null'.) == 0 or exit 1;
+
+   my @key = split ' ', $_, 3;
+   my $key = quotemeta $key[1];
+   $key = qr/$key/;
+
+   # Write key
+   open my $KEYS, '+>>', glob "~$user/.ssh/authorized_keys" or die RED.$!.RESET, "\n";
+   seek $KEYS, 0, 0;
+
+   while (<$KEYS>)
+   {
+      next if /^\h*#/;
+      die RED.'Key already installed: '.RESET.$_ if /$key/;
+   }
+
+   say $KEYS "@key";
+}
 
 # Set mode
 chmod 0700, glob "~$user/.ssh";
 chmod 0600, glob "~$user/.ssh/authorized_keys";
 
 # Set ownership
-chown $uid, $gid, map glob, ("~$user/.ssh", "~$user/.ssh/authorized_keys");
+chown $uid, $gid, map {glob} ("~$user/.ssh", "~$user/.ssh/authorized_keys");
