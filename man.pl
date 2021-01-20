@@ -236,7 +236,7 @@ my $page = shift;
 if ($page =~ /^v.$/ or $page =~ m'^[$@%].+')
 {
    $page =~ s/^v(.)$/\$$1/;
-   $page = uc $page;
+   $page = uc $page unless $page =~ /^\$[ab]$/;
    exec qw/perldoc -v/, $page;
 }
 
