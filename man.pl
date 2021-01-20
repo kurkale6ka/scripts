@@ -11,6 +11,7 @@ use Config;
 use Module::CoreList;
 use File::Spec;
 use List::Util 'uniq';
+use IPC::Open2;
 
 sub dirname(_)
 {
@@ -59,7 +60,8 @@ Easier access to Perl help topics
 mp            : locate help sections
 mp <section>  : (perl)re, (perl)run, ...
 mp <function> : builtin function
-mp v.         : variable $. (can also be invoked with \$.)
+mp $@%var     : variable, 2-chars variables can be invoked with v. (e.g v- for $-)
+mp -v         : all variables
 mp -m         : core module
 mp -M         : core module code <= export PERLDOC_SRC_PAGER=$EDITOR
 
@@ -70,8 +72,9 @@ MSG
    exit;
 }
 
-# Arguments
+# Options
 GetOptions (
+   'variables:s'     => \&variables,
    'm|module:s'      => \&module,
    'M|module-view:s' => \&module,
    'help'            => \&help,
@@ -114,24 +117,135 @@ sub module
    }
 }
 
-# checks
+sub variables
+{
+   my ($opt, $val) = @_;
+
+   # perldoc -MPod::Simple::Text -T perlvar | egrep '^\s{4}[$@%]'
+   my %vars =
+   (
+      '$_'                             => [qw/$ARG/],
+      '@_'                             => [qw/@ARG/],
+      '$"'                             => [qw/$LIST_SEPARATOR/],
+      '$$'                             => [qw/$PID $PROCESS_ID/],
+      '$0'                             => [qw/$PROGRAM_NAME/],
+      '$('                             => [qw/$GID $REAL_GROUP_ID/],
+      '$)'                             => [qw/$EGID $EFFECTIVE_GROUP_ID/],
+      '$<'                             => [qw/$UID $REAL_USER_ID/],
+      '$>'                             => [qw/$EUID $EFFECTIVE_USER_ID/],
+      '$;'                             => [qw/$SUBSEP $SUBSCRIPT_SEPARATOR/],
+      '$a'                             => [],
+      '$b'                             => [],
+      '%ENV'                           => [],
+      '$]'                             => [qw/$OLD_PERL_VERSION/],
+      '$^F'                            => [qw/$SYSTEM_FD_MAX/],
+      '@F'                             => [],
+      '@INC'                           => [],
+      '%INC'                           => [],
+      '$^I'                            => [qw/$INPLACE_EDIT/],
+      '@ISA'                           => [],
+      '$^M'                            => [],
+      '$^O'                            => [qw/$OSNAME/],
+      '%SIG'                           => [],
+      '$^T'                            => [qw/$BASETIME/],
+      '$^V'                            => [qw/$PERL_VERSION/],
+      '${^WIN32_SLOPPY_STAT}'          => [],
+      '$^X'                            => [qw/$EXECUTABLE_NAME/],
+      '$<digits>'                      => [qw/$1 $2 .../],
+      '@{^CAPTURE}'                    => [],
+      '$&'                             => [qw/$MATCH/],
+      '${^MATCH}'                      => [],
+      '$`'                             => [qw/$PREMATCH/],
+      '${^PREMATCH}'                   => [],
+      '$\''                            => [qw/$POSTMATCH/],
+      '${^POSTMATCH}'                  => [],
+      '$+'                             => [qw/$LAST_PAREN_MATCH/],
+      '$^N'                            => [qw/$LAST_SUBMATCH_RESULT/],
+      '@+'                             => [qw/@LAST_MATCH_END/],
+      '%+'                             => [qw/%LAST_PAREN_MATCH %{^CAPTURE}/],
+      '@-'                             => [qw/@LAST_MATCH_START/],
+      '%-'                             => [qw/%{^CAPTURE_ALL}/],
+      '$^R'                            => [qw/$LAST_REGEXP_CODE_RESULT/],
+      '${^RE_COMPILE_RECURSION_LIMIT}' => [],
+      '${^RE_DEBUG_FLAGS}'             => [],
+      '${^RE_TRIE_MAXBUF}'             => [],
+      '$ARGV'                          => [],
+      '@ARGV'                          => [],
+      'ARGV'                           => [],
+      'ARGVOUT'                        => [],
+      '$,'                             => [qw/$OFS $OUTPUT_FIELD_SEPARATOR/],
+      '$.'                             => [qw/$NR $INPUT_LINE_NUMBER/],
+      '$/'                             => [qw/$RS $INPUT_RECORD_SEPARATOR/],
+      '$\\'                            => [qw/$ORS $OUTPUT_RECORD_SEPARATOR/],
+      '$|'                             => [qw/$OUTPUT_AUTOFLUSH/],
+      '${^LAST_FH}'                    => [],
+      '$^A'                            => [qw/$ACCUMULATOR/],
+      '$^L'                            => [qw/$FORMAT_FORMFEED/],
+      '$%'                             => [qw/$FORMAT_PAGE_NUMBER/],
+      '$-'                             => [qw/$FORMAT_LINES_LEFT/],
+      '$:'                             => [qw/$FORMAT_LINE_BREAK_CHARACTERS/],
+      '$='                             => [qw/$FORMAT_LINES_PER_PAGE/],
+      '$^'                             => [qw/$FORMAT_TOP_NAME/],
+      '$~'                             => [qw/$FORMAT_NAME/],
+      '${^CHILD_ERROR_NATIVE}'         => [],
+      '$^E'                            => [qw/$EXTENDED_OS_ERROR/],
+      '$^S'                            => [qw/$EXCEPTIONS_BEING_CAUGHT/],
+      '$^W'                            => [qw/$WARNING/],
+      '${^WARNING_BITS}'               => [],
+      '$!'                             => [qw/$ERRNO $OS_ERROR/],
+      '%!'                             => [qw/%ERRNO %OS_ERROR/],
+      '$?'                             => [qw/$CHILD_ERROR/],
+      '$@'                             => [qw/$EVAL_ERROR/],
+      '$^C'                            => [qw/$COMPILING/],
+      '$^D'                            => [qw/$DEBUGGING/],
+      '${^ENCODING}'                   => [],
+      '${^GLOBAL_PHASE}'               => [],
+      '$^H'                            => [],
+      '%^H'                            => [],
+      '${^OPEN}'                       => [],
+      '$^P'                            => [qw/$PERLDB/],
+      '${^TAINT}'                      => [],
+      '${^SAFE_LOCALES}'               => [],
+      '${^UNICODE}'                    => [],
+      '${^UTF8CACHE}'                  => [],
+      '${^UTF8LOCALE}'                 => [],
+   );
+
+   my @query = ('-q', $val) if $val;
+   my $pid = open2 (my $CHLD_OUT, my $CHLD_IN, qw/fzf -0 -1 --cycle/, @query);
+
+   while (my ($var, $vars) = each %vars)
+   {
+      say $CHLD_IN "$var @$vars";
+   }
+
+   exit unless defined ($_ = <$CHLD_OUT>);
+   chomp;
+
+   waitpid $pid, 0;
+
+   exec qw/perldoc -v/, (split)[0];
+}
+
+# Arguments
 info 'perltoc' unless @ARGV;
 
 my $page = shift;
 
-# Variables
-if ($page =~ /^[\$v].$/)
+# variables
+if ($page =~ /^v.$/ or $page =~ m'^[$@%].+')
 {
-   $page =~ tr/v/$/;
+   $page =~ s/^v(.)$/\$$1/;
+   $page = uc $page;
    exec qw/perldoc -v/, $page;
 }
 
-# Builtin functions
+# builtin functions
 unless (system ("perldoc -f $page 2>/dev/null") == 0)
 {
    my @pages;
 
-   # Sections & misc
+   # sections & misc
    foreach (values %man)
    {
       my ($dir, $ext) = @$_;
