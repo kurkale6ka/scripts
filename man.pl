@@ -66,6 +66,7 @@ mp -m         : core module
 mp -M         : core module code <= export PERLDOC_SRC_PAGER=$EDITOR
 
 - fzf is needed for -m, -M and <section/topic> lookup
+  alt-enter will swap -m/-M actions
 - extra options will be passed through to perldoc (ex: -q for FAQ search)
 - mp aka 'man Perl' is an alias to this script
 MSG
@@ -96,20 +97,20 @@ sub module
 {
    my ($opt, $val) = @_;
 
-   my $page;
    my $modules = Module::CoreList::find_version $];
    my @modules = keys %$modules;
 
    unless ($val)
    {
-      chomp ($page = `printf '%s\n' @modules | fzf -0 -1 --cycle`);
+      chomp ($_ = `printf '%s\n' @modules | fzf --expect='alt-enter' -0 -1 --cycle`);
    } else {
-      chomp ($page = `printf '%s\n' @modules | fzf -q'$val' -0 -1 --cycle`);
+      chomp ($_ = `printf '%s\n' @modules | fzf -q'$val' --expect='alt-enter' -0 -1 --cycle`);
    }
 
-   exit unless $page;
+   exit unless $_;
+   my ($key, $page) = split "\n";
 
-   unless ($opt eq 'M')
+   if (($opt eq 'm' and !$key) or ($opt eq 'M' and $key))
    {
       info $page;
    } else {
