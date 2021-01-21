@@ -108,7 +108,7 @@ sub module
    }
 
    exit unless $_;
-   my ($key, $page) = split "\n";
+   my ($key, $page) = split /\n/;
 
    if (($opt eq 'm' and !$key) or ($opt eq 'M' and $key))
    {

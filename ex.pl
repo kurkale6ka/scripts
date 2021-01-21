@@ -54,7 +54,7 @@ my ($query, $key, $file);
 # Functions
 sub fzf_results()
 {
-   my @output = split '\n';
+   my @output = split /\n/;
    exit 1 unless @output; # canceled with Esc or ^C
 
    if ($output[0] and @output < 3) # only if no results
