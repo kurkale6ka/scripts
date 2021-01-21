@@ -65,7 +65,7 @@ mp -v         : all variables
 mp -m         : core module
 mp -M         : core module code <= export PERLDOC_SRC_PAGER=$EDITOR
 
-- fzf is needed for -m, -M and <section/topic> lookup
+- fzf is needed for -v, -m, -M and <section/topic> lookup
   alt-enter will swap -m/-M actions
 - extra options will be passed through to perldoc (ex: -q for FAQ search)
 - mp aka 'man Perl' is an alias to this script
