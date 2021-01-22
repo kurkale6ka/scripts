@@ -14,8 +14,8 @@ use Term::ANSIColor qw/color :constants/;
 # Help
 my $help = << 'MSG';
 headall [pattern]
--n, --lines=NUM : print the first NUM lines (10 default)
--v, --view      : view folds in (n)vim,     (:h folds)
+-n, --lines=NUM : print the first NUM lines, 10 default
+-v, --view      : view with folds in (n)vim, :h folds
 MSG
 
 # Options
@@ -34,7 +34,7 @@ die $help if @ARGV > 1;
 if ($view)
 {
    die RED.'EDITOR must be (n)vim'.RESET, "\n" unless $ENV{EDITOR} =~ /vim/i;
-   open $PIPE, '|-', $ENV{EDITOR}, '-c', "se fdl=0 fdm=expr fde=getline(v:lnum)=~'==>'?'>1':'='", '-'
+   open $PIPE, '|-', $ENV{EDITOR}, '-c', "setl bt=nofile bh=hide noswf fdl=0 fdm=expr fde=getline(v:lnum)=~'==>'?'>1':'='", '-'
       or die RED.$!.RESET, "\n";
    select $PIPE;
 }
