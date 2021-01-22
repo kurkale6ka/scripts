@@ -64,6 +64,7 @@ mp $@%var     : variable, 2-chars variables can be invoked with v. (e.g v- for $
 mp -v         : all variables
 mp -m         : core module
 mp -M         : core module code <= export PERLDOC_SRC_PAGER=$EDITOR
+mp -          : file test operators
 
 - fzf is needed for -v, -m, -M and <section/topic> lookup
   alt-enter will swap -m/-M actions
@@ -79,6 +80,7 @@ GetOptions (
    'm|module:s'      => \&module,
    'M|module-view:s' => \&module,
    'help'            => \&help,
+   ''                => sub {exec qw/perldoc -f -/},
    '<>'              => \&extra
 ) or die "Error in command line arguments\n";
 
