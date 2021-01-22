@@ -1,20 +1,21 @@
 #! /usr/bin/env perl
 
-# head all text files, excluding backups~
+# 'head' all text files, excluding backups~
+#
+# todo: exclude stuff from .gitignore
 
 use strict;
 use warnings;
 use re '/aa';
-use feature 'say';
-use feature 'state';
+use feature qw/say state/;
 use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;
 
 # Help
 my $help = << 'MSG';
-headall [options] [pattern]
--n, --lines=NUM : print the first NUM lines
--v, --view      : view folds in vim
+headall [pattern]
+-n, --lines=NUM : print the first NUM lines (10 default)
+-v, --view      : view folds in (n)vim,     (:h folds)
 MSG
 
 # Options
@@ -26,16 +27,19 @@ GetOptions (
    'h|help'    => sub { print $help; exit; }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-die RED.'NUM > 0 expected'.RESET, "\n" unless $lines > 0;
-die $help unless @ARGV <= 1;
+die RED.'NUM > 0 expected'.RESET, "\n" if $lines < 1;
+die $help if @ARGV > 1;
 
+# View in (n)vim
 if ($view)
 {
-   # die unless edit vim
-   open $PIPE, '|-', $ENV{EDITOR}, '-c', "se fdl=0 fdm=expr fde=getline(v:lnum)=~'==>'?'>1':'='", '-' or die RED.$!.RESET, "\n";
+   die RED.'EDITOR must be (n)vim'.RESET, "\n" unless $ENV{EDITOR} =~ /vim/i;
+   open $PIPE, '|-', $ENV{EDITOR}, '-c', "se fdl=0 fdm=expr fde=getline(v:lnum)=~'==>'?'>1':'='", '-'
+      or die RED.$!.RESET, "\n";
    select $PIPE;
 }
 
+# Format filename
 sub file (_)
 {
    my @delimiters = qw/==> <==/;
@@ -47,9 +51,11 @@ sub file (_)
    join " $_[0] ", @delimiters;
 }
 
+# Main
 my $pattern = quotemeta shift if @ARGV;
 my @empty;
 
+# iterate over files in the current directory
 opendir my $DIR, '.' or die RED.$!.RESET, "\n";
 FILE: while (readdir $DIR)
 {
@@ -62,7 +68,8 @@ FILE: while (readdir $DIR)
    next if /~$/;
    if (-z _)
    {
-      push @empty, $_; next;
+      push @empty, $_;
+      next;
    }
 
    # output
@@ -78,5 +85,6 @@ FILE: while (readdir $DIR)
    }
 }
 
+# empty files
 print "\n" if @empty;
 say file.' : empty' foreach @empty;
