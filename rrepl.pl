@@ -7,6 +7,8 @@ use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
+my $GRAY = color('ansi242');
+
 my $help = << 'MSG';
 rr str /reg/
 rr str
@@ -21,6 +23,7 @@ GetOptions (
 die $help unless @ARGV;
 
 my ($str, $reg);
+
 my $regex_arg = qr! ^/(.*?)/(.*) !x;
 
 if (@ARGV == 2)
@@ -45,11 +48,13 @@ elsif (@ARGV == 1)
 
 sub repl
 {
-   my $term = Term::ReadLine->new('Simple calculator');
+   my $term = Term::ReadLine->new('Regex REPL');
    $term->ornaments(0);
    my $OUT = $term->OUT || \*STDOUT;
 
-   while (defined ($_ = $term->readline (CYAN.'>>'.RESET.' ')))
+   my $prompt = CYAN . (@_ ? '$$ ' : '// ') . RESET;
+
+   while (defined ($_ = $term->readline($prompt)))
    {
       if (@_) # rr /reg/
       {
@@ -66,11 +71,18 @@ sub match
    return unless $str and $reg;
    if ($str =~ $reg)
    {
-      say ' ' x 3 . $`. GREEN.$&.RESET . $';
-      # printf '%s%s%s%s', map {length} $prompt, $`, $&, $';
-      say ' ' x 3 . ' ' x length($`) . '^' x length($&) . ' ' x length($');
+      my @info;
+      my @match = (pre => $`, match => $&, post => $');
+      while (my ($key, $val) = splice @match, 0, 2)
+      {
+         next unless $val;
+         $val = GREEN.$val.RESET if $key eq 'match';
+         push @info, $GRAY.$key.RESET.": $val";
+      }
+      my $info = join ', ', @info;
+      say $`. GREEN.$&.RESET . $', " ($info)";
+      say ' ' x length($`) . '^' x length($&) . ' ' x length($');
    } else {
       say RED.'no match'.RESET;
    }
 }
-
