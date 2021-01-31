@@ -2,19 +2,22 @@
 
 # Perl regex REPL
 #
-# Alternatively:
-#   use re 'debug';
-#   use diagnostics;
-#   or use the debugger :-)
-#
 # todo: sanitize input (chroot, ..., or warn)
+
+BEGIN {
+   if (@ARGV > 1 and grep /^--?v(e(r(b(o(se?)?)?)?)?)?$/n, @ARGV)
+   {
+      require re;
+      re -> import ('debug');
+   }
+}
 
 use strict;
 use warnings;
 use feature 'say';
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
-use Getopt::Long qw/GetOptions :config bundling/;
+use Getopt::Long 'GetOptions';
 
 my $GRAY = color('ansi242');
 
@@ -25,13 +28,16 @@ rr string
 rr string regex
 rr regex
 
+--verbose, -v : enable regex debug mode
+
 \n can be used in string (remember to protect from shell)
 flags can be appended to regex with /regex/flags (1st / optional)
 MSG
 
 # Options
 GetOptions (
-   'h|help' => sub {print $help; exit}
+   'verbose' => sub {},
+   'help'    => sub {print $help; exit}
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 die $help unless @ARGV;
