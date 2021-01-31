@@ -1,5 +1,14 @@
 #! /usr/bin/env perl
 
+# Perl regex REPL
+#
+# Alternatively:
+#   use re 'debug';
+#   use diagnostics;
+#   or use the debugger :-)
+#
+# todo: sanitize input (chroot, ..., or warn) + fix newlines (/regex/s)
+
 use strict;
 use warnings;
 use feature 'say';
@@ -10,23 +19,24 @@ use Getopt::Long qw/GetOptions :config bundling/;
 my $GRAY = color('ansi242');
 
 my $help = << 'MSG';
-rr str /reg/
-rr str
-rr /reg/
+rr regex[/flags]
+rr scalar
+rr scalar regex
 MSG
 
-# Arguments
+# Options
 GetOptions (
    'h|help' => sub {print $help; exit}
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 die $help unless @ARGV;
 
+# globals
 my ($str, $reg);
+my $regex_arg = qr! ^/?(.*?)/(.*) !x;
 
-my $regex_arg = qr! ^/(.*?)/(.*) !x;
-
-if (@ARGV == 2)
+# Arguments
+if (@ARGV == 2) # rr scalar regex
 {
    ($str, $reg) = @ARGV;
    $reg = eval "qr/$1/$2" if $reg =~ $regex_arg;
@@ -34,12 +44,12 @@ if (@ARGV == 2)
 }
 elsif (@ARGV == 1)
 {
-   # rr /reg/
+   # rr /regex/
    if ($ARGV[0] =~ $regex_arg)
    {
-      # get flags
-      $reg = eval "qr/$1/$2";
+      $reg = eval "qr/$1/$2"; # get flags
       repl('regex');
+      # rr scalar
    } else {
       $str = $ARGV[0];
       repl();
@@ -52,15 +62,16 @@ sub repl
    $term->ornaments(0);
    my $OUT = $term->OUT || \*STDOUT;
 
-   my $prompt = CYAN . (@_ ? '$$ ' : '// ') . RESET;
+   my $prompt = CYAN . (@_ ? '$scalar>> ' : '/regex/>> ') . RESET;
 
    while (defined ($_ = $term->readline($prompt)))
    {
-      if (@_) # rr /reg/
+      if (@_) # rr /regex/
       {
          chomp ($str = $_);
       } else {
          chomp ($reg = $_);
+         $reg = eval "qr/$1/$2" if $reg =~ $regex_arg;
       }
       match();
    }
@@ -68,21 +79,20 @@ sub repl
 
 sub match
 {
-   return unless $str and $reg;
-   if ($str =~ $reg)
+   return unless $str and $reg; # empty prompt>>
+   $str =~ $reg or die RED.'no match'.RESET, "\n";
+
+   my @info;
+   my @match = (pre => $`, match => $&, post => $');
+
+   while (my ($key, $val) = splice @match, 0, 2)
    {
-      my @info;
-      my @match = (pre => $`, match => $&, post => $');
-      while (my ($key, $val) = splice @match, 0, 2)
-      {
-         next unless $val;
-         $val = GREEN.$val.RESET if $key eq 'match';
-         push @info, $GRAY.$key.RESET.": $val";
-      }
-      my $info = join ', ', @info;
-      say $`. GREEN.$&.RESET . $', " ($info)";
-      say ' ' x length($`) . '^' x length($&) . ' ' x length($');
-   } else {
-      say RED.'no match'.RESET;
+      next unless $val;
+      $val = GREEN.$val.RESET if $key eq 'match';
+      push @info, $GRAY.$key.RESET.": $val";
    }
+
+   my $info = join ', ', @info;
+   say $`. GREEN.$&.RESET . $', " ($info)";
+   say ' ' x length($`) . '^' x length($&) . ' ' x length($');
 }
