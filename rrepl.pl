@@ -7,7 +7,7 @@
 #   use diagnostics;
 #   or use the debugger :-)
 #
-# todo: sanitize input (chroot, ..., or warn) + fix newlines (/regex/s)
+# todo: sanitize input (chroot, ..., or warn)
 
 use strict;
 use warnings;
@@ -19,9 +19,14 @@ use Getopt::Long qw/GetOptions :config bundling/;
 my $GRAY = color('ansi242');
 
 my $help = << 'MSG';
-rr regex[/flags]
-rr scalar
-rr scalar regex
+Perl regex REPL
+
+rr string
+rr string regex
+rr regex
+
+\n can be used in string (remember to protect from shell)
+flags can be appended to regex with /regex/flags (1st / optional)
 MSG
 
 # Options
@@ -80,19 +85,28 @@ sub repl
 sub match
 {
    return unless $str and $reg; # empty prompt>>
-   $str =~ $reg or die RED.'no match'.RESET, "\n";
+   $str =~ s/\\n/\n/g;
 
-   my @info;
-   my @match = (pre => $`, match => $&, post => $');
-
-   while (my ($key, $val) = splice @match, 0, 2)
+   if ($str =~ $reg)
    {
-      next unless $val;
-      $val = GREEN.$val.RESET if $key eq 'match';
-      push @info, $GRAY.$key.RESET.": $val";
-   }
+      my @info;
+      my ($pre, $match, $post) = ($`, $&, $');
+      s/\n/\\n/g foreach ($pre, $match, $post);
 
-   my $info = join ', ', @info;
-   say $`. GREEN.$&.RESET . $', " ($info)";
-   say ' ' x length($`) . '^' x length($&) . ' ' x length($');
+      my @match = (pre => $pre, match => $match, post => $post);
+
+      while (my ($key, $val) = splice @match, 0, 2)
+      {
+         next unless $val;
+         $val = GREEN.$val.RESET if $key eq 'match';
+         push @info, $GRAY.$key.RESET.": $val";
+      }
+
+      my $info = join ', ', @info;
+      say $pre.GREEN.$match.RESET.$post, " ($info)";
+      say ' ' x length($pre) . '^' x length($match) . ' ' x length($post);
+   }
+   else {
+      warn RED.'no match'.RESET, "\n";
+   }
 }
