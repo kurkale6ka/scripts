@@ -20,10 +20,12 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
 
 my $GRAY = color('ansi242');
+my $PINK = color('ansi205');
 
 my $help = << 'MSG';
 Perl regex REPL
 
+rr              : read multiline text from STDIN
 rr string
 rr string regex
 rr regex
@@ -40,31 +42,40 @@ GetOptions (
    'help'    => sub {print $help; exit}
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-die $help unless @ARGV;
+# 2 args max
+die $help if @ARGV > 2;
 
 # globals
 my ($str, $reg);
 my $regex_arg = qr! ^/?(.*?)/(.*) !x;
 
 # Arguments
-if (@ARGV == 2) # rr scalar regex
+if (@ARGV == 1)
+{
+   # rr scalar
+   unless ($ARGV[0] =~ $regex_arg)
+   {
+      $str = $ARGV[0];
+      repl();
+   }
+   else # rr /regex/
+   {
+      $reg = eval "qr/$1/$2"; # get flags
+      repl('regex');
+   }
+}
+elsif (@ARGV == 2) # rr scalar regex
 {
    ($str, $reg) = @ARGV;
    $reg = eval "qr/$1/$2" if $reg =~ $regex_arg;
    match();
 }
-elsif (@ARGV == 1)
+elsif (@ARGV == 0) # rr
 {
-   # rr /regex/
-   if ($ARGV[0] =~ $regex_arg)
-   {
-      $reg = eval "qr/$1/$2"; # get flags
-      repl('regex');
-      # rr scalar
-   } else {
-      $str = $ARGV[0];
-      repl();
-   }
+   say $PINK.'multiline text (EOF with ^d):'.RESET;
+   chomp (my @str = <STDIN>);
+   $str = join '\n', @str;
+   repl();
 }
 
 sub repl
@@ -99,18 +110,24 @@ sub match
       my ($pre, $match, $post) = ($`, $&, $');
       s/\n/\\n/g foreach ($pre, $match, $post);
 
+      # info: pre, match, post
       my @match = (pre => $pre, match => $match, post => $post);
 
       while (my ($key, $val) = splice @match, 0, 2)
       {
          next unless $val;
-         $val = GREEN.$val.RESET if $key eq 'match';
-         push @info, $GRAY.$key.RESET.": $val";
+         $val = $key eq 'match' ? GREEN.$val.RESET : $GRAY.$val.RESET;
+         push @info, $PINK.$key.RESET.': '.$val;
       }
 
       my $info = join ', ', @info;
-      say $pre.GREEN.$match.RESET.$post, " ($info)";
-      say ' ' x length($pre) . '^' x length($match) . ' ' x length($post);
+      my $underline = ' ' x length($pre) . '^' x length($match);
+
+      # color newlines in blue
+      s/\\n/BLUE.BOLD.'\n'.RESET/eg foreach ($pre, $post);
+
+      say $pre . GREEN.$match.RESET . $post, " ($info)";
+      say $underline;
    }
    else {
       warn RED.'no match'.RESET, "\n";
