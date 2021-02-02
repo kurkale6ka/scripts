@@ -53,7 +53,7 @@ my $regex_arg = qr! ^/?(.*?)/(.*) !x;
 if (@ARGV == 1)
 {
    # rr scalar
-   unless ($ARGV[0] =~ $regex_arg)
+   unless ($ARGV[0] =~ /$regex_arg/)
    {
       $str = $ARGV[0];
       repl();
@@ -67,7 +67,7 @@ if (@ARGV == 1)
 elsif (@ARGV == 2) # rr scalar regex
 {
    ($str, $reg) = @ARGV;
-   $reg = eval "qr/$1/$2" if $reg =~ $regex_arg;
+   $reg = eval "qr/$1/$2" if $reg =~ /$regex_arg/;
    match();
 }
 elsif (@ARGV == 0) # rr
@@ -93,7 +93,7 @@ sub repl
          chomp ($str = $_);
       } else {
          chomp ($reg = $_);
-         $reg = eval "qr/$1/$2" if $reg =~ $regex_arg;
+         $reg = eval "qr/$1/$2" if $reg =~ /$regex_arg/;
       }
       match();
    }
@@ -104,7 +104,7 @@ sub match
    return unless $str and $reg; # empty prompt>>
    $str =~ s/\\n/\n/g;
 
-   if ($str =~ $reg)
+   if ($str =~ /$reg/)
    {
       my @info;
       my ($pre, $match, $post) = ($`, $&, $');
