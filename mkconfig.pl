@@ -36,7 +36,7 @@ zsh
 my $vim_help = <<VIM;
 ${CYAN}to install vim-plug${R}:
 curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-:PlugInstall
+vim -c PlugInstall
 VIM
 
 sub init();
