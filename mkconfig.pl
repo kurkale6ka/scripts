@@ -32,11 +32,18 @@ scripts
 vim
 zsh
 );
+my @plugins = qw(
+vim-blockinsert
+vim-chess
+vim-desertEX
+vim-pairs
+vim-swap
+);
 
 my $vim_help = <<VIM;
 ${CYAN}to install vim-plug${R}:
 curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-vim -c PlugInstall
+REPOS_BASE=~/github vim -c PlugInstall
 VIM
 
 sub init();
@@ -217,7 +224,7 @@ sub checkout()
    my @children;
    my @statuses;
 
-   foreach my $repo (@repos)
+   foreach my $repo (@repos, @plugins)
    {
       next if -d $repo;
 
@@ -253,6 +260,7 @@ sub checkout()
 
    if (all {$_ == 0} @statuses)
    {
+      system ('mv', @plugins, 'vim/plugged') == 0 or die RED.$!.RESET, "\n";
       say $vim_help;
       return 1;
    } else {
@@ -266,9 +274,9 @@ sub update()
 
    my @children;
 
-   foreach my $repo (glob "$ENV{REPOS_BASE}/*")
+   foreach my $repo (@repos, map {"vim/plugged/$_"} @plugins)
    {
-      next unless -d $repo and chdir $repo;
+      next unless -d "$ENV{REPOS_BASE}/$repo" and chdir "$ENV{REPOS_BASE}/$repo";
 
       # parent
       my $pid = fork // die "failed to fork: $!";
@@ -299,9 +307,9 @@ sub status()
 {
    my @children;
 
-   foreach my $repo (glob "$ENV{REPOS_BASE}/*")
+   foreach my $repo (@repos, map {"vim/plugged/$_"} @plugins)
    {
-      next unless -d $repo and chdir $repo;
+      next unless -d "$ENV{REPOS_BASE}/$repo" and chdir "$ENV{REPOS_BASE}/$repo";
 
       # parent
       my $pid = fork // die "failed to fork: $!";
