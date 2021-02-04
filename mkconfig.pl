@@ -24,7 +24,14 @@ my $R = color('reset');
 
 # Variables and declarations
 my $user = 'kurkale6ka';
-my @repos = qw/zsh bash help config scripts vim/;
+my @repos = qw(
+bash
+config
+help
+scripts
+vim
+zsh
+);
 
 my $vim_help = <<VIM;
 ${CYAN}to install vim-plug${R}:
@@ -227,23 +234,14 @@ sub checkout()
       unless ($download)
       {
          system qw/git clone/, "git\@github.com:$user/$repo.git";
-         unless ($? == 0)
-         {
-            push @statuses, -1;
-            die RED."$!".RESET, "\n";
-         }
       } else {
-         eval {
-            system 'wget', '-q', "https://github.com/$user/$repo/tarball/master", '-O', "$repo.tgz";
-            mkdir $repo;
-            system qw/tar zxf/, "$repo.tgz", '-C', $repo, '--strip-components', 1;
-            unlink "$repo.tgz";
-         };
-         if ($@)
-         {
-            push @statuses, -1;
-            die RED."$@".RESET, "\n";
-         }
+         system qw/git clone/, "https://github.com/$user/$repo.git";
+      }
+
+      unless ($? == 0)
+      {
+         push @statuses, -1;
+         die RED.$!.RESET, "\n";
       }
 
       push @statuses, 0;
