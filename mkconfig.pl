@@ -24,6 +24,7 @@ my $R = color('reset');
 
 # Variables and declarations
 my $user = 'kurkale6ka';
+
 my @repos = qw(
 bash
 config
@@ -32,6 +33,8 @@ scripts
 vim
 zsh
 );
+
+my $plugins = 'vim/plugged';
 my @plugins = qw(
 vim-blockinsert
 vim-chess
@@ -39,12 +42,6 @@ vim-desertEX
 vim-pairs
 vim-swap
 );
-
-my $vim_help = <<VIM;
-${CYAN}to install vim-plug${R}:
-curl -fLo ~/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-REPOS_BASE=~/github vim -c PlugInstall
-VIM
 
 sub init();
 sub checkout();
@@ -69,6 +66,33 @@ GetOptions (
    'H|long-help' => \$long_help,
    'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
+
+# Repos root folder setup
+unless ($ENV{REPOS_BASE})
+{
+   warn RED.'Repositories root undefined'.RESET, "\n";
+   print "define or accept default [$BLUE~/github$R]: ";
+
+   chomp ($ENV{REPOS_BASE} = <STDIN>);
+
+   $ENV{REPOS_BASE} ||= '~/github';
+   $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
+
+   if (-d dirname $ENV{REPOS_BASE})
+   {
+      make_path $ENV{REPOS_BASE};
+   } else {
+      die RED."parent folder doesn't exist".RESET, "\n";
+   }
+
+   print "\n";
+}
+
+my $vim_help = <<VIM;
+${CYAN}to install vim-plug${R}:
+curl -fLo $ENV{REPOS_BASE}/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
+VIM
 
 # Help
 sub help() {
@@ -96,27 +120,6 @@ exit;
 }
 
 help if $long_help;
-
-# Repos root folder setup
-unless ($ENV{REPOS_BASE})
-{
-   warn RED.'Repositories root undefined'.RESET, "\n";
-   print "define or accept default [$BLUE~/github$R]: ";
-
-   chomp ($ENV{REPOS_BASE} = <STDIN>);
-
-   $ENV{REPOS_BASE} ||= '~/github';
-   $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
-
-   if (-d dirname $ENV{REPOS_BASE})
-   {
-      make_path $ENV{REPOS_BASE};
-   } else {
-      die RED."parent folder doesn't exist".RESET, "\n";
-   }
-
-   print "\n";
-}
 
 # More checks
 if (@ARGV)
@@ -260,7 +263,7 @@ sub checkout()
 
    if (all {$_ == 0} @statuses)
    {
-      system ('mv', @plugins, 'vim/plugged') == 0 or die RED.$!.RESET, "\n";
+      system ('mv', @plugins, $plugins) == 0 or die RED.$!.RESET, "\n";
       say $vim_help;
       return 1;
    } else {
@@ -274,7 +277,7 @@ sub update()
 
    my @children;
 
-   foreach my $repo (@repos, map {"vim/plugged/$_"} @plugins)
+   foreach my $repo (@repos, map {"$plugins/$_"} @plugins)
    {
       next unless -d "$ENV{REPOS_BASE}/$repo" and chdir "$ENV{REPOS_BASE}/$repo";
 
@@ -307,7 +310,7 @@ sub status()
 {
    my @children;
 
-   foreach my $repo (@repos, map {"vim/plugged/$_"} @plugins)
+   foreach my $repo (@repos, map {"$plugins/$_"} @plugins)
    {
       next unless -d "$ENV{REPOS_BASE}/$repo" and chdir "$ENV{REPOS_BASE}/$repo";
 
@@ -420,13 +423,8 @@ sub tags()
       "--exclude=keymap",
       "--exclude=plug.vim",
       "$ENV{XDG_CONFIG_HOME}/zsh",
-      "$ENV{REPOS_BASE}/scripts",
-      "$ENV{REPOS_BASE}/vim",
-      "$ENV{REPOS_BASE}/vim/plugged/vsearch",
-      "$ENV{REPOS_BASE}/vim/plugged/vim-blockinsert",
-      "$ENV{REPOS_BASE}/vim/plugged/vim-chess",
-      "$ENV{REPOS_BASE}/vim/plugged/vim-desertEX",
-      "$ENV{REPOS_BASE}/vim/plugged/vim-pairs",
-      "$ENV{REPOS_BASE}/vim/plugged/vim-swap",
+      "scripts",
+      "vim",
+      map {"$plugins/$_"} 'vsearch', @plugins,
    ) or warn RED.'failed to generate tags'.RESET, "\n";
 }
