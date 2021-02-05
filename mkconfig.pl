@@ -95,7 +95,8 @@ REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
 VIM
 
 # Help
-sub help() {
+sub help()
+{
    print <<MSG;
 ${S}SYNOPSIS${R}
 
