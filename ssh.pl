@@ -3,7 +3,6 @@
 # use strict;
 # use warnings;
 use feature 'say';
-use re '/aa';
 
 # Auto syncing would be possible only if using ssh without options
 # rseverywhere @ARGV
@@ -15,23 +14,21 @@ use re '/aa';
 #
 # the execs are there because with 'ssh host command' we don't get a login
 
-# individual, non-shared users
-my $list = "$ENV{XDG_DATA_HOME}/ssh-users";
-open my $USERS, '<', $list or die "$list: $!\n";
+my $user = 'dimitar';
 
+chomp (my @conf = grep /^user\h/, `ssh -TG @ARGV`);
+exec 'ssh', @ARGV if grep /^user\h$user/, @conf;
+
+# individual, non-shared users
+my $users = "$ENV{XDG_DATA_HOME}/ssh-users";
+
+open my $USERS, '<', $users or die "$users: $!\n";
 chomp (my @users = <$USERS>);
 push @users, 'root';
 
-# 1st user will be the default one
-my $user = $users[0];
-
-open my $SSH, '-|', qw/ssh -TG/, @ARGV or die "$!\n";
-
-while (<$SSH>)
+foreach my $line (@conf)
 {
-   next unless /user\b/;
-   chomp (my $line = $_);
-   if (@users = grep {$line =~ /$_/} @users)
+   if (@users = grep {$line =~ /^user\h$_/} @users)
    {
       $user = @users == 1 ? shift @users : die "Too many users\n";
       exec 'ssh', @ARGV
