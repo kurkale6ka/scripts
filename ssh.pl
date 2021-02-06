@@ -1,52 +1,36 @@
 #! /usr/bin/env perl
 
 # Source personal dot files on SSH shared accounts
+#
+# auto syncing with 'rseverywhere @ARGV'
+# would be possible only if using ssh without options
+#
+# for bash, remember to add (see EOF):
+# "$REPOS_BASE"/bash/.bash_profile_after:
+# exec bash --rcfile "$REPOS_BASE"/bash/.bashrc
 
 # use strict;
 # use warnings;
 use feature 'say';
 
-# Auto syncing would be possible only if using ssh without options
-# rseverywhere @ARGV
-#
-# also needed for bash:
-#
-# "$REPOS_BASE"/bash/.bash_profile_after:
-#    exec bash --rcfile "$REPOS_BASE"/bash/.bashrc
-#
-# the execs are there because with 'ssh host command' we don't get a login
+my $default = 'dimitar';
 
 # SSH access with own user
-my $user = 'dimitar';
+my ($user) = `ssh -G @ARGV` =~ /^user\h(.+)\n/;
 
-chomp (my @conf = grep /^user\h/, `ssh -TG @ARGV`);
-exec 'ssh', @ARGV if grep /^user\h$user/, @conf;
+# default single users
+exec 'ssh', @ARGV if $user eq $default or $user eq 'root';
 
-undef $user;
-
-# individual, non-shared users
+# other non-shared users
 my $users = "$ENV{XDG_DATA_HOME}/ssh-users";
 
 open my $USERS, '<', $users or warn "$users: $!\n";
 chomp (my @users = <$USERS>);
-push @users, 'root';
 
-foreach my $line (@conf)
-{
-   if (($user) = grep {$line =~ /^user\h$_/} @users)
-   {
-      exec 'ssh', @ARGV;
-   }
-}
+exec 'ssh', @ARGV if grep $user eq $_, @users;
 
 # SSH shared accounts
-my $base = $user;
-
-unless ($base)
-{
-   warn "user missing from $users\n";
-   exec 'ssh', @ARGV;
-}
+my $base = $default;
 
 # NB: when switching to root,
 # use su vs su - in order to preserve $REPOS_BASE then paste for bash or exec zsh
@@ -66,7 +50,8 @@ ROOT_PASTE
 my $cmds = <<REMOTE;
 TERM=xterm-256color
 
-# sourcing these is needed because with 'ssh host command' it won't happen
+# - sourcing system files is needed because with 'ssh host command' it won't happen
+# - the execs are there because with 'ssh host command' we don't get a login
 if grep -q zsh /etc/shells
 then
    . /etc/zshenv   2>/dev/null
@@ -112,7 +97,7 @@ then
    . "\$REPOS_BASE"/bash/.bash_profile
 
    # ^ which in turn sources .bash_profile_after:
-   # exec bash --rcfile "$ENV{REPOS_BASE}"/bash/.bashrc
+   # exec bash --rcfile "\$REPOS_BASE"/bash/.bashrc
    # this way I avoid sourcing my bashrc twice
 fi
 REMOTE
