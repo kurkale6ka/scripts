@@ -22,6 +22,8 @@ my $user = 'dimitar';
 chomp (my @conf = grep /^user\h/, `ssh -TG @ARGV`);
 exec 'ssh', @ARGV if grep /^user\h$user/, @conf;
 
+undef $user;
+
 # individual, non-shared users
 my $users = "$ENV{XDG_DATA_HOME}/ssh-users";
 
@@ -31,15 +33,20 @@ push @users, 'root';
 
 foreach my $line (@conf)
 {
-   if (@users = grep {$line =~ /^user\h$_/} @users)
+   if (($user) = grep {$line =~ /^user\h$_/} @users)
    {
-      $user = @users == 1 ? shift @users : die "Too many users\n";
-      exec 'ssh', @ARGV
+      exec 'ssh', @ARGV;
    }
 }
 
 # SSH shared accounts
 my $base = $user;
+
+unless ($base)
+{
+   warn "user missing from $users\n";
+   exec 'ssh', @ARGV;
+}
 
 # NB: when switching to root,
 # use su vs su - in order to preserve $REPOS_BASE then paste for bash or exec zsh
