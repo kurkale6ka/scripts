@@ -4,6 +4,7 @@
 * [Show Certificate/CSR info (openssl helper)](cert.pl)
 * [Backups: create, cleanup, manage](backup.pl)
 * [SSH setup](mkssh.pl)
+* [Source personal dot files on SSH shared accounts](ssh.pl)
 * [Simple calculator](calc.pl)
 * [Dot files setup](mkconfig.pl)
 * [OpenVPN helper for NordVPN](vpn.pl)

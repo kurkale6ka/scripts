@@ -1,5 +1,7 @@
 #! /usr/bin/env perl
 
+# Source personal dot files on SSH shared accounts
+
 # use strict;
 # use warnings;
 use feature 'say';
@@ -14,6 +16,7 @@ use feature 'say';
 #
 # the execs are there because with 'ssh host command' we don't get a login
 
+# SSH access with own user
 my $user = 'dimitar';
 
 chomp (my @conf = grep /^user\h/, `ssh -TG @ARGV`);
@@ -35,6 +38,7 @@ foreach my $line (@conf)
    }
 }
 
+# SSH shared accounts
 my $base = $user;
 
 # NB: when switching to root,
