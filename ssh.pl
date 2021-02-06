@@ -25,7 +25,7 @@ exec 'ssh', @ARGV if grep /^user\h$user/, @conf;
 # individual, non-shared users
 my $users = "$ENV{XDG_DATA_HOME}/ssh-users";
 
-open my $USERS, '<', $users or die "$users: $!\n";
+open my $USERS, '<', $users or warn "$users: $!\n";
 chomp (my @users = <$USERS>);
 push @users, 'root';
 
