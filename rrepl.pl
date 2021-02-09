@@ -2,9 +2,16 @@
 
 # Perl regex REPL
 #
-# todo: sanitize input (chroot, ..., or warn)
+# todo:
+#  - sanitize input (chroot, ..., or warn)
+#  - fix ^^^ for wide characters
 
-BEGIN {
+BEGIN
+{
+   use Encode;
+   Encode -> import ('decode');
+   @ARGV = map { decode('UTF-8', $_, Encode::FB_CROAK | Encode::LEAVE_SRC) } @ARGV;
+
    if (@ARGV > 1 and grep /^--?v(e(r(b(o(se?)?)?)?)?)?$/n, @ARGV)
    {
       require re;
@@ -15,6 +22,7 @@ BEGIN {
 use strict;
 use warnings;
 use feature 'say';
+use open qw/:std :encoding(UTF-8)/;
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
@@ -88,6 +96,7 @@ sub repl
 
    while (defined ($_ = $term->readline($prompt)))
    {
+      $_ = decode('UTF-8', $_, Encode::FB_CROAK | Encode::LEAVE_SRC);
       if (@_) # rr /regex/
       {
          chomp ($str = $_);
