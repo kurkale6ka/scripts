@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use feature 'say';
 use open qw/:std :encoding(UTF-8)/;
+# use Unicode::GCString;
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
@@ -131,6 +132,7 @@ sub match
 
       my $info = join ', ', @info;
       my $underline = ' ' x length($pre) . '^' x length($match);
+      # my $underline = ' ' x Unicode::GCString->new($pre)->columns . '^' x Unicode::GCString->new($match)->columns;
 
       # color newlines in blue
       s/\\n/BLUE.BOLD.'\n'.RESET/eg foreach ($pre, $post);
