@@ -4,7 +4,8 @@
 #
 # todo:
 #  - sanitize input (chroot, ..., or warn)
-#  - fix ^^^ for wide characters
+
+my $gcstring;
 
 BEGIN
 {
@@ -17,13 +18,18 @@ BEGIN
       require re;
       re -> import ('debug');
    }
+
+   unless (system 'perldoc -l Unicode::GCString 1>/dev/null 2>&1')
+   {
+      require Unicode::GCString;
+      $gcstring = 1;
+   }
 }
 
 use strict;
 use warnings;
 use feature 'say';
 use open qw/:std :encoding(UTF-8)/;
-# use Unicode::GCString;
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
@@ -43,6 +49,7 @@ rr regex
 
 \n can be used in string (remember to protect from shell)
 flags can be appended to regex with /regex/flags (1st / optional)
+install Unicode::GCString for better underlining (^^^) of wide characters
 MSG
 
 # Options
@@ -131,8 +138,14 @@ sub match
       }
 
       my $info = join ', ', @info;
-      my $underline = ' ' x length($pre) . '^' x length($match);
-      # my $underline = ' ' x Unicode::GCString->new($pre)->columns . '^' x Unicode::GCString->new($match)->columns;
+      my $underline;
+
+      unless ($gcstring)
+      {
+         $underline = ' ' x length($pre) . '^' x length($match);
+      } else {
+         $underline = ' ' x Unicode::GCString->new($pre)->columns . '^' x Unicode::GCString->new($match)->columns;
+      }
 
       # color newlines in blue
       s/\\n/BLUE.BOLD.'\n'.RESET/eg foreach ($pre, $post);
