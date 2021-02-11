@@ -97,27 +97,27 @@ VIM
 # Help
 sub help()
 {
-   print <<MSG;
-${S}SYNOPSIS${R}
+   print <<~ "MSG";
+   ${S}SYNOPSIS${R}
 
-mkconfig              : ${YELLOW}update${R}
-mkconfig -i[d]        : ${YELLOW}install${R}
-mkconfig -[u|s][l|L]t
+   mkconfig              : ${YELLOW}update${R}
+   mkconfig -i[d]        : ${YELLOW}install${R}
+   mkconfig -[u|s][l|L]t
 
-${S}OPTIONS${R}
+   ${S}OPTIONS${R}
 
---init,      -i: Initial setup
---download,  -d: Download repositories vs checkout
---update,    -u: Update repositories
---status,    -s: Check repositories statuses
---links,     -l: Make links
---del-links, -L: Remove links
---tags,      -t: Generate tags
---long-help, -H: Long help
-MSG
+   --init,      -i: Initial setup
+   --download,  -d: Download repositories vs checkout
+   --update,    -u: Update repositories
+   --status,    -s: Check repositories statuses
+   --links,     -l: Make links
+   --del-links, -L: Remove links
+   --tags,      -t: Generate tags
+   --long-help, -H: Long help
+   MSG
 
-print "\n$vim_help" if $long_help;
-exit;
+   print "\n$vim_help" if $long_help;
+   exit;
 }
 
 help if $long_help;
