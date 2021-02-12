@@ -12,11 +12,10 @@ use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;
 
 # Help
-my $help = << 'MSG';
+my $help = << '';
 headall [pattern]
 -n, --lines=NUM : print the first NUM lines, 10 default
 -v, --view      : view with folds in (n)vim, :h folds
-MSG
 
 # Options
 my $lines = 10;
