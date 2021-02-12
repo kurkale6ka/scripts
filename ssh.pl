@@ -36,18 +36,18 @@ my $base = $default;
 # use su vs su - in order to preserve $REPOS_BASE then paste for bash or exec zsh
 if (open my $clipboard, '|-', $^O eq 'darwin' ? 'pbcopy' : 'xclip')
 {
-   print $clipboard <<'ROOT_PASTE';
-{
-TERM=xterm-256color
-. ~/.bash_profile
-. "$REPOS_BASE"/bash/.bash_profile
-}
-ROOT_PASTE
+   print $clipboard <<~ 'ROOT_PASTE';
+   {
+   TERM=xterm-256color
+   . ~/.bash_profile
+   . "$REPOS_BASE"/bash/.bash_profile
+   }
+   ROOT_PASTE
 } else {
    warn "$!\n";
 }
 
-my $cmds = <<REMOTE;
+my $cmds = << "REMOTE";
 TERM=xterm-256color
 
 # - sourcing system files is needed because with 'ssh host command' it won't happen
