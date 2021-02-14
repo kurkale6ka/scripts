@@ -7,11 +7,10 @@ use warnings;
 use feature 'say';
 use utf8;
 use Encode 'decode';
-use open ':std', ':encoding(utf-8)';
+use open qw/:std :encoding(UTF-8)/;
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
-use I18N::Langinfo qw/langinfo CODESET/;
 use POSIX 'SIGINT';
 
 # Catch SIGINT
@@ -20,26 +19,26 @@ POSIX::sigaction (SIGINT,
 $| = 1;
 
 # Help
-sub help()
+sub help
 {
-   print << 'MSG';
-Usage: calc math-expr
+   print <<~ 'MSG';
+   Usage: calc math-expr
 
-x can be used in lieu of *
-* can be omitted in parenthesised expressions: a(b+c)
-^ can be used for raising to a power (in addition to **)
+   x can be used in lieu of *
+   * can be omitted in parenthesised expressions: a(b+c)
+   ^ can be used for raising to a power (in addition to **)
 
-_ holds the result of the previous calculation
+   _ holds the result of the previous calculation
 
-Options:
---tests,   -t : run unit tests
---unicode, -u : print supported Unicode symbols (no -- in interactive mode)
+   Options:
+   --tests,   -t : run unit tests
+   --unicode, -u : print supported Unicode symbols (no -- in interactive mode)
 
-Tips:
-• exponent notation (meⁿ ⇔ m×10ⁿ) is supported
-• for arrows support, install Term::ReadLine::Gnu
-• symlink this script to =
-MSG
+   Tips:
+   • exponent notation (meⁿ ⇔ m×10ⁿ) is supported
+   • for arrows support, install Term::ReadLine::Gnu
+   • symlink this script to =
+   MSG
 }
 
 # Valid Math Symbols
@@ -82,12 +81,6 @@ my $symbols = qr{(
 # Global variables
 my $res;
 my $ans; # intermediary calculation memory
-my $codeset = langinfo(CODESET); # utf8
-
-# Declarations
-sub tests();
-sub unicode();
-sub math_eval();
 
 # Options
 my $tests;
@@ -102,7 +95,7 @@ if ($tests) {tests(); exit;}
 # Arguments
 if (@ARGV)
 {
-   @ARGV = map {decode $codeset, $_} @ARGV;
+   @ARGV = map {decode 'UTF-8', $_, Encode::FB_CROAK | Encode::LEAVE_SRC} @ARGV;
    $_ = "@ARGV";
    if ($res = math_eval())
    {
@@ -117,7 +110,7 @@ else # STDIN
 
    while (defined ($_ = $term->readline (CYAN.'>>'.RESET.' ')))
    {
-      $_ = decode $codeset, $_;
+      $_ = decode 'UTF-8', $_, Encode::FB_CROAK | Encode::LEAVE_SRC;
 
       # todo: change SIGINT (^C) handler to stay inside the loop
       exit if /^\h*(q(uit)?|e(xit)?)\h*$/in;
@@ -135,7 +128,7 @@ else # STDIN
 }
 
 # Main
-sub math_eval()
+sub math_eval
 {
    # validate input
    if (/$symbols/ and $')
@@ -204,7 +197,7 @@ sub math_eval()
 }
 
 # Print recognized Unicode symbols
-sub unicode()
+sub unicode
 {
    my @fractions = sort {$fractions{$a} <=> $fractions{$b}} keys %fractions;
    print <<CODES;
@@ -216,7 +209,7 @@ superscripts: (number)$superscripts
 CODES
 }
 
-sub tests()
+sub tests
 {
    my $res;
    while (<DATA>)
