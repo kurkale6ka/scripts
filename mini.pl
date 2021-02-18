@@ -53,7 +53,7 @@ if ($all or $ksh)
       state $rc++;
       chomp (my $conf = `cat "$mini{$_}"`);
       "cat >> ~/.$_ << 'RC$rc'\n" .
-      '-' x 80 .
+      '# ' . '-' x 78 .
       "\n$conf\n" .
       "RC$rc";
    }
