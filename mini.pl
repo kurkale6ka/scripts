@@ -23,8 +23,7 @@ GetOptions (
 
 my @configs = qw/inputrc vimrc/;
 
-if ($ksh)
-{
+if ($ksh) {
    push @configs, qw/profile kshrc/;
 } elsif ($all) {
    push @configs, 'bashrc';
@@ -53,7 +52,7 @@ if ($all or $ksh)
       state $rc++;
       chomp (my $conf = `cat "$mini{$_}"`);
       "cat >> ~/.$_ << 'RC$rc'\n" .
-      '# ' . '-' x 78 .
+      ($_ ne 'vimrc' ? '# ' : '" ') . '-' x 78 .
       "\n$conf\n" .
       "RC$rc";
    }
