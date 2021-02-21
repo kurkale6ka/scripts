@@ -5,21 +5,18 @@
 use strict;
 use warnings;
 use feature 'say';
-use Getopt::Long qw/GetOptions :config bundling/;
+use Getopt::Long 'GetOptions';
 
 my $sites = "$ENV{XDG_DATA_HOME}/sites";
 
-sub help() {
-   print <<MSG;
+(my $help = <<MSG) =~ s/$ENV{HOME}/~/;
 www [-s sites] [pattern]
-fuzzy search & open of websites ($ENV{XDG_DATA_HOME}/sites)
+fuzzy search & open of websites ($sites)
 MSG
-   exit;
-}
 
 GetOptions (
-   's|sites=s' => \$sites,
-   'h|help'    => \&help
+   'sites=s' => \$sites,
+   'help'    => sub { print $help; exit }
 ) or die "Error in command line arguments\n";
 
 -f $sites or die "No sites found\n";
@@ -32,17 +29,19 @@ if (@ARGV)
 }
 chomp;
 
-unless (m{https?://\S+})
+# match URLs
+unless (m{ https?://\S+ }x or /www\.\S+/ or /\S+\.com\b/)
 {
    my $error = $_ ? "No valid URL in: $_" : 'No match';
    die "$error\n";
 }
 
-say $&;
+my $site = $&;
+say $site = "https://$site" unless $site =~ /\Ahttp/i;
 
 unless ($^O eq 'darwin')
 {
-   exec 'xdg-open', $&;
+   exec 'xdg-open', $site;
 } else {
-   exec 'open', $&;
+   exec 'open', $site;
 }
