@@ -6,16 +6,18 @@ use strict;
 use warnings;
 use feature 'say';
 use utf8;
-use Encode 'decode';
 use open qw/:std :encoding(UTF-8)/;
+use Encode 'decode';
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 use POSIX 'SIGINT';
 
 # Catch SIGINT
-POSIX::sigaction (SIGINT,
-   POSIX::SigAction->new (sub { print YELLOW.'KeyboardInterrupt'.RESET; }));
+POSIX::sigaction (SIGINT, POSIX::SigAction->new (sub {
+   print YELLOW.'KeyboardInterrupt'.RESET;
+}));
+
 $| = 1;
 
 # Help
@@ -96,11 +98,9 @@ if ($tests) {tests(); exit;}
 if (@ARGV)
 {
    @ARGV = map {decode 'UTF-8', $_, Encode::FB_CROAK | Encode::LEAVE_SRC} @ARGV;
-   $_ = "@ARGV";
-   if ($res = math_eval())
-   {
-      say $res;
-   }
+   $_ = join '', @ARGV;
+   exit unless length;
+   say $res if defined ($res = math_eval());
 }
 else # STDIN
 {
@@ -110,21 +110,16 @@ else # STDIN
 
    while (defined ($_ = $term->readline (CYAN.'>>'.RESET.' ')))
    {
+      next unless length;
       $_ = decode 'UTF-8', $_, Encode::FB_CROAK | Encode::LEAVE_SRC;
 
-      # todo: change SIGINT (^C) handler to stay inside the loop
       exit if /^\h*(q(uit)?|e(xit)?)\h*$/in;
 
       if (/^\h*(h(elp)?|\?+)\h*$/in) {help(); next;}
       if (/^\h*u(nicode)?\h*$/in) {unicode(); next;}
 
-      if ($res = math_eval())
-      {
-         say $OUT $res;
-      }
+      say $OUT $res if defined ($res = math_eval());
    }
-
-   print "\n";
 }
 
 # Main
@@ -139,6 +134,7 @@ sub math_eval
       $_ = RED."bad symbols: $_".RESET;
       die "$_\n" unless -t;
       warn "$_\n";
+      return undef;
    }
 
    # replace _ with ans,
@@ -149,7 +145,8 @@ sub math_eval
       {
          s/(?<!\d)_+/$ans/g;
       } else {
-         return RED.'ans empty'.RESET;
+         warn RED.'ans empty'.RESET, "\n";
+         return undef;
       }
    }
 
@@ -183,30 +180,26 @@ sub math_eval
    s/([\d)])\h*\(/$1*(/g if /[\d)]\h*\(/; # a(b+c), )(
    s/\)\h*([\d])/)*$1/g if /\)\h*[\d]/;   # (b+c)a
 
-   if (length)
+   # todo: exceptions handling
+   if (defined ($_ = eval))
    {
-      # todo: exceptions handling
-      if ($_ = eval)
-      {
-         return $ans = $_;
-      }
+      return $ans = $_;
+   } else {
+      return undef;
    }
-
-   # <enter> only
-   return;
 }
 
 # Print recognized Unicode symbols
 sub unicode
 {
    my @fractions = sort {$fractions{$a} <=> $fractions{$b}} keys %fractions;
-   print <<CODES;
-   operators: ×✕✖ ÷∕⁄ ➕ −
-     numbers: $numbers
-   fractions: @fractions ⅟
-superscripts: (number)$superscripts
- parenthesis: $parens
-CODES
+   print <<~ "CODES";
+      operators: ×✕✖ ÷∕⁄ ➕ −
+        numbers: $numbers
+      fractions: @fractions ⅟
+   superscripts: (number)$superscripts
+    parenthesis: $parens
+   CODES
 }
 
 sub tests
