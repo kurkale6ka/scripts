@@ -2,9 +2,8 @@
 
 # SIMPLE calculator
 
-use strict;
+use v5.26;
 use warnings;
-use feature 'say';
 use utf8;
 use open qw/:std :encoding(UTF-8)/;
 use Encode 'decode';
@@ -21,27 +20,24 @@ POSIX::sigaction (SIGINT, POSIX::SigAction->new (sub {
 $| = 1;
 
 # Help
-sub help
-{
-   print <<~ 'MSG';
-   Usage: calc math-expr
+my $help = << 'MSG';
+Usage: calc math-expr
 
-   x can be used in lieu of *
-   * can be omitted in parenthesised expressions: a(b+c)
-   ^ can be used for raising to a power (in addition to **)
+x can be used in lieu of *
+* can be omitted in parenthesised expressions: a(b+c)
+^ can be used for raising to a power (in addition to **)
 
-   _ holds the result of the previous calculation
+_ holds the result of the previous calculation
 
-   Options:
-   --tests,   -t : run unit tests
-   --unicode, -u : print supported Unicode symbols (no -- in interactive mode)
+Options:
+--tests,   -t : run unit tests
+--unicode, -u : print supported Unicode symbols (no -- in interactive mode)
 
-   Tips:
-   • exponent notation (meⁿ ⇔ m×10ⁿ) is supported
-   • for arrows support, install Term::ReadLine::Gnu
-   • symlink this script to =
-   MSG
-}
+Tips:
+• exponent notation (meⁿ ⇔ m×10ⁿ) is supported
+• for arrows support, install Term::ReadLine::Gnu
+• symlink this script to =
+MSG
 
 # Valid Math Symbols
 my %fractions = (
@@ -88,8 +84,8 @@ my $ans; # intermediary calculation memory
 my $tests;
 GetOptions (
    't|tests'   => \$tests,
-   'u|unicode' => sub {unicode(); exit;},
-   'h|help'    => sub {help();    exit;},
+   'u|unicode' => sub { unicode();   exit },
+   'h|help'    => sub { print $help; exit },
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 if ($tests) {tests(); exit;}
@@ -115,8 +111,8 @@ else # STDIN
 
       exit if /^\h*(q(uit)?|e(xit)?)\h*$/in;
 
-      if (/^\h*(h(elp)?|\?+)\h*$/in) {help(); next;}
-      if (/^\h*u(nicode)?\h*$/in) {unicode(); next;}
+      if (/^\h*(h(elp)?|\?+)\h*$/in) { print $help; next }
+      if (/^\h*u(nicode)?\h*$/in)    { unicode();   next }
 
       say $OUT $res if defined ($res = math_eval());
    }
