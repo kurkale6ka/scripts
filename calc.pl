@@ -12,6 +12,9 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
 use POSIX 'SIGINT';
 
+my $b = color 'bold';
+my $r = color 'reset';
+
 # Catch SIGINT
 POSIX::sigaction (SIGINT, POSIX::SigAction->new (sub {
    print YELLOW.'KeyboardInterrupt'.RESET;
@@ -20,7 +23,7 @@ POSIX::sigaction (SIGINT, POSIX::SigAction->new (sub {
 $| = 1;
 
 # Help
-my $help = << 'MSG';
+my $help = << "MSG";
 Usage: calc math-expr
 
 x can be used in lieu of *
@@ -34,7 +37,7 @@ Options:
 --unicode, -u : print supported Unicode symbols (no -- in interactive mode)
 
 Tips:
-• exponent notation (meⁿ ⇔ m×10ⁿ) is supported
+• exponent notation (m${b}e${r}n ⇔ m×10ⁿ) is supported
 • for arrows support, install Term::ReadLine::Gnu
 • symlink this script to =
 MSG
