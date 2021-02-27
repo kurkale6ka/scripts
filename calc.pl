@@ -9,7 +9,7 @@ use open qw/:std :encoding(UTF-8)/;
 use Encode 'decode';
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
-use Getopt::Long qw/GetOptions :config bundling/;
+use Getopt::Long 'GetOptions';
 use POSIX 'SIGINT';
 
 # Catch SIGINT
@@ -78,17 +78,17 @@ my $symbols = qr{(
 
 # Global variables
 my $res;
-my $ans; # intermediary calculation memory
+my $ans; # memory
 
 # Options
 my $tests;
 GetOptions (
-   't|tests'   => \$tests,
-   'u|unicode' => sub { unicode();   exit },
-   'h|help'    => sub { print $help; exit },
+   'tests'   => \$tests,
+   'unicode' => sub { unicode();   exit },
+   'help'    => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-if ($tests) {tests(); exit;}
+if ($tests) { tests(); exit }
 
 # Arguments
 if (@ARGV)
@@ -100,8 +100,8 @@ if (@ARGV)
 }
 else # STDIN
 {
-   my $term = Term::ReadLine->new('Simple calculator');
-   $term->ornaments(0);
+   my $term = Term::ReadLine->new ('Simple calculator');
+   $term->ornaments (0);
    my $OUT = $term->OUT || \*STDOUT;
 
    while (defined ($_ = $term->readline (CYAN.'>>'.RESET.' ')))
@@ -151,18 +151,18 @@ sub math_eval
       warn YELLOW.'% performs integer modulus only'.RESET, "\n" unless $tests;
    }
 
-   # replace Unicode operator symbols with ASCII ones
-   tr(x×✕✖÷∕⁄➕−)(****///+-);
+   # replace & squeeze Unicode operator symbols with ASCII ones
+   tr(x×✕✖÷∕⁄➕−)(****///+-)s;
+
+   # squeeze
+   tr(-+/%)()s;
+   s/\*{3,}/**/;
 
    # allow ^ for raising to a power
-   s/\^\^?/**/g;
+   s/\^+/**/g;
 
    # numbers
    tr/𝟎𝟢𝟬𝟶𝟏𝟣𝟭𝟷𝟐𝟤𝟮𝟸𝟑𝟥𝟯𝟹𝟒𝟦𝟰𝟺𝟓𝟧𝟱𝟻𝟔𝟨𝟲𝟼𝟕𝟩𝟳𝟽𝟖𝟪𝟴𝟾𝟗𝟫𝟵𝟿/0000111122223333444455556666777788889999/;
-
-   # fractions
-   s/[$fractions]/$fractions{$&}/g;
-   s(⅟)(1/)g;
 
    # superscripts
    s/[$superscripts]+/**$&/g;
@@ -173,8 +173,16 @@ sub math_eval
    s/[$rparens]/)/g;
 
    # allow omitting * in parenthesised expressions
-   s/([\d)])\h*\(/$1*(/g if /[\d)]\h*\(/; # a(b+c), )(
-   s/\)\h*([\d])/)*$1/g if /\)\h*[\d]/;   # (b+c)a
+   s/ ( [\d$fractions)] ) \h* \( /$1*(/gx; # a(b+c), )(
+   s/ \) \h* ( [\d$fractions] )  /)*$1/gx; # (b+c)a
+
+   s/([$fractions])\h*(\d)/$1*$2/g;
+   s/(\d)\h*([$fractions])/$1*$2/g;
+   s/([$fractions])\h*([$fractions])/$1*$2/g;
+
+   # fractions
+   s/[$fractions]/$fractions{$&}/g;
+   s(⅟)(1/)g;
 
    # todo: exceptions handling
    if (defined ($_ = eval))
@@ -205,41 +213,46 @@ sub tests
    {
       next if /^#/ or /^$/;
       chomp;
-      my ($title, $expr, $ans) = split /\h*,\h*/;
+      my ($title, $expr, $ans) = split /\h*\|\h*/;
       $_ = $expr;
       $res = math_eval();
-      my $cl = $res == $ans ? GREEN : RED;
+      my $cl = ($res == $ans) ? GREEN : RED;
       my $rs = RESET;
       printf "$cl%-25s$rs │ %s = %s ? $cl%s$rs\n", $title, $expr, $ans, $res;
    }
 }
 
 __DATA__
+
 # Tests
 
-Multiplication,            12_345_679 * 8,                     98765432
-Multiplication ASCII x,    12_345_679 x 9,                     111111111
-Multiplication parens (,   3(12-7),                            15
-Multiplication parens ),   (4-9)7,                             -35
-Multiplication Unicode,    11 ✖ 8,                             88
-Power ^,                   2^3,                                8
-Power superscript Unicode, 3³,                                 27
-Division,                  179 / 16,                           11.1875
-Division Unicode,          78 ÷ 3,                             26
-Fractions Unicode 1),      ¼ / ⅒,                              2.5
-Fractions Unicode 2),      ⅟4,                                 0.25
-Addition,                  8 + 88,                             96
-Addition Unicode,          50 ➕ 101,                          151
-Substraction,              19 - 277,                           -258
-Substraction Unicode,      231 − 17,                           214
-Exponent notation e+,      4e3,                                4000
-Exponent notation e-,      7e-2,                               0.07
-Modulo,                    17 % 3,                             2
-Parens Unicode,            ⟮5+2⟯*（4-15）,                     -77
-Numbers Unicode,           𝟭𝟥 + 𝟨𝟿,                            82
-Combined 1),               -5e2 + 12,                          -488
-Combined 2),               ❨4÷8❩⁷,                             0.0078125
-Combined 3),               ⅕e-12,                              2e-13
-Combined 4),               3²/(2-19)(4+1.1) − 7(12-100) + 3^6, 1342.3
-Memory _ set,              17 - 39,                            -22
-Memory _ get,              _^2,                                -484
+Multiplication            | 12_345_679 * 8                     | 98765432
+Multiplication ASCII x    | 12_345_679 x 9                     | 111111111
+Multiplication parens (   | 3(12-7)                            | 15
+Multiplication parens )   | (4-9)7                             | -35
+Multiplication Unicode    | 11 ✖ 8                             | 88
+Power ^                   | 2^3                                | 8
+Power superscript Unicode | 3³                                 | 27
+Division                  | 179 / 16                           | 11.1875
+Division Unicode          | 78 ÷ 3                             | 26
+Fractions Unicode 1)      | ¼ / ⅒                              | 2.5
+Fractions Unicode 2)      | ⅟4                                 | 0.25
+Fractions Unicode no *    | ⅒⅗                                 | 0.06
+Addition                  | 8 + 88                             | 96
+Addition Unicode          | 50 ➕ 101                          | 151
+Substraction              | 19 - 277                           | -258
+Substraction Unicode      | 231 − 17                           | 214
+Exponent notation e+      | 4e3                                | 4000
+Exponent notation e-      | 7e-2                               | 0.07
+Modulo                    | 17 % 3                             | 2
+Parens Unicode            | ⟮5+2⟯*（4-15）                     | -77
+Numbers Unicode           | 𝟭𝟥 + 𝟨𝟿                            | 82
+Squeeze                   | 3 --- 4                            | -1
+Squeeze power             | 3 ***************** 3              | 27
+Combined 1)               | -5e2 + 12                          | -488
+Combined 2)               | ❨4÷8❩⁷                             | 0.0078125
+Combined 3)               | ⅕e-12                              | 2e-13
+Combined 4)               | 3²/(2-19)(4+1.1) − 7(12-100) + 3^6 | 1342.3
+Combined 5)               | ⅒(3-5)                             | -0.2
+Memory _ set              | 17 - 39                            | -22
+Memory _ get              | _^2                                | -484
