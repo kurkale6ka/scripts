@@ -12,8 +12,8 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
 use POSIX 'SIGINT';
 
-my $b = color 'bold';
-my $r = color 'reset';
+my $B = color 'bold';
+my $R = color 'reset';
 
 # Catch SIGINT
 POSIX::sigaction (SIGINT, POSIX::SigAction->new (sub {
@@ -37,7 +37,7 @@ Options:
 --unicode, -u : print supported Unicode symbols (no -- in interactive mode)
 
 Tips:
-• exponent notation (m${b}e${r}n ⇔ m×10ⁿ) is supported
+• exponent notation (m${B}e${R}n ⇔ m×10ⁿ) is supported
 • for arrows support, install Term::ReadLine::Gnu
 • symlink this script to =
 MSG
