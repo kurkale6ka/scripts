@@ -4,10 +4,9 @@
 #
 # todo: exclude stuff from .gitignore
 
-use strict;
+use v5.10;
 use warnings;
 use re '/aa';
-use feature qw/say state/;
 use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;
 
