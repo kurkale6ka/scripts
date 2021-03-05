@@ -59,16 +59,18 @@ Easier access to Perl help topics
 
 mp          : locate help sections
 mp section  : (perl)re,run,...
-mp function : builtin function
+mp keyword  : builtin functions, identifiers, ...
 mp [$@%]... : variable, mp v. for 2-chars variables (e.g v- for $-)
-mp -v       : all variables
-mp -m       : core module
-mp -M       : core module code <= export PERLDOC_SRC_PAGER=$EDITOR
+mp -v       : variables
+mp -m       : core modules
+mp -M       : core modules code <= export PERLDOC_SRC_PAGER=$EDITOR
 mp -        : file test operators
 
 - fzf is needed for -v, -m, -M and <section/topic> lookup
   alt-enter will swap -m/-M actions
+
 - extra options will be passed through to perldoc (ex: -q for FAQ search)
+
 - mp aka 'man Perl' is an alias to this script
 MSG
    exit;
