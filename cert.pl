@@ -12,11 +12,11 @@ use feature 'say';
 use File::Basename 'fileparse';
 use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;
-use List::Util 'first';
+use List::Util qw/first uniq/;
 use Term::ReadLine;
 
-my $PINK = color('ansi205');
-my $GRAY = color('ansi242');
+my $PINK = color 'ansi205';
+my $GRAY = color 'ansi242';
 
 my $help = << 'MSG';
 Show Certificate/CSR info
@@ -233,7 +233,7 @@ sub check()
          run "openssl verify -untrusted $intermediate $cert";
 
          # show chain
-         print "\n";
+         print "\n" unless $view;
 
          chain $cert;
          chain $intermediate unless $cert eq $intermediate;
@@ -245,19 +245,33 @@ sub check()
    }
 
    # Certificate/key match test
+   my %modulus = (
+      crt => "openssl x509 -in $cert -noout -modulus | openssl md5",
+      key => "openssl rsa -in ${dirs}$base.key -noout -modulus | openssl md5",
+      csr => "openssl req -in ${dirs}$base.csr -noout -modulus | openssl md5",
+   );
+
+   foreach (keys %modulus)
+   {
+      if (-f "$base.$_")
+      {
+         $modulus{$_} = run '-g', $modulus{$_} unless $view;
+      } else {
+         delete $modulus{$_};
+      }
+   }
+
+   my $err = '';
+   unless ($view) {
+      chomp %modulus;
+      $err = ' - modulus mismatch' unless scalar (uniq values %modulus) == 1;
+   }
+
+   # display
    say $PINK.'Certificate/key match test'.RESET;
 
-   print CYAN.'Crt'.RESET.': ';
-   run "openssl x509 -in $cert -noout -modulus | openssl md5";
-
-   if (-f "$base.key")
+   foreach (sort keys %modulus)
    {
-      print CYAN.'Key'.RESET.': ';
-      run "openssl rsa -in ${dirs}${base}.key -noout -modulus | openssl md5";
-   }
-   if (-f "$base.csr")
-   {
-      print CYAN.'CSR'.RESET.': ';
-      run "openssl req -in ${dirs}${base}.csr -noout -modulus | openssl md5";
+      say CYAN.uc.RESET.": $modulus{$_}", $view ? '' : RED.$err.RESET;
    }
 }
