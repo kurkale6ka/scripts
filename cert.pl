@@ -84,8 +84,8 @@ sub csr();
 sub check();
 
 # readline
-my $term = Term::ReadLine->new('certificates');
-$term->ornaments(0);
+my $term = Term::ReadLine->new ('certificates');
+$term->ornaments (0);
 
 # Main
 if ($check) {
@@ -264,7 +264,7 @@ sub check()
    my $err = '';
    unless ($view) {
       chomp %modulus;
-      $err = ' - modulus mismatch' unless scalar (uniq values %modulus) == 1;
+      $err = ', modulus mismatch' unless scalar (uniq values %modulus) == 1;
    }
 
    # display
