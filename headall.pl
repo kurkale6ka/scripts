@@ -4,7 +4,7 @@
 #
 # todo: exclude stuff from .gitignore
 
-use v5.10;
+use v5.12;
 use warnings;
 use re '/aa';
 use Getopt::Long qw/GetOptions :config bundling/;
