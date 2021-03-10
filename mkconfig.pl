@@ -6,9 +6,8 @@
 # run this script with:
 # perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.pl) -h
 
-use strict;
+use v5.26;
 use warnings;
-use feature 'say';
 use File::Glob ':bsd_glob';
 use File::Path 'make_path';
 use File::Basename qw/dirname basename/;
@@ -16,11 +15,11 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 use List::Util qw/any all/;
 
-my $BLUE   = color('ansi69');
-my $CYAN   = color('ansi45');
-my $YELLOW = color('yellow');
-my $S = color('bold');
-my $R = color('reset');
+my $BLUE   = color 'ansi69';
+my $CYAN   = color 'ansi45';
+my $YELLOW = color 'yellow';
+my $S = color 'bold';
+my $R = color 'reset';
 
 # Variables and declarations
 my $user = 'kurkale6ka';
@@ -88,11 +87,10 @@ unless ($ENV{REPOS_BASE})
    print "\n";
 }
 
-my $vim_help = <<VIM;
+my $vim_help = << "";
 ${CYAN}to install vim-plug${R}:
 curl -fLo $ENV{REPOS_BASE}/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
-VIM
 
 # Help
 sub help()
