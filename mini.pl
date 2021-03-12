@@ -5,10 +5,8 @@
 # mini
 # mini -a : inputrc, vimrc & SHELL...
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
-use feature 'state';
 use Getopt::Long qw/GetOptions :config bundling/;
 
 chdir $ENV{REPOS_BASE} or die "$!\n";
