@@ -5,19 +5,13 @@
 # pass - the standard UNIX password manager
 # https://www.passwordstore.org/
 
-use strict;
+use v5.12;
 use warnings;
-use autodie;
-use feature 'say';
-use POSIX ":sys_wait_h";
-use File::Glob ':bsd_glob';
+use POSIX ':sys_wait_h';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
-my $YELLOW = color('YELLOW');
-my $R = color('reset');
-
-my $store = glob '~/.password-store';
+my $store = "$ENV{HOME}/.password-store";
 
 # Help
 my $help = << '';
@@ -32,11 +26,10 @@ GetOptions (
    'h|help'    => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-chdir $store;
-
-my $pfile;
+chdir $store or die RED.$!.RESET, "\n";
 
 # Get password
+my $pfile;
 if (@ARGV)
 {
    $pfile = `fd -e gpg -E'*~' -0 | sed -z 's/\\.gpg\$//' | fzf -q"@ARGV" --read0 -0 -1 --cycle`;
@@ -46,53 +39,36 @@ if (@ARGV)
 
 chomp $pfile;
 
-# kill any 'restore clipboard' processes
-system qw/pkill -f pc_cb_prev/
-   or die RED."$!".RESET, "\n";
-
-my $clip_prev;
-
-# Get previous clipboard item
-unless ($^O eq 'darwin')
+# Speed up previous clipboard restoration
+if (my $pid = `pgrep -f pc_cb_prev`)
 {
-   # base64 encode to obfuscate password in 'ps'
-   $clip_prev = `xclip -o | openssl base64`;
-} else {
-   $clip_prev = `pbpaste | openssl base64`;
+   kill 'TERM', $pid or die RED.'Failed to kill'.RESET, "\n";
 }
 
-chomp $clip_prev;
-say $clip_prev;
+# Get previous clipboard item
+my $paste = $^O eq 'darwin' ? 'pbpaste' : 'xclip -o';
+# base64 encode to obfuscate password in 'ps'
+chomp (my $clip_prev = `$paste | openssl base64`);
 
 # Copy to clipboard
 if ($stdout)
 {
-   say YELLOW, $pfile, RESET;
-   system qw/gpg -q -d/, "$store/$pfile.gpg"
-      or die RED."$!".RESET, "\n";
+   say YELLOW.$pfile.RESET;
+   system (qw/gpg -q -d/, "$store/$pfile.gpg") == 0 or die RED.$!.RESET, "\n";
 } else {
-   say "Copying ${YELLOW}$pfile${R} to the clipboard...";
+   say 'Copying ', color('yellow').$pfile.RESET, ' to the clipboard...';
 }
 
-system "gpg -q -d $store/$pfile.gpg | head -n1 | tr -d '\n' | pbcopy"
-   or die RED."$!".RESET, "\n";
+system "gpg -q -d $store/$pfile.gpg | head -n1 | tr -d '\n' | pbcopy";
+$? == 0 or die RED.$!.RESET, "\n";
 
-my $pid = fork // die "failed to fork: $!";
+# Wait in the background before restoring the clipboard
+exit if my $pid = fork // die "failed to fork: $!\n";
 
 # kid
 # keep password for 45sec, then reset clipboard to previous entry
-if ($pid == 0)
-{
-   say "KID";
-   $0 = 'pc_cb_prev';
+$0 = 'pc_cb_prev';
+sleep 45;
 
-   sleep 5;
-
-   # reset clipboard to previous entry
-   system "echo $clip_prev | openssl base64 -d | pbcopy"
-      or die RED."$!".RESET, "\n";
-
-   exit;
-}
-
-waitpid $pid, WNOHANG;
+# reset clipboard to previous entry
+exec "echo $clip_prev | openssl base64 -d | pbcopy";
