@@ -12,6 +12,7 @@ use Getopt::Long qw/GetOptions :config bundling/;
 
 my $timeout = 15;
 my $store = "$ENV{HOME}/.password-store";
+my $ps_description = 'pc_cb_prev';
 my $copy  = $^O eq 'darwin' ? 'pbcopy'  : 'xclip';
 my $paste = $^O eq 'darwin' ? 'pbpaste' : 'xclip -o';
 
@@ -46,7 +47,7 @@ if (@ARGV)
 chomp (my $passfile = $_);
 
 # Wait until clipboard restoration
-if (my $pid = `pgrep -f pc_cb_prev`)
+if (my $pid = `pgrep -f $ps_description`)
 {
    warn RED.'Waiting for clipboard restoration...'.RESET, "\n";
    sleep 1 while kill 0, $pid;
@@ -79,6 +80,6 @@ restore() unless $clip_prev;
 exit if my $pid = fork // die "failed to fork: $!\n";
 
 # kid
-$0 = 'pc_cb_prev';
+$0 = $ps_description;
 sleep $timeout;
 restore();
