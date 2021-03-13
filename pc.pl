@@ -20,20 +20,16 @@ my $R = color('reset');
 my $store = glob '~/.password-store';
 
 # Help
-sub help() {
-   print << 'MSG';
+my $help = << '';
 Fuzzy search and copy of passwords
 pc [-s store] [-o|--stdout] [pattern] ... : copy password
-MSG
-   exit;
-}
 
 # Arguments
 my $stdout;
 GetOptions (
    's|store=s' => \$store,
    'o|stdout'  => \$stdout,
-   'h|help'    => \&help
+   'h|help'    => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 chdir $store;
