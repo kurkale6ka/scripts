@@ -7,6 +7,7 @@
 * [Source personal dot files on SSH shared accounts](ssh.pl)
 * [Simple calculator](calc.pl)
 * [Dot files setup](mkconfig.pl)
+* [Fuzzy password lookup plus copy to clipboard](pc.pl)
 * [OpenVPN helper for NordVPN](vpn.pl)
 * [Sort camera shots into timestamped folders](pics.pl)
 * [Easier access to Perl help topics](man.pl)
