@@ -368,6 +368,7 @@ sub links($)
       [qw( sf scripts/mkconfig.pl      ~/bin/mkconfig     )],
       [qw( sf scripts/mini.pl          ~/bin/mini         )],
       [qw( sf scripts/pics.pl          ~/bin/pics         )],
+      [qw( sf scripts/pc.pl            ~/bin/pc           )],
       [qw( sf scripts/rseverywhere.pl  ~/bin/rseverywhere )],
       [qw( sf scripts/colors_term.bash ~/bin              )],
       [qw( sf scripts/colors_tmux.bash ~/bin              )],
