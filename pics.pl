@@ -4,53 +4,48 @@
 #
 # TODO: --checks?
 
-use strict;
+use v5.22;
 use warnings;
-use feature 'say';
 use File::Glob ':bsd_glob';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 use List::Util 'all';
 
 # Location where pictures get uploaded
-my $source = glob '~/Dropbox/Camera Uploads';
+my $source = "$ENV{HOME}/Dropbox/Camera Uploads";
 
 # Images library
-my $destination = glob '~/Dropbox/pics';
+my $destination = "$ENV{HOME}/Dropbox/pics";
 
 my %messages = (
    title  => 'sort camera shots into timestamped folders',
    import => 'import into the images library',
 );
 
-my $BLUE  = color('ansi69');
-my $GRAY  = color('ansi242');
-my $GREEN = color('green');
-my $S = color('bold');
-my $R = color('reset');
+my $BLUE  = color 'ansi69';
+my $GRAY  = color 'ansi242';
+my $GREEN = color 'green';
+my $S = color 'bold';
+my $R = color 'reset';
 
-sub help
-{
-   print <<MSG;
+my $help = << "MSG";
 ${S}SYNOPSIS${R}
 
-   pics    [-s ${BLUE}src${R}] [-d ${BLUE}dst${R}] [-n] [-v] : ${GREEN}$messages{title}${R}
-   pics -i [-s ${BLUE}src${R}] [-d ${BLUE}dst${R}] [-n]      : ${GREEN}$messages{import}${R}
+pics    [-s ${BLUE}src${R}] [-d ${BLUE}dst${R}] [-n] [-v] : ${GREEN}$messages{title}${R}
+pics -i [-s ${BLUE}src${R}] [-d ${BLUE}dst${R}] [-n]      : ${GREEN}$messages{import}${R}
 
-   pics                [img ...|${BLUE}dir${R}] [-v] : ${GREEN}show tags${R}
-   pics -t [tag[,...]] [img ...|${BLUE}dir${R}] [-v] :
+pics                [img ...|${BLUE}dir${R}] [-v] : ${GREEN}show tags${R}
+pics -t [tag[,...]] [img ...|${BLUE}dir${R}] [-v] :
 
 ${S}OPTIONS${R}
 
-   --source,      -s
-   --destination, -d
-   --dry-run,     -n
-   --verbose,     -v (-vv for more details)
-   --(no-)import, -i
-   --tags,        -t (-td[ates], -ta[ll])
+--source,      -s
+--destination, -d
+--dry-run,     -n
+--verbose,     -v (-vv for more details)
+--(no-)import, -i
+--tags,        -t (-td[ates], -ta[ll])
 MSG
-   exit;
-}
 
 # Options
 my ($dry, $src, $dst, $import, $verbose, $tags);
@@ -62,7 +57,7 @@ GetOptions (
    'i|import!'       => \$import,
    'v|verbose+'      => \$verbose,
    't|tags:s'        => \$tags,
-   'h|help'          => \&help
+   'h|help'          => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 $src and      $source = $src;
@@ -108,7 +103,7 @@ sub lib_import
    while (<$sync>)
    {
       # display dirs in blue
-      s@(?<=\s).*/@${BLUE}$&${R}@;
+      s@ \h\K.*/ @ $BLUE.$&.RESET @ex;
 
       # warn if the size has changed
       s/^...s...../RED.$&.RESET/e;
@@ -139,7 +134,7 @@ sub lib_import
    }
 }
 
-lib_import if $import;
+lib_import() if $import;
 
 # Show tags
 if (defined $tags)
@@ -237,6 +232,6 @@ unless (defined $tags or $import)
       $? == 0 or die RED.'Sorting of camera shots failed'.RESET, "\n";
 
       # Import unless --no-import
-      lib_import unless defined $import;
+      lib_import() unless defined $import;
    }
 }
