@@ -89,7 +89,7 @@ sub lib_import
 
    # get years folders
    opendir my $SRC, $source or die RED.$!.RESET, "\n";
-   my @years = grep -d, grep /^2\d{3}$/, readdir $SRC or return;
+   my @years = grep { /^2\d{3}$/ and -d } readdir $SRC or return;
 
    print "\n" unless $import;
    say GREEN, ucfirst $messages{import}, RESET;
