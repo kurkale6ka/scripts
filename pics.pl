@@ -93,6 +93,7 @@ sub lib_import
 
    return unless @years = grep -d, map "$source/$_", @years;
 
+   # message
    say GREEN, ucfirst $messages{import}, RESET;
    say   '-' x length $messages{import};
 
@@ -166,8 +167,8 @@ if (defined $tags)
    }
 
    # short or shortest output format
-   @options = ('-s');
-   @options = ('-S') if @tags == 1 and $tags[0] !~ /all/i;
+   @options = '-s';
+   @options = '-S' if @tags == 1 and $tags[0] !~ /all/i;
 
    # recurse in dirs
    push @options, '-r' if all {-d} @ARGV;
@@ -218,6 +219,7 @@ unless (defined $tags or $import)
 
    if (@preview)
    {
+      # message
       say GREEN, ucfirst $messages{title}, RESET;
       say   '-' x length $messages{title};
       say foreach @preview;
