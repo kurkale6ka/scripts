@@ -6,16 +6,15 @@
 
 use v5.22;
 use warnings;
-use File::Glob ':bsd_glob';
+use re '/aa';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 use List::Util 'all';
 
-# Location where pictures get uploaded
-my $source = "$ENV{HOME}/Dropbox/Camera Uploads";
+my $dropbox = "$ENV{HOME}/Dropbox";
 
-# Images library
-my $destination = "$ENV{HOME}/Dropbox/pics";
+my $source      = "$dropbox/Camera Uploads"; # Location where pictures get uploaded
+my $destination = "$dropbox/pics";           # Images library
 
 my %messages = (
    title  => 'sort camera shots into timestamped folders',
@@ -88,8 +87,9 @@ sub lib_import
    -d $destination or
    die RED."Destination missing: ${BLUE}$destination".RESET, "\n";
 
-   my @years = grep -d $_, glob "$source/[0-9][0-9][0-9][0-9]";
-   @years or return;
+   # get years folders
+   opendir my $SRC, $source or die RED.$!.RESET, "\n";
+   my @years = grep -d, grep /^2\d{3}$/, readdir $SRC or return;
 
    print "\n" unless $import;
    say GREEN, ucfirst $messages{import}, RESET;
