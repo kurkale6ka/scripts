@@ -59,8 +59,8 @@ GetOptions (
    'h|help'          => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-$src and      $source = $src;
-$dst and $destination = $dst;
+$source      = $src if $src;
+$destination = $dst if $dst;
 
 # Checks
 unless (defined $tags)
@@ -89,7 +89,9 @@ sub lib_import
 
    # get year folders
    opendir my $SRC, $source or die RED.$!.RESET, "\n";
-   my @years = grep { /^[12]\d{3}$/ and -d } readdir $SRC or return;
+   my @years = grep /^[12]\d{3}$/, readdir $SRC;
+
+   return unless @years = grep -d, map "$source/$_", @years;
 
    print "\n" unless $import;
    say GREEN, ucfirst $messages{import}, RESET;
@@ -111,7 +113,7 @@ sub lib_import
       print;
    }
 
-   $dry and return;
+   return if $dry;
 
    # commit the import
    print "\nConfirm (y/n)? ";
@@ -169,7 +171,7 @@ if (defined $tags)
    @options = ('-S') if @tags == 1 and $tags[0] !~ /all/i;
 
    # recurse in dirs
-   push @options, '-r' if all {-d $_} @ARGV;
+   push @options, '-r' if all {-d} @ARGV;
 
    # show command
    if ($verbose)
