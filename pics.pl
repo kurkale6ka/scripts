@@ -93,7 +93,6 @@ sub lib_import
 
    return unless @years = grep -d, map "$source/$_", @years;
 
-   print "\n" unless $import;
    say GREEN, ucfirst $messages{import}, RESET;
    say   '-' x length $messages{import};
 
@@ -188,9 +187,6 @@ if (defined $tags)
 # Sort camera shots
 unless (defined $tags or $import)
 {
-   say GREEN, ucfirst $messages{title}, RESET;
-   say   '-' x length $messages{title};
-
    my @quiet = qw/-q -q/;
 
    if ($verbose)
@@ -209,11 +205,22 @@ unless (defined $tags or $import)
       $source
    ) or die RED.'Test sorting of camera shots failed'.RESET, "\n";
 
+   # preview changes
+   my @preview;
+
    while (<$SORT>)
    {
+      chomp;
       s@ $source/? @@eg;
       s@--> '(.*/)@$GRAY-->$R '${BLUE}$1${R}@;
-      print;
+      push @preview, $_;
+   }
+
+   if (@preview)
+   {
+      say GREEN, ucfirst $messages{title}, RESET;
+      say   '-' x length $messages{title};
+      say foreach @preview;
    }
 
    # commit
@@ -234,6 +241,7 @@ unless (defined $tags or $import)
       $? == 0 or die RED.'Sorting of camera shots failed'.RESET, "\n";
 
       # Import unless --no-import
+      print "\n" if @preview;
       lib_import() unless defined $import;
    }
 }
