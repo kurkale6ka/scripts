@@ -8,7 +8,6 @@
 
 use v5.26;
 use warnings;
-use File::Glob ':bsd_glob';
 use File::Path 'make_path';
 use File::Basename qw/dirname basename/;
 use Term::ANSIColor qw/color :constants/;
