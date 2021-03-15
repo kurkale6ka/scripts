@@ -67,7 +67,7 @@ $dst and $destination = $dst;
 unless (defined $tags)
 {
    # pics img ..., pics dir => implicit --tags
-   if (@ARGV > 0)
+   if (@ARGV)
    {
       if ($dry or $src or $dst)
       {
@@ -96,14 +96,14 @@ sub lib_import
    say   '-' x length $messages{import};
 
    # list images being imported
-   open my $sync, '-|',
+   open my $SYNC, '-|',
    qw/rsync --remove-source-files --partial -ain/, @years, $destination
       or die RED.'Test import failed'.RESET, "\n";
 
-   while (<$sync>)
+   while (<$SYNC>)
    {
       # display dirs in blue
-      s@ \h\K.*/ @ $BLUE.$&.RESET @ex;
+      s@ \h\K.*/ @$BLUE.$&.RESET@ex;
 
       # warn if the size has changed
       s/^...s...../RED.$&.RESET/e;
@@ -124,7 +124,7 @@ sub lib_import
       # delete source years + months after a successful transfer
       foreach my $year (@years)
       {
-         foreach (glob "$year/{January,February,March,April,May,June,July,August,September,October,November,December}")
+         foreach (map "$year/$_", qw/January February March April May June July August September October November December/)
          {
             next unless -d $_;
             rmdir $_ or die "$_: $!\n";
@@ -154,7 +154,7 @@ if (defined $tags)
       @tags = ('all');
    }
    else {
-      @tags = split /\s*,\s*/, $tags;
+      @tags = split /\h*,\h*/, $tags;
 
       # check for 'invalid' (1 letter) tags
       if (my @bad_tags = map "-$_", grep {/^.$/} @tags)
@@ -175,7 +175,7 @@ if (defined $tags)
    if ($verbose)
    {
       my   @tg = map {/\*/ ? "-'$_'" : "-$_"} @tags;
-      my @args = map {/\s/ ?  "'$_'" :   $_ } @ARGV;
+      my @args = map {/\h/ ?  "'$_'" :   $_ } @ARGV;
 
       say YELLOW."exiftool -a -G @options @tg ", @ARGV > 0 ? "@args" : '.', RESET;
    }
@@ -197,7 +197,7 @@ unless (defined $tags or $import)
    }
 
    # test run
-   open (my $sort, '-|', 'exiftool', @quiet,
+   open (my $SORT, '-|', 'exiftool', @quiet,
       '-if', 'not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)',
       '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
       '-testname<$datetimeoriginal.%le',
@@ -207,9 +207,9 @@ unless (defined $tags or $import)
       $source
    ) or die RED.'Test sorting of camera shots failed'.RESET, "\n";
 
-   while (<$sort>)
+   while (<$SORT>)
    {
-      s@$source/?@@g;
+      s@ $source/? @@eg;
       s@--> '(.*/)@$GRAY-->$R '${BLUE}$1${R}@;
       print;
    }
@@ -218,7 +218,7 @@ unless (defined $tags or $import)
    unless ($dry)
    {
       # see 'RENAMING EXAMPLES' in 'man exiftool'
-      system ('exiftool', '-q', '-q',
+      system (qw/exiftool -q -q/,
          # dates match or a single one only set
          '-if', 'not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)',
          '-d', "$source/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
