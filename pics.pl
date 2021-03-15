@@ -148,11 +148,11 @@ if (defined $tags)
    }
    # -td
    elsif ($tags =~ /^d(ates)?$/in) {
-      @tags = ('alldates');
+      @tags = 'alldates';
    }
    # -ta
    elsif ($tags =~ /^a$/in) {
-      @tags = ('all');
+      @tags = 'all';
    }
    else {
       @tags = split /\h*,\h*/, $tags;
@@ -211,7 +211,7 @@ unless (defined $tags or $import)
    while (<$SORT>)
    {
       chomp;
-      s@ $source/? @@eg;
+      s@ $source/? @@xg;
       s@--> '(.*/)@$GRAY-->$R '${BLUE}$1${R}@;
       push @preview, $_;
    }
@@ -241,7 +241,10 @@ unless (defined $tags or $import)
       $? == 0 or die RED.'Sorting of camera shots failed'.RESET, "\n";
 
       # Import unless --no-import
-      print "\n" if @preview;
-      lib_import() unless defined $import;
+      unless (defined $import)
+      {
+         print "\n" if @preview;
+         lib_import();
+      }
    }
 }
