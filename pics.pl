@@ -34,7 +34,7 @@ pics    [-s ${BLUE}src${R}] [-d ${BLUE}dst${R}] [-n] [-v] : ${GREEN}$messages{ti
 pics -i [-s ${BLUE}src${R}] [-d ${BLUE}dst${R}] [-n]      : ${GREEN}$messages{import}${R}
 
 pics                [img ...|${BLUE}dir${R}] [-v] : ${GREEN}show tags${R}
-pics -t [tag[,...]] [img ...|${BLUE}dir${R}] [-v] :
+pics -t [tag[,...]] [img ...|${BLUE}dir${R}] [-v]
 
 ${S}OPTIONS${R}
 
@@ -43,7 +43,9 @@ ${S}OPTIONS${R}
 --dry-run,     -n
 --verbose,     -v (-vv for more details)
 --(no-)import, -i
---tags,        -t (-td[ates], -ta[ll])
+--tags,        -t '*keyword*',subject,title,'*comment*',make,model,createdate,datetimeoriginal (default)
+               -t d[ates]
+               -t a[ll]
 MSG
 
 # Options
