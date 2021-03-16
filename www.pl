@@ -1,18 +1,16 @@
 #! /usr/bin/env perl
 
-# fuzzy search & open of websites loaded from a file
+# Fuzzy search & open of websites loaded from a file
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
 use Getopt::Long 'GetOptions';
 
 my $sites = "$ENV{XDG_DATA_HOME}/sites";
 
-(my $help = <<MSG) =~ s/$ENV{HOME}/~/;
+(my $help = << "") =~ s/$ENV{HOME}/~/;
 www [-s sites] [pattern]
 fuzzy search & open of websites ($sites)
-MSG
 
 GetOptions (
    'sites=s' => \$sites,
@@ -37,11 +35,7 @@ unless (m{ https?://\S+ }x or /www\.\S+/ or /\S+\.com\b/)
 }
 
 my $site = $&;
-say $site = "https://$site" unless $site =~ /\Ahttp/i;
+$site = "https://$site" unless $site =~ /\Ahttp/i;
 
-unless ($^O eq 'darwin')
-{
-   exec 'xdg-open', $site;
-} else {
-   exec 'open', $site;
-}
+say $site;
+exec $^O eq 'darwin' ? 'open' : 'xdg-open', $site;
