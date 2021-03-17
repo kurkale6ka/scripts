@@ -19,18 +19,13 @@ my $auth = "$vpn/details";
 my $protocol = 'udp';
 
 # Help
-sub help()
-{
-   print <<MSG;
+my $help = << "";
 vpn.pl [-a|--auth ...]                : credentials file ($vpn/details)
        [-c|--config ...] or [pattern] : config file ($vpn/ovpn_<proto>/...)
        [-d|--download]                : download config files
        [-p|--protocol ...]            : defaults to udp
        [-s|--show [pattern]]          : show countries
        [-b|--batch]                   : no codes with --show
-MSG
-   exit;
-}
 
 # Arguments
 my ($config, $download, $show, $batch);
@@ -41,7 +36,7 @@ GetOptions (
    'p|protocol=s' => \$protocol,
    's|show:s'     => \$show,
    'b|batch'      => \$batch,
-   'h|help'       => \&help
+   'h|help'       => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 unless (any {defined} ($download, $show))
@@ -328,7 +323,7 @@ if (defined $config and not -f $config)
    {
       $country = $config;
    } else {
-      my $pattern = qr/\Q$config\E/i;
+      my $pattern = qr/\Q$config/i;
       my (%codes, $num);
 
       foreach (sort { $countries{$a} cmp $countries{$b} } keys %countries)
@@ -368,7 +363,7 @@ if ($download)
 
 if (defined $show)
 {
-   my $pattern = qr/\Q$show\E/i;
+   my $pattern = qr/\Q$show/i;
 
    foreach (sort { $countries{$a} cmp $countries{$b} } keys %countries)
    {
