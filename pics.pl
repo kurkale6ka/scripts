@@ -41,11 +41,12 @@ ${S}OPTIONS${R}
 --source,      -s
 --destination, -d
 --dry-run,     -n
---verbose,     -v (-vv for more details)
 --(no-)import, -i
---tags,        -t '*keyword*',subject,title,'*comment*',make,model,createdate,datetimeoriginal (default)
-               -t d[ates]
-               -t a[ll]
+--verbose,     -v (-vv for more details)
+
+--tags, -t '*keyword*',subject,title,'*comment*',make,model,createdate,datetimeoriginal (default)
+        -t d[ates]
+        -t a[ll]
 MSG
 
 # Options
@@ -209,23 +210,24 @@ unless (defined $tags or $import)
    ) or die RED.'Test sorting of camera shots failed'.RESET, "\n";
 
    # preview changes
-   my @preview;
+   my (@preview, $rename);
 
    while (<$SORT>)
    {
       chomp;
       s@ $source/? @@xg;
-      s@--> '(.*/)@$GRAY-->$R '${BLUE}$1${R}@;
+      s@--> '(.*/)@$GRAY-->$R '${BLUE}$1${R}@ and $rename++;
       push @preview, $_;
    }
 
-   if (@preview)
+   # message
+   if ($rename)
    {
-      # message
       say GREEN, ucfirst $messages{title}, RESET;
       say   '-' x length $messages{title};
-      say foreach @preview;
    }
+
+   say foreach @preview;
 
    # commit
    unless ($dry)
@@ -247,7 +249,7 @@ unless (defined $tags or $import)
       # Import unless --no-import
       unless (defined $import)
       {
-         print "\n" if @preview;
+         print "\n" if $rename;
          lib_import();
       }
    }
