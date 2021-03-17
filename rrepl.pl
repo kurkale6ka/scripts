@@ -26,16 +26,15 @@ BEGIN
    }
 }
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
 use open qw/:std :encoding(UTF-8)/;
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
 
-my $GRAY = color('ansi242');
-my $PINK = color('ansi205');
+my $GRAY = color 'ansi242';
+my $PINK = color 'ansi205';
 
 my $help = << 'MSG';
 Perl regex REPL
