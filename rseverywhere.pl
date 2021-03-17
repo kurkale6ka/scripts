@@ -2,9 +2,8 @@
 
 # Sync my repos to remotes
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
 use Getopt::Long qw/GetOptions :config pass_through/;
 use lib "$ENV{REPOS_BASE}/config/tmux";
 use Nodes;

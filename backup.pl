@@ -2,9 +2,8 @@
 
 # Backups: create, cleanup, manage
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
 use re '/aa';
 use File::Find;
 use Getopt::Long qw/GetOptions :config bundling/;
@@ -12,8 +11,8 @@ use List::Util qw/any none/;
 use Term::ANSIColor qw/color :constants/;
 use File::Basename 'fileparse';
 
-my $BLUE = color('ansi69');
-my $GRAY = color('ansi242');
+my $BLUE = color 'ansi69';
+my $GRAY = color 'ansi242';
 
 # extra backup extensions, in addition to ~
 my @extensions = qw/.bak .old .origin .backup .save/;
@@ -76,10 +75,10 @@ sub swap()
    # not a file or one without extension
    if (not -f $swap or $swap !~ /\./)
    {
-      opendir my $dh, '.' or die RED.$!.RESET, "\n";
+      opendir my $DH, '.' or die RED.$!.RESET, "\n";
 
       my
-      @backups = grep { /$ext_rg[0]/ or /$ext_rg[1]/ } readdir $dh;
+      @backups = grep { /$ext_rg[0]/ or /$ext_rg[1]/ } readdir $DH;
       @backups = grep { /$swap/ } @backups if $swap;
 
       if (@backups)

@@ -6,9 +6,8 @@
 # wrapper around:
 # openssl x509, req, rsa
 
-use strict;
+use v5.22;
 use warnings;
-use feature 'say';
 use File::Basename 'fileparse';
 use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;

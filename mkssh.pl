@@ -13,9 +13,8 @@
 # run with:
 # perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkssh.pl)
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
 use re '/aa';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
@@ -38,7 +37,7 @@ my ($dry_run, $force);
 GetOptions (
    'n|dry-run' => \$dry_run,
    'f|force'   => \$force,
-   'h|help'    => sub { print $help; exit; }
+   'h|help'    => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 die $help if @ARGV > 1;
@@ -46,8 +45,8 @@ die $help if @ARGV > 1;
 # Emit warning if trying to use this script locally
 unless ($ENV{SSH_CONNECTION} or $force) {
    my $local = 1;
-   open my $pipe, '-|', 'who' or die RED.$!.RESET, "\n";
-   while (<$pipe>)
+   open my $PIPE, '-|', 'who' or die RED.$!.RESET, "\n";
+   while (<$PIPE>)
    {
       # (IP) or (:D.S) - localhost:display.screen, ref. DISPLAY
       if (/\( (?:\d{1,3}\.){3} \d{1,3} \)/x or /\( :\d(?:\.\d)? \)/x)

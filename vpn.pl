@@ -6,9 +6,8 @@
 # Install (openvpn-)update-systemd-resolved
 # systemctl enable --now systemd-resolved
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
 use utf8;
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;

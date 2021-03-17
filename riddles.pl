@@ -1,8 +1,7 @@
 #! /usr/bin/env perl
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 
 my @questions;
@@ -13,11 +12,11 @@ my $reg_type = qr/^\p{blank}*(puzz?le|quizz?|single|tf)/;
 my $reg_answer = qr/answer:\s*(.*?)\s*$/;
 
 # Read the questions
-open my $fh, '<', $questions
+open my $FH, '<', $questions
    or die RED.$!.RESET, "\nUsage: riddles questions_file\n";
 {
    local $/ = "---\n";
-   while (<$fh>)
+   while (<$FH>)
    {
       chomp;
       next if /^$/ or /^#/;

@@ -6,9 +6,8 @@
 # - Smart case
 # - context lines (like grep's -B1)
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling pass_through/;
 
@@ -115,9 +114,9 @@ my (@prev_line, @matches);
 # Smart case
 unless ($pattern =~ /[A-Z]/)
 {
-   $search = qr/\Q$pattern\E/i;
+   $search = qr/\Q$pattern/i;
 } else {
-   $search = qr/\Q$pattern\E/;
+   $search = qr/\Q$pattern/;
 }
 
 open my $PS, '-|', @ps or die RED.$!.RESET, "\n";

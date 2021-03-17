@@ -74,7 +74,7 @@ else
    chomp ($_ = `cat "$mini{$_}"`);
 }
 
-open my $clipboard, '|-', $^O eq 'darwin' ? 'pbcopy' : 'xclip' or die "$!\n";
+open my $CLIPBOARD, '|-', $^O eq 'darwin' ? 'pbcopy' : 'xclip' or die "$!\n";
 
 # copy to system clipboard
-say $clipboard $_;
+say $CLIPBOARD $_;
