@@ -2,18 +2,15 @@
 
 # Fuzzy files explorer
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
 use re '/aa';
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 use Term::ANSIColor qw/color :constants/;
 use File::Basename 'fileparse';
 
 # Help
-sub help()
-{
-   print << 'MSG';
+my $help = << 'MSG';
 ex [options] [topic]
 
 --(no-)hidden,   -H: include hidden files (default)
@@ -23,8 +20,6 @@ ex [options] [topic]
 --only,          -o: output filetred lines only
 --view,          -v: view with your $EDITOR, use Alt-v from within fzf
 MSG
-   exit;
-}
 
 # Arguments
 my $dir = '.';
@@ -38,7 +33,7 @@ GetOptions (
    'g|grep'        => \$grep,
    'o|only'        => \$only,
    'v|view'        => \$view,
-   'h|help'        => \&help
+   'h|help'        => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 $dir = glob $dir if $dir =~ /^~/;
