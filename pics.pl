@@ -215,7 +215,7 @@ unless (defined $tags or $import)
    while (<$SORT>)
    {
       chomp;
-      s@ $source/? @@xg;
+      s@$source/?@@g;
       s@--> '(.*/)@$GRAY-->$R '${BLUE}$1${R}@ and $rename++;
       push @preview, $_;
    }
