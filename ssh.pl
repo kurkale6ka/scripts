@@ -34,9 +34,9 @@ my $base = $default;
 
 # NB: when switching to root,
 # use su vs su - in order to preserve $REPOS_BASE then paste for bash or exec zsh
-if (open my $clipboard, '|-', $^O eq 'darwin' ? 'pbcopy' : 'xclip')
+if (open my $CLIPBOARD, '|-', $^O eq 'darwin' ? 'pbcopy' : 'xclip')
 {
-   print $clipboard <<~ 'ROOT_PASTE';
+   print $CLIPBOARD <<~ 'ROOT_PASTE';
    {
    TERM=xterm-256color
    . ~/.bash_profile
