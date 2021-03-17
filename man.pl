@@ -2,9 +2,8 @@
 
 # Easier access to Perl help topics
 
-use strict;
+use v5.12;
 use warnings;
-use feature 'say';
 use re '/aa';
 use Getopt::Long qw/GetOptions :config no_ignore_case pass_through/;
 use Config;
@@ -38,13 +37,13 @@ foreach (Config::config_re($man_re), Config::config_re(qr/config_arg\d+/))
 }
 
 my $MANPATH = join ':', uniq map {dirname @$_[0]} values %man;
-my $MANSECT = join ':', uniq map {@$_[1]} values %man;
+my $MANSECT = join ':', uniq map {        @$_[1]} values %man;
 
 # Get info: try man, then perldoc
 sub info
 {
    my $topic = shift;
-   unless (system ("man -M $MANPATH -S$MANSECT $topic 2>/dev/null") == 0)
+   unless (system ("man -M $MANPATH -S $MANSECT $topic 2>/dev/null") == 0)
    {
       exec 'perldoc', $topic;
    }
@@ -52,9 +51,7 @@ sub info
 }
 
 # Usage
-sub help
-{
-   print << 'MSG';
+my $help = << 'MSG';
 Easier access to Perl help topics
 
 mp          : locate help sections
@@ -73,16 +70,14 @@ mp -        : file test operators
 
 - mp aka 'man Perl' is an alias to this script
 MSG
-   exit;
-}
 
 # Options
 GetOptions (
    'variables:s'     => \&variables,
    'm|module:s'      => \&module,
    'M|module-view:s' => \&module,
-   'help'            => \&help,
-   ''                => sub {exec qw/perldoc -f -/},
+   'help'            => sub { print $help; exit },
+   ''                => sub { exec qw/perldoc -f -/ },
    '<>'              => \&extra
 ) or die "Error in command line arguments\n";
 
@@ -127,8 +122,7 @@ sub variables
    my ($opt, $val) = @_;
 
    # perldoc -MPod::Simple::Text -T perlvar | egrep '^\s{4}[$@%]'
-   my %vars =
-   (
+   my %vars = (
       '$_'                             => [qw/$ARG/],
       '@_'                             => [qw/@ARG/],
       '$"'                             => [qw/$LIST_SEPARATOR/],
@@ -254,8 +248,8 @@ unless (system ("perldoc -f $page 2>/dev/null") == 0)
    foreach (values %man)
    {
       my ($dir, $ext) = @$_;
-      opendir my $dh, $dir or die "$!\n";
-      push @pages, grep {!/::/ and /$page.*\.$ext/i} readdir $dh;
+      opendir my $DH, $dir or die "$!\n";
+      push @pages, grep {!/::/ and /\Q$page\E.*\.$ext/i} readdir $DH;
    }
 
    if (@pages)
