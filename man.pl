@@ -99,21 +99,24 @@ sub module
    my $modules = Module::CoreList::find_version $];
    my @modules = keys %$modules;
 
-   unless ($val)
+   if ($val)
    {
-      chomp ($_ = `printf '%s\n' @modules | fzf --expect='alt-enter' -0 -1 --cycle`);
+      $_ = `printf '%s\n' @modules | fzf -q'$val' --expect='alt-enter' -0 -1 --cycle`;
    } else {
-      chomp ($_ = `printf '%s\n' @modules | fzf -q'$val' --expect='alt-enter' -0 -1 --cycle`);
+      $_ = `printf '%s\n' @modules | fzf          --expect='alt-enter' -0 -1 --cycle`;
    }
 
+   chomp;
    exit unless $_;
+
+   # key is either empty or alt+Enter
    my ($key, $page) = split /\n/;
 
    if (($opt eq 'm' and !$key) or ($opt eq 'M' and $key))
    {
       info $page;
    } else {
-      exec qw/perldoc -m/, $page;
+      exec qw/perldoc -m/, $page; # view code
    }
 }
 
