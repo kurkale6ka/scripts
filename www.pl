@@ -2,13 +2,13 @@
 
 # Fuzzy search & open of websites loaded from a file
 
-use v5.12;
+use v5.14;
 use warnings;
 use Getopt::Long 'GetOptions';
 
 my $sites = "$ENV{XDG_DATA_HOME}/sites";
 
-(my $help = << "") =~ s/$ENV{HOME}/~/;
+my $help = << "" =~ s/$ENV{HOME}/~/r;
 www [-s sites] [pattern]
 fuzzy search & open of websites ($sites)
 
