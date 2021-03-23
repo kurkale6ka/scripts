@@ -21,6 +21,7 @@ GetOptions (
 
 if (@ARGV)
 {
+   s/"/\\"/g foreach @ARGV;
    $_ = `fzf -q"@ARGV" -0 -1 --cycle --height 60% < $sites`;
 } else {
    $_ = `fzf -0 -1 --cycle --height 60% < $sites`;
