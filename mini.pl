@@ -27,8 +27,7 @@ if ($ksh) {
    push @configs, 'bashrc';
 }
 
-if ($help)
-{
+if ($help) {
    my $shell = $ksh ? 'Korn' : 'Bash';
    say "mini : copy mini configs (-a : inputrc, vimrc & $shell...)";
    exit;
@@ -55,6 +54,7 @@ if ($all or $ksh)
       "RC$rc";
    }
    @configs;
+   say 'all ', $ksh ? 'ksh' : 'bash';
 }
 else
 {
@@ -63,14 +63,17 @@ else
    # choose 'mini config'
    if (@ARGV)
    {
+      s/"/\\"/g foreach @ARGV;
       chomp ($_ = `printf '%s\\n' @mini | fzf -q"@ARGV" -0 -1 --cycle`);
    } else {
       chomp ($_ = `printf '%s\\n' @mini | fzf -0 -1 --cycle`);
    }
 
-   die "no match\n" unless $_;
+   die "no match\n" if $? >> 8 == 1;
+   exit 1 unless $? == 0;
 
    # get file contents
+   say;
    chomp ($_ = `cat "$mini{$_}"`);
 }
 
