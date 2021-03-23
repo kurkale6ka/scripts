@@ -39,11 +39,13 @@ chdir $store or die RED.$!.RESET, "\n";
 # Get password
 if (@ARGV)
 {
+   s/"/\\"/g foreach @ARGV;
    $_ = `fd -e gpg -E'*~' -0 | sed -z 's/\\.gpg\$//' | fzf -q"@ARGV" --read0 -0 -1 --cycle`;
 } else {
    $_ = `fd -e gpg -E'*~' -0 | sed -z 's/\\.gpg\$//' | fzf --read0 -0 -1 --cycle`;
 }
 
+exit 1 unless $? == 0;
 chomp (my $passfile = $_);
 
 # Wait until clipboard restoration
@@ -55,28 +57,28 @@ if (my $pid = `pgrep -f $ps_description`)
 
 # Get previous clipboard item
 chomp (my $clip_prev = `$paste`);
+$? == 0 or die RED.'failed to get clipboard contents'.RESET, "\n";
 
 # Copy to clipboard
 if ($stdout)
 {
    say YELLOW.$passfile.RESET;
-   system (qw/gpg -q -d/, "$store/$passfile.gpg") == 0 or die RED.$!.RESET, "\n";
+   system (qw/gpg -q -d/, "$passfile.gpg") == 0 or die RED.$!.RESET, "\n";
 } else {
    say 'Copying ', color('yellow').$passfile.RESET, ' to the clipboard...';
 }
 
-system "gpg -q -d '$store/$passfile.gpg' | head -n1 | tr -d '\n' | $copy";
+system "gpg -q -d '$passfile.gpg' | head -n1 | tr -d '\n' | $copy";
 $? == 0 or die RED.$!.RESET, "\n";
 
-# restore clipboard to previous entry
+# Restore clipboard to previous entry
 sub restore
 {
-   exec "echo '$clip_prev' | tr -d '\n' | $copy";
+   open my $CLIPBOARD, '|-', $copy or die RED.$!.RESET, "\n";
+   print $CLIPBOARD $clip_prev;
 }
 
-restore() unless $clip_prev;
-
-# Wait in the background before restoring the clipboard
+# wait in the background before restoring the clipboard
 exit if my $pid = fork // die "failed to fork: $!\n";
 
 # kid
