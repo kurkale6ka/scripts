@@ -235,15 +235,17 @@ info 'perltoc' unless @ARGV;
 my $page = shift;
 
 # variables
-if ($page =~ /^v.$/ or $page =~ m'^[$@%].+')
+if ($page =~ /^v(.)$/ or $page =~ m'^[$@%].+')
 {
-   $page =~ s/^v(.)$/\$$1/;
+   $page = '$'.$1 if defined $1;
    $page = uc $page unless $page =~ /^\$[ab]$/;
    exec qw/perldoc -v/, $page;
 }
 
+$page =~ s/"/\\"/g;
+
 # builtin functions
-unless (system ("perldoc -f $page 2>/dev/null") == 0)
+unless (system ("perldoc -f \"$page\" 2>/dev/null") == 0)
 {
    my @pages;
 
@@ -258,7 +260,7 @@ unless (system ("perldoc -f $page 2>/dev/null") == 0)
    if (@pages)
    {
       # -q isn't needed, it's supplied to enable highlighting
-      if (chomp ($_ = `printf '%s\n' @pages | fzf -q'$page' -0 -1 --cycle`))
+      if (chomp ($_ = `printf '%s\n' @pages | fzf -q"$page" -0 -1 --cycle`))
       {
          my @parts = split /\./; # topic.section(.gz)
          exec qw/man -M/, $MANPATH, @parts > 1 ? @parts[1,0] : @parts;
