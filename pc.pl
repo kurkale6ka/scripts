@@ -39,8 +39,8 @@ chdir $store or die RED.$!.RESET, "\n";
 # Get password
 if (@ARGV)
 {
-   s/"/\\"/g foreach @ARGV;
-   $_ = `fd -e gpg -E'*~' -0 | sed -z 's/\\.gpg\$//' | fzf -q"@ARGV" --read0 -0 -1 --cycle`;
+   s/'/'"'"'/g foreach @ARGV;
+   $_ = `fd -e gpg -E'*~' -0 | sed -z 's/\\.gpg\$//' | fzf -q'@ARGV' --read0 -0 -1 --cycle`;
 } else {
    $_ = `fd -e gpg -E'*~' -0 | sed -z 's/\\.gpg\$//' | fzf --read0 -0 -1 --cycle`;
 }

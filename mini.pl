@@ -63,8 +63,8 @@ else
    # choose 'mini config'
    if (@ARGV)
    {
-      s/"/\\"/g foreach @ARGV;
-      chomp ($_ = `printf '%s\\n' @mini | fzf -q"@ARGV" -0 -1 --cycle`);
+      s/'/'"'"'/g foreach @ARGV;
+      chomp ($_ = `printf '%s\\n' @mini | fzf -q'@ARGV' -0 -1 --cycle`);
    } else {
       chomp ($_ = `printf '%s\\n' @mini | fzf -0 -1 --cycle`);
    }
