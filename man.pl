@@ -51,8 +51,8 @@ if ($ENV{PERL_LOCAL_LIB_ROOT})
 # Get info: try man, then perldoc
 sub info
 {
-   (my $topic = shift) =~ s/"/\\"/g;
-   unless (system ("man -M $MANPATH -S $MANSECT \"$topic\" 2>/dev/null") == 0)
+   (my $topic = shift) =~ s/'/'"'"'/g;
+   unless (system ("man -M $MANPATH -S $MANSECT '$topic' 2>/dev/null") == 0)
    {
       exec 'perldoc', $topic;
    }
@@ -108,7 +108,7 @@ module ($opt, $val) if $module;
 
 sub module
 {
-   $val =~ s/"/\\"/g;
+   $val =~ s/'/'"'"'/g;
    my @modules;
 
    if ($local)
@@ -128,7 +128,7 @@ sub module
 
    if ($val)
    {
-      $_ = `printf '%s\n' @modules | fzf -q"$val" --expect='alt-enter' -0 -1 --cycle`;
+      $_ = `printf '%s\n' @modules | fzf -q'$val' --expect='alt-enter' -0 -1 --cycle`;
    } else {
       $_ = `printf '%s\n' @modules | fzf          --expect='alt-enter' -0 -1 --cycle`;
    }
@@ -269,10 +269,10 @@ if ($page =~ /^v(.)$/ or $page =~ m'^[$@%].+')
    exec qw/perldoc -v/, $page;
 }
 
-$page =~ s/"/\\"/g;
+$page =~ s/'/'"'"'/g;
 
 # builtin functions
-unless (system ("perldoc -f \"$page\" 2>/dev/null") == 0)
+unless (system ("perldoc -f '$page' 2>/dev/null") == 0)
 {
    my @pages;
 
@@ -287,7 +287,7 @@ unless (system ("perldoc -f \"$page\" 2>/dev/null") == 0)
    if (@pages)
    {
       # -q isn't needed, it's supplied to enable highlighting
-      if (chomp ($_ = `printf '%s\n' @pages | fzf -q"$page" -0 -1 --cycle`))
+      if (chomp ($_ = `printf '%s\n' @pages | fzf -q'$page' -0 -1 --cycle`))
       {
          my @parts = split /\./; # topic.section(.gz)
          exec qw/man -M/, $MANPATH, @parts > 1 ? @parts[1,0] : @parts;
