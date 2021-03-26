@@ -10,7 +10,7 @@ use Term::ANSIColor qw/color :constants/;
 use File::Basename 'fileparse';
 
 # Help
-my $help = << 'MSG';
+my $help = << '────';
 ex [options] [topic]
 
 --(no-)hidden,   -H: include hidden files (default)
@@ -19,20 +19,18 @@ ex [options] [topic]
 --grep,          -g: grep for occurrences of topic in files
 --only,          -o: output filetred lines only
 --view,          -v: view with your $EDITOR, use Alt-v from within fzf
-MSG
+────
 
 # Arguments
 my $dir = '.';
 my $hidden = 1;
-
-my ($exact, $grep, $only, $view);
 GetOptions (
    'H|hidden!'     => \$hidden,
    'd|directory=s' => \$dir,
-   'e|exact'       => \$exact,
-   'g|grep'        => \$grep,
-   'o|only'        => \$only,
-   'v|view'        => \$view,
+   'e|exact'       => \my $exact,
+   'g|grep'        => \my $grep,
+   'o|only'        => \my $only,
+   'v|view'        => \my $view,
    'h|help'        => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
