@@ -4,8 +4,9 @@
 
 use v5.12;
 use warnings;
+use utf8;
 use re '/aa';
-use Getopt::Long qw/GetOptions :config no_ignore_case pass_through/;
+use Getopt::Long qw/GetOptions :config bundling no_ignore_case pass_through/;
 use Config;
 use Module::CoreList;
 use File::Spec;
@@ -39,11 +40,19 @@ foreach (Config::config_re($man_re), Config::config_re(qr/config_arg\d+/))
 my $MANPATH = join ':', uniq map {dirname @$_[0]} values %man;
 my $MANSECT = join ':', uniq map {        @$_[1]} values %man;
 
+my $local_man;
+
+if ($ENV{PERL_LOCAL_LIB_ROOT})
+{
+   $local_man = "$ENV{PERL_LOCAL_LIB_ROOT}/man";
+   $MANPATH .= ":$local_man";
+}
+
 # Get info: try man, then perldoc
 sub info
 {
-   my $topic = shift;
-   unless (system ("man -M $MANPATH -S $MANSECT $topic 2>/dev/null") == 0)
+   (my $topic = shift) =~ s/"/\\"/g;
+   unless (system ("man -M $MANPATH -S $MANSECT \"$topic\" 2>/dev/null") == 0)
    {
       exec 'perldoc', $topic;
    }
@@ -51,7 +60,7 @@ sub info
 }
 
 # Usage
-my $help = << 'MSG';
+my $help = << '──────────────────';
 Easier access to Perl help topics
 
 mp          : locate help sections
@@ -59,8 +68,8 @@ mp section  : (perl)re,run,...
 mp keyword  : builtin functions, identifiers, ...
 mp [$@%]... : variable, mp v. for 2-chars variables (e.g v- for $-)
 mp -v       : variables
-mp -m       : core modules
-mp -M       : core modules code <= export PERLDOC_SRC_PAGER=$EDITOR
+mp -[l]m    : core (or local) modules
+mp -[l]M    : core (or local) modules code <= export PERLDOC_SRC_PAGER=$EDITOR
 mp -        : file test operators
 
 - fzf is needed for -v, -m, -M and <section/topic> lookup
@@ -69,14 +78,17 @@ mp -        : file test operators
 - extra options will be passed through to perldoc (ex: -q for FAQ search)
 
 - mp aka 'man Perl' is an alias to this script
-MSG
+──────────────────
 
 # Options
+my ($local, $module, $opt, $val);
+
 GetOptions (
-   'variables:s'     => \&variables,
-   'm|module:s'      => \&module,
-   'M|module-view:s' => \&module,
-   'help'            => sub { print $help; exit },
+   'v|variables:s'   => \&variables,
+   'l|local'         => sub { $local = 1 if $local_man },
+   'm|module:s'      => sub { $module++; ($opt, $val) = @_ },
+   'M|module-view:s' => sub { $module++; ($opt, $val) = @_ },
+   'h|help'          => sub { print $help; exit },
    ''                => sub { exec qw/perldoc -f -/ },
    '<>'              => \&extra
 ) or die "Error in command line arguments\n";
@@ -92,16 +104,31 @@ sub extra
    }
 }
 
+module ($opt, $val) if $module;
+
 sub module
 {
-   my ($opt, $val) = @_;
+   $val =~ s/"/\\"/g;
+   my @modules;
 
-   my $modules = Module::CoreList::find_version $];
-   my @modules = keys %$modules;
+   if ($local)
+   {
+      opendir my $LSEC, $local_man or die "$!\n";
+      my @sections = grep /^man\d$/, readdir $LSEC;
+
+      foreach (@sections)
+      {
+         opendir my $LMAN, "$local_man/$_" or die "$!\n";
+         push @modules, map {substr $_, 0, -2} readdir $LMAN;
+      }
+   } else {
+      my $modules = Module::CoreList::find_version $];
+      @modules = keys %$modules;
+   }
 
    if ($val)
    {
-      $_ = `printf '%s\n' @modules | fzf -q'$val' --expect='alt-enter' -0 -1 --cycle`;
+      $_ = `printf '%s\n' @modules | fzf -q"$val" --expect='alt-enter' -0 -1 --cycle`;
    } else {
       $_ = `printf '%s\n' @modules | fzf          --expect='alt-enter' -0 -1 --cycle`;
    }
