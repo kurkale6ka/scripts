@@ -27,14 +27,13 @@ vpn.pl [-a|--auth ...]                : credentials file ($vpn/details)
        [-b|--batch]                   : no codes with --show
 
 # Arguments
-my ($config, $download, $show, $batch);
 GetOptions (
    'a|auth=s'     => \$auth,
-   'c|config=s'   => \$config,
-   'd|download'   => \$download,
+   'c|config=s'   => \my $config,
+   'd|download'   => \my $download,
    'p|protocol=s' => \$protocol,
-   's|show:s'     => \$show,
-   'b|batch'      => \$batch,
+   's|show:s'     => \my $show,
+   'b|batch'      => \my $batch,
    'h|help'       => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 

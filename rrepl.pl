@@ -36,7 +36,7 @@ use Getopt::Long 'GetOptions';
 my $GRAY = color 'ansi242';
 my $PINK = color 'ansi205';
 
-my $help = << 'MSG';
+my $help = << '-------';
 Perl regex REPL
 
 rr              : read multiline text from STDIN
@@ -49,7 +49,7 @@ rr regex
 \n can be used in string (remember to protect from shell)
 flags can be appended to regex with /regex/flags (1st / optional)
 install Unicode::GCString for better underlining (^^^) of wide characters
-MSG
+-------
 
 # Options
 GetOptions (

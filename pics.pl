@@ -6,6 +6,7 @@
 
 use v5.22;
 use warnings;
+use utf8;
 use re '/aa';
 use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
@@ -27,7 +28,7 @@ my $GREEN = color 'green';
 my $S = color 'bold';
 my $R = color 'reset';
 
-my $help = << "MSG";
+my $help = << "───────";
 ${S}SYNOPSIS${R}
 
 pics    [-s ${BLUE}src${R}] [-d ${BLUE}dst${R}] [-n] [-v] : ${GREEN}$messages{title}${R}
@@ -47,18 +48,16 @@ ${S}OPTIONS${R}
 --tags, -t '*keyword*',subject,title,'*comment*',make,model,createdate,datetimeoriginal (default)
         -t d[ates]
         -t a[ll]
-MSG
+───────
 
 # Options
-my ($dry, $src, $dst, $import, $verbose, $tags);
-
 GetOptions (
-   'n|dry-run'       => \$dry,
-   's|source=s'      => \$src,
-   'd|destination=s' => \$dst,
-   'i|import!'       => \$import,
-   'v|verbose+'      => \$verbose,
-   't|tags:s'        => \$tags,
+   'n|dry-run'       => \my $dry,
+   's|source=s'      => \my $src,
+   'd|destination=s' => \my $dst,
+   'i|import!'       => \my $import,
+   'v|verbose+'      => \my $verbose,
+   't|tags:s'        => \my $tags,
    'h|help'          => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 

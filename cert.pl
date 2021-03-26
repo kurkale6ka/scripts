@@ -17,7 +17,7 @@ use Term::ReadLine;
 my $PINK = color 'ansi205';
 my $GRAY = color 'ansi242';
 
-my $help = << 'MSG';
+my $help = << '----------';
 Show Certificate/CSR info
 
 cert [options] file
@@ -37,19 +37,18 @@ Intermediate certificates can be appended to:
 
 SSL Certificate Checker
 https://www.digicert.com/help/
-MSG
+----------
 
 # Arguments
-my ($check, $csr, $dates, $fingerprint, $issuer, $subject, $text, $view);
 GetOptions (
-   'c|check'       => \$check,
-   'r|csr'         => \$csr,
-   'd|dates'       => \$dates,
-   'f|fingerprint' => \$fingerprint,
-   'i|issuer'      => \$issuer,
-   's|subject'     => \$subject,
-   't|text'        => \$text,
-   'v|view'        => \$view,
+   'c|check'       => \my $check,
+   'r|csr'         => \my $csr,
+   'd|dates'       => \my $dates,
+   'f|fingerprint' => \my $fingerprint,
+   'i|issuer'      => \my $issuer,
+   's|subject'     => \my $subject,
+   't|text'        => \my $text,
+   'v|view'        => \my $view,
    'h|help'        => sub {print $help; exit;}
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 

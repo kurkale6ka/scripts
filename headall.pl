@@ -18,10 +18,9 @@ headall [pattern]
 
 # Options
 my $lines = 10;
-my ($view, $PIPE);
 GetOptions (
    'n|lines=i' => \$lines,
-   'v|view'    => \$view,
+   'v|view'    => \my $view,
    'h|help'    => sub { print $help; exit; }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
@@ -32,7 +31,7 @@ die $help if @ARGV > 1;
 if ($view)
 {
    die RED.'EDITOR must be (n)vim'.RESET, "\n" unless $ENV{EDITOR} =~ /vim/i;
-   open $PIPE, '|-', $ENV{EDITOR}, '-c', "setl bt=nofile bh=hide noswf fdl=0 fdm=expr fde=getline(v:lnum)=~'==>'?'>1':'='", '-'
+   open my $PIPE, '|-', $ENV{EDITOR}, '-c', "setl bt=nofile bh=hide noswf fdl=0 fdm=expr fde=getline(v:lnum)=~'==>'?'>1':'='", '-'
       or die RED.$!.RESET, "\n";
    select $PIPE;
 }

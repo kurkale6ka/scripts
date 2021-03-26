@@ -20,7 +20,7 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long qw/GetOptions :config bundling/;
 
 # Help
-my $help = << 'MSG';
+my $help = << '-------';
 mkssh [user]
 
 -n, --dry-run : modes + ownership only (no key install)
@@ -30,13 +30,12 @@ Install user's SSH key (unless present)
 * validate with ssh-keygen -lf
 * create ~/.ssh/authorized_keys if needed
 * enforce correct modes + ownership
-MSG
+-------
 
 # Arguments
-my ($dry_run, $force);
 GetOptions (
-   'n|dry-run' => \$dry_run,
-   'f|force'   => \$force,
+   'n|dry-run' => \my $dry_run,
+   'f|force'   => \my $force,
    'h|help'    => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 

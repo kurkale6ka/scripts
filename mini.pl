@@ -12,11 +12,10 @@ use Getopt::Long qw/GetOptions :config bundling/;
 chdir $ENV{REPOS_BASE} or die "$!\n";
 
 # options
-my ($all, $ksh, $help);
 GetOptions (
-   'a|all'  => \$all,
-   'k|ksh'  => \$ksh,
-   'h|help' => \$help
+   'a|all'  => \my $all,
+   'k|ksh'  => \my $ksh,
+   'h|help' => \my $help
 ) or die "Error in command line arguments\n";
 
 my @configs = qw/inputrc vimrc/;

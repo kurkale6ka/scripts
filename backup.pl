@@ -37,11 +37,10 @@ MSG
 }
 
 # Arguments
-my ($all, $delete, $swap);
 GetOptions (
-   'a|all'    => \$all,
-   'd|delete' => \$delete,
-   's|swap:s' => \$swap,
+   'a|all'    => \my $all,
+   'd|delete' => \my $delete,
+   's|swap:s' => \my $swap,
    'h|help'   => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 

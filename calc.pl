@@ -23,7 +23,7 @@ POSIX::sigaction (SIGINT, POSIX::SigAction->new (sub {
 $| = 1;
 
 # Help
-my $help = << "MSG";
+my $help = << "------";
 Usage: calc math-expr
 
 x can be used in lieu of *
@@ -40,7 +40,7 @@ Tips:
 • exponent notation (m${B}e${R}n ⇔ m×10ⁿ) is supported
 • for arrows support, install Term::ReadLine::Gnu
 • symlink this script to =
-MSG
+------
 
 # Valid Math Symbols
 my %fractions = (
@@ -84,9 +84,8 @@ my $res;
 my $ans; # memory
 
 # Options
-my $tests;
 GetOptions (
-   'tests'   => \$tests,
+   'tests'   => \my $tests,
    'unicode' => sub { unicode();   exit },
    'help'    => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";

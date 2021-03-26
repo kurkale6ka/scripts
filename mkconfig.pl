@@ -48,20 +48,18 @@ sub status();
 sub links($); # add|del
 sub tags();
 
+my $update = 1 unless @ARGV; # default action
+
 # Options
-my ($init, $download, $update, $status, $links, $del_links, $tags, $long_help);
-
-@ARGV or $update = 1; # default action
-
 GetOptions (
-   'i|init'      => \$init,
-   'd|download'  => \$download,
+   'i|init'      => \my $init,
+   'd|download'  => \my $download,
    'u|update'    => \$update,
-   's|status'    => \$status,
-   'l|links'     => \$links,
-   'L|del-links' => \$del_links,
-   't|tags'      => \$tags,
-   'H|long-help' => \$long_help,
+   's|status'    => \my $status,
+   'l|links'     => \my $links,
+   'L|del-links' => \my $del_links,
+   't|tags'      => \my $tags,
+   'H|long-help' => \my $long_help,
    'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
