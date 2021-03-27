@@ -44,12 +44,10 @@ unless (any {defined} ($download, $show))
    die RED.'Run as root'.RESET, "\n" unless $> == 0;
 }
 
-# Countries with VPN servers
-chomp (my %countries = map {split /\h*=>\h*/} grep {/^[^#].+?=>/} <DATA>);
-
 # Get config
 unless (any {defined} ($config, $download, $show))
 {
+   # country code/pattern
    if (@ARGV)
    {
       $config = shift;
@@ -60,7 +58,9 @@ unless (any {defined} ($config, $download, $show))
    }
 }
 
-# --config code/country
+# Countries with VPN servers
+chomp (my %countries = map {split /\h*=>\h*/} grep {/^[^#].+?=>/} <DATA>);
+
 if (defined $config and not -f $config)
 {
    $config =~ /^[-\[\]()'.,\h\p{alpha}]+$/
@@ -68,11 +68,13 @@ if (defined $config and not -f $config)
 
    my $country;
 
-   # get code
+   # code
    if (length $config == 2)
    {
       $country = $config;
-   } else {
+   }
+   else # pattern
+   {
       my $pattern = qr/\Q$config/i;
       my (%codes, $num);
 
@@ -100,6 +102,7 @@ if (defined $config and not -f $config)
 
    # uk fix
    $country = 'uk' if $country eq 'gb';
+   $country =~ s/'/'"'"'/g;
 
    chomp ($config = `cd '$vpn/ovpn_$protocol' && printf '%s\\0' *.ovpn | fzf --read0 -0 -1 --cycle --height 60% -q'^$country'`);
    $config or die RED.'no match'.RESET, "\n";
