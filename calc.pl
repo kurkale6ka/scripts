@@ -2,7 +2,7 @@
 
 # SIMPLE calculator
 
-use v5.26;
+use v5.22;
 use warnings;
 use utf8;
 use open qw/:std :encoding(UTF-8)/;
@@ -64,12 +64,21 @@ my %fractions = (
    '⅒' => 1/10
 );
 
-my $numbers = '𝟎𝟢𝟬𝟶𝟏𝟣𝟭𝟷𝟐𝟤𝟮𝟸𝟑𝟥𝟯𝟹𝟒𝟦𝟰𝟺𝟓𝟧𝟱𝟻𝟔𝟨𝟲𝟼𝟕𝟩𝟳𝟽𝟖𝟪𝟴𝟾𝟗𝟫𝟵𝟿';
 my $fractions = join '', keys %fractions;
+my @fractions = sort {$fractions{$a} <=> $fractions{$b}} keys %fractions;
+my $numbers = '𝟎𝟢𝟬𝟶𝟏𝟣𝟭𝟷𝟐𝟤𝟮𝟸𝟑𝟥𝟯𝟹𝟒𝟦𝟰𝟺𝟓𝟧𝟱𝟻𝟔𝟨𝟲𝟼𝟕𝟩𝟳𝟽𝟖𝟪𝟴𝟾𝟗𝟫𝟵𝟿';
 my $superscripts = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 my $lparens = '﴾⟮❪❨﹙（';
 my $rparens = '﴿⟯❫❩﹚）';
 my $parens = '﴾﴿⟮⟯❪❫❨❩﹙﹚（）';
+
+# Unicode symbols
+my $unicode = << "";
+   operators: ×✕✖ ÷∕⁄ ➕ −
+     numbers: $numbers
+   fractions: @fractions ⅟
+superscripts: (number)$superscripts
+ parenthesis: $parens
 
 my $symbols = qr{(
 [${numbers}${fractions}\d][eE][-+]?\d+ # exponent notation
@@ -85,9 +94,9 @@ my $ans; # memory
 
 # Options
 GetOptions (
-   'tests'   => \my $tests,
-   'unicode' => sub { unicode();   exit },
-   'help'    => sub { print $help; exit }
+   tests   => \my $tests,
+   unicode => sub { print $unicode; exit },
+   help    => sub { print $help;    exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 if ($tests) { tests(); exit }
@@ -113,8 +122,8 @@ else # STDIN
 
       exit if /^\h*(q(uit)?|e(xit)?)\h*$/in;
 
-      if (/^\h*(h(elp)?|\?+)\h*$/in) { print $help; next }
-      if (/^\h*u(nicode)?\h*$/in)    { unicode();   next }
+      if (/^\h*(h(elp)?|\?+)\h*$/in) { print $help;    next }
+      if (/^\h*u(nicode)?\h*$/in)    { print $unicode; next }
 
       say $OUT $res if defined ($res = math_eval());
    }
@@ -193,19 +202,6 @@ sub math_eval
    } else {
       return undef;
    }
-}
-
-# Print recognized Unicode symbols
-sub unicode
-{
-   my @fractions = sort {$fractions{$a} <=> $fractions{$b}} keys %fractions;
-   print <<~ "CODES";
-      operators: ×✕✖ ÷∕⁄ ➕ −
-        numbers: $numbers
-      fractions: @fractions ⅟
-   superscripts: (number)$superscripts
-    parenthesis: $parens
-   CODES
 }
 
 sub tests
