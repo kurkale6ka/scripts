@@ -147,31 +147,36 @@ sub csr()
       # info
       run qw/openssl req -in/, $cert, qw/-noout -subject/;
    } else {
-      my $subj;
+      my $fqdn = $base;
+      $fqdn .= '.com' unless $fqdn =~ /\.com$/i;
+
+      # default subject
+      my $prompt = 'Subject: ';
+      my $subj = "/C=GB/ST=State/L=London/O=Company/OU=IT/CN=$fqdn/emailAddress=";
+      my $subj_fields = ' ' x length($prompt) . $GRAY.$subj.RESET;
 
       # get subject from previous CSR
       if (-f $cert)
       {
+         say $subj_fields unless $view;
          chomp ($_ = `openssl req -in $cert -noout -subject`);
          (undef, $subj) = split /=/, $_, 2;
-      } else {
-         # default
-         my $fqdn = $base;
-         $fqdn .= '.com' unless $fqdn =~ /\.com$/i;
-         $subj = "/C=GB/ST=State/L=London/O=Company/OU=IT/CN=$fqdn/emailAddress=";
+      }
 
-         unless (system 'perldoc -l Term::ReadLine::Gnu 1>/dev/null 2>&1')
+      unless ($view)
+      {
+         if (system ('perldoc -l Term::ReadLine::Gnu 1>/dev/null 2>&1') == 0)
          {
-            $subj = $term->readline('Subject: ', $subj);
+            $subj = $term->readline($prompt, $subj);
          } else {
             warn YELLOW.'Install Term::ReadLine::Gnu for better readline support'.RESET, "\n";
-            say $subj;
-            $subj = $term->readline('Subject: ');
+            say $subj_fields;
+            $subj = $term->readline($prompt);
          }
       }
 
       # create
-      run qw/openssl req -nodes -newkey rsa:2048 -keyout/, "${dirs}${base}.key", '-out', $cert, '-subj', $subj;
+      run qw/openssl req -nodes -newkey rsa:2048 -keyout/, $dirs."$base.key", '-out', $cert, '-subj', $subj;
    }
 }
 
