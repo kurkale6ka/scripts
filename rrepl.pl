@@ -5,6 +5,13 @@
 # todo:
 #  - sanitize input (chroot, ..., or warn)
 
+use v5.22;
+use warnings;
+use open qw/:std :encoding(UTF-8)/;
+use Term::ReadLine;
+use Term::ANSIColor qw/color :constants/;
+use Getopt::Long 'GetOptions';
+
 my $gcstring;
 
 BEGIN
@@ -19,19 +26,12 @@ BEGIN
       re -> import ('debug');
    }
 
-   unless (system 'perldoc -l Unicode::GCString 1>/dev/null 2>&1')
+   if (system ('perldoc -l Unicode::GCString 1>/dev/null 2>&1') == 0)
    {
       require Unicode::GCString;
       $gcstring = 1;
    }
 }
-
-use v5.12;
-use warnings;
-use open qw/:std :encoding(UTF-8)/;
-use Term::ReadLine;
-use Term::ANSIColor qw/color :constants/;
-use Getopt::Long 'GetOptions';
 
 my $GRAY = color 'ansi242';
 my $PINK = color 'ansi205';
@@ -39,22 +39,20 @@ my $PINK = color 'ansi205';
 my $help = << '-------';
 Perl regex REPL
 
-rr              : read multiline text from STDIN
-rr string
-rr string regex
-rr regex
+rr [string] [regex] # without arguments reads multiline text from STDIN
+rr /regex/
 
 --verbose, -v : enable regex debug mode
 
-\n can be used in string (remember to protect from shell)
-flags can be appended to regex with /regex/flags (1st / optional)
-install Unicode::GCString for better underlining (^^^) of wide characters
+* \n can be used in string (remember to protect from shell)
+* flags can be appended to regex with /regex/flags (1st / optional)
+* install Unicode::GCString for better underlining (^^^) of wide characters
 -------
 
 # Options
 GetOptions (
-   'verbose' => sub {},
-   'help'    => sub {print $help; exit}
+   verbose => sub {},
+   help    => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # 2 args max
