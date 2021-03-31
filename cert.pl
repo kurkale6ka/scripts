@@ -70,9 +70,9 @@ $dirs = '' if $dirs eq './';
 # use certificate.crt if given certificate.key for instance
 sub change_cert()
 {
-   unless (grep /$ext/io, @certificates)
+   return if grep /$ext/io, @certificates;
+   if (my $ext = first {-f $dirs.$base.$_} @certificates)
    {
-      $ext = first {-f $dirs.$base.$_} @certificates;
       $cert = $dirs.$base.$ext;
    }
 }
@@ -244,9 +244,9 @@ sub check()
 
    # Certificate/key match test
    my %modulus = (
-      crt => "openssl x509 -in $cert -noout -modulus | openssl md5",
-      key => "openssl rsa -in ${dirs}$base.key -noout -modulus | openssl md5",
-      csr => "openssl req -in ${dirs}$base.csr -noout -modulus | openssl md5",
+      crt => "openssl x509 -in $cert            -noout -modulus | openssl md5",
+      key => "openssl rsa  -in ${dirs}$base.key -noout -modulus | openssl md5",
+      csr => "openssl req  -in ${dirs}$base.csr -noout -modulus | openssl md5",
    );
 
    foreach (keys %modulus)
