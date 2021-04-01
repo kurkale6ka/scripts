@@ -4,6 +4,7 @@
 
 use v5.12;
 use warnings;
+use utf8;
 use re '/aa';
 use Getopt::Long qw/GetOptions :config no_ignore_case bundling/;
 use Term::ANSIColor qw/color :constants/;
@@ -42,32 +43,25 @@ chdir $dir or die RED.$!.RESET, "\n";
 $hidden = $hidden ? '--hidden' : '';
 
 # Globals
-my ($query, $key, $file);
+my ($query, $key, $file, @results);
 
 # Functions
-sub fzf_results()
+sub fzf_results
 {
-   my @output = split /\n/;
-   exit 1 unless @output; # canceled with Esc or ^C
+   exit 1 unless grep /\S/, @_; # canceled with Esc or ^C
+   ($query, $key, $file) = @_;
 
-   if ($output[0] and @output < 3) # only if no results
-   {
-      $query = $output[0];
-      $query =~ tr/^$\'//d; # partial support of fzf's extended search mode
-   }
-   $key = $output[1];
-
-   if (@output == 3) # query / key pressed / file
-   {
-      $file = $output[-1];
+   if ($file) {
       return 1;
+   } else {
+      # trim any fzf extended search mode characters
+      $query =~ tr/^$\'//d;
+      return undef;
    }
-   return undef;
 }
 
 sub Open(;$)
 {
-   exit 1 unless $file;
    my $open = $^O eq 'darwin' ? 'open' : 'xdg-open';
 
    my (undef, undef, $ext) = fileparse($file, qr/\.[^.]+$/);
@@ -128,16 +122,12 @@ my $preview = q/--preview 'if file --mime {} | grep -q binary; then echo "No pre
 
 sub Grep()
 {
-   my $results = 0;
-   until ($results)
+   while (1)
    {
-      exit 1 unless $query;
-      chomp ($_ = `rg -S $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf $fzf_opts --preview 'rg -S --color=always $query {}'`);
-      $results = fzf_results;
+      @results = `rg -S $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf $fzf_opts --preview 'rg -S --color=always $query {}'`;
+      chomp @results;
+      Open '--hls' if fzf_results @results;
    }
-
-   Open '--hls' if $results;
-   exit;
 }
 
 # Main
@@ -156,7 +146,7 @@ if (@ARGV)
    my $mode = defined $exact ? "-pF $query" : '';
 
    # -q isn't required with 'exact', it's supplied to enable highlighting
-   chomp ($_ = `$find $mode | fzf -q$query $fzf_opts $preview`);
+   chomp (@results = `$find $mode | fzf -q$query $fzf_opts $preview`);
 
 }
 # Search trough all help files
@@ -164,10 +154,10 @@ else
 {
    # fuzzy (default) or exact?
    my $mode = defined $exact ? '-e' : '';
-   chomp ($_ = `$find | fzf $mode $fzf_opts $preview`);
+   chomp (@results = `$find | fzf $mode $fzf_opts $preview`);
 }
 
-if (fzf_results)
+if (fzf_results @results)
 {
    Open;
 } else {
