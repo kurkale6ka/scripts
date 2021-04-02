@@ -4,6 +4,8 @@
 #
 # todo:
 #  - sanitize input (chroot, ..., or warn)
+#  - mX...X for matching
+#  - regex errors + escape /s
 
 use v5.22;
 use warnings;
@@ -45,7 +47,7 @@ rr /regex/
 --verbose, -v : enable regex debug mode
 
 * \n can be used in string (remember to protect from shell)
-* flags can be appended to regex with /regex/flags (1st / optional)
+* 1st / in regex optional while in the repl loop
 * install Unicode::GCString for better underlining (^^^) of wide characters
 -------
 
@@ -60,13 +62,14 @@ die $help if @ARGV > 2;
 
 # globals
 my ($str, $reg);
-my $regex_arg = qr! ^/?(.*?)/(.*) !x;
+my $regex_arg  = qr! ^/ (.*?)/([msixpodualngc]*)$ !x;
+my $regex_repl = qr! ^/?(.*?)/([msixpodualngc]*)$ !x;
 
 # Arguments
 if (@ARGV == 1)
 {
    # rr scalar
-   unless ($ARGV[0] =~ /$regex_arg/)
+   if ($ARGV[0] !~ /$regex_arg/)
    {
       $str = $ARGV[0];
       repl();
@@ -107,7 +110,7 @@ sub repl
          chomp ($str = $_);
       } else {
          chomp ($reg = $_);
-         $reg = eval "qr/$1/$2" if $reg =~ /$regex_arg/;
+         $reg = eval "qr/$1/$2" if $reg =~ /$regex_repl/;
       }
       match();
    }
