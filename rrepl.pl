@@ -63,7 +63,7 @@ die $help if @ARGV > 2;
 # globals
 my ($str, $reg);
 my $regex_arg  = qr! ^/ (.*?)/([msixpodualngc]*)$ !x;
-my $regex_repl = qr! ^/?(.*?)/([msixpodualngc]*)$ !x;
+my $regex_repl = qr# ^/? (.*?) (?<!\\) (?:/([msixpodualngc]*))?$ #x; # 2nd / cannot be preceded by \
 
 # Arguments
 if (@ARGV == 1)
@@ -109,8 +109,12 @@ sub repl
       {
          chomp ($str = $_);
       } else {
+         s#/#\\/#g;
          chomp ($reg = $_);
-         $reg = eval "qr/$1/$2" if $reg =~ /$regex_repl/;
+         if ($reg =~ /$regex_repl/)
+         {
+            $reg = eval (defined $2 ? "qr/$1/$2" : "qr/$1/");
+         }
       }
       match();
    }
