@@ -104,7 +104,10 @@ sub repl
 
    while (defined ($_ = $term->readline($prompt)))
    {
+      next unless $_; # empty prompt>>
+
       $_ = decode('UTF-8', $_, Encode::FB_CROAK | Encode::LEAVE_SRC);
+
       if (@_) # rr /regex/
       {
          chomp ($str = $_);
@@ -116,13 +119,13 @@ sub repl
             $reg = eval (defined $2 ? "qr/$1/$2" : "qr/$1/");
          }
       }
+
       match();
    }
 }
 
 sub match
 {
-   return unless $str and $reg; # empty prompt>>
    $str =~ s/\\n/\n/g;
 
    if ($str =~ /$reg/)
