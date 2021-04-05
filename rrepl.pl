@@ -60,10 +60,11 @@ GetOptions (
 # 2 args max
 die $help if @ARGV > 2;
 
-# globals
+# Globals
 my ($str, $reg);
-my $regex_arg  = qr! ^/ (.*?)/([msixpodualngc]*)$ !x;
-my $regex_repl = qr# ^/? (.*?) (?<!\\) (?:/([msixpodualngc]*))?$ #x; # 2nd / cannot be preceded by \
+
+my $regex_arg  = qr% ^/ (.*?)/([msixpodualngc]*)$ %x;
+my $regex_repl = qr% ^/? (.*?) (?<!\\) (?:/([msixpodualngc]*))?$ %x; # 2nd / cannot be preceded by \
 
 # Arguments
 if (@ARGV == 1)
