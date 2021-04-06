@@ -46,7 +46,7 @@ rr /regex/
 --verbose, -v : enable regex debug mode
 
 * \n can be used in string (remember to protect from shell)
-* 1st / in regex optional while in the repl loop
+* in the REPL loop the regex format is regex/flags
 * install Unicode::GCString for better underlining (^^^) of wide characters
 -------
 
@@ -62,8 +62,32 @@ die $help if @ARGV > 2;
 # Globals
 my ($str, $reg);
 
-my $regex_arg  = qr% ^/ (.*?)/([msixpodualngc]*)$ %x;
-my $regex_repl = qr% ^/? (.*?) (?<!\\) (?:/([msixpodualngc]*))?$ %x; # 2nd / cannot be preceded by \
+my $flags = qr/[msixpodualngc]/;
+my $regex_arg  = qr% ^/ (.+?)     (?<!\\) /($flags*)   $ %x;
+my $regex_repl = qr%    (.+?) (?: (?<!\\) /($flags+) )?$ %x; # 2nd / cannot be preceded by \
+
+sub validate_regex
+{
+   $reg =~ s#(?<!\\)\\$#\\\\#g; # an eol \ would break the below =~ test
+
+   if ($reg =~ /$regex_repl/)
+   {
+      if ($1 =~ m#(?<!\\)/#)
+      {
+         warn RED.'/s need to be escaped'.RESET, "\n";
+      }
+      if ($reg = eval (defined $2 ? "qr/$1/$2" : "qr/$1/"))
+      {
+         return 1;
+      } else {
+         warn RED.'not a valid regex'.RESET, "\n";
+      }
+   } else {
+      warn RED."not a valid regex: $reg".RESET, "\n";
+   }
+
+   return 0;
+}
 
 # Arguments
 if (@ARGV == 1)
@@ -76,21 +100,23 @@ if (@ARGV == 1)
    }
    else # rr /regex/
    {
-      $reg = eval "qr/$1/$2"; # get flags
-      repl('regex');
+      my ($regex, $flags) = ($1, $2);
+      # $regex =~ s#(?<!\\)/#\\/#g;
+      $reg = eval "qr/$regex/$flags"; # get flags
+      repl ('regex');
    }
 }
 elsif (@ARGV == 2) # rr scalar regex
 {
    ($str, $reg) = @ARGV;
-   $reg = eval "qr/$1/$2" if $reg =~ /$regex_arg/;
+   exit 1 unless validate_regex $reg;
    match();
 }
 elsif (@ARGV == 0) # rr
 {
    say $PINK.'multiline text (EOF with ^d):'.RESET;
    chomp (my @str = <STDIN>);
-   $str = join '\n', @str;
+   $str = join "\n", @str;
    repl();
 }
 
@@ -102,7 +128,7 @@ sub repl
 
    my $prompt = CYAN.(@_?'$scalar':'/regex/').'>>'.RESET.' ';
 
-   while (defined ($_ = $term->readline($prompt)))
+   while (defined ($_ = $term->readline ($prompt)))
    {
       next unless $_; # empty prompt>>
 
@@ -112,12 +138,8 @@ sub repl
       {
          chomp ($str = $_);
       } else {
-         s#/#\\/#g;
          chomp ($reg = $_);
-         if ($reg =~ /$regex_repl/)
-         {
-            $reg = eval (defined $2 ? "qr/$1/$2" : "qr/$1/");
-         }
+         next unless validate_regex $reg;
       }
 
       match();
@@ -126,12 +148,13 @@ sub repl
 
 sub match
 {
-   $str =~ s/\\n/\n/g;
+   $str =~ s/\\n/\n/g; # swap \n with real newlines ...
 
    if ($str =~ /$reg/)
    {
       my ($pre, $match, $post) = ($`, $&, $');
-      s/\n/\\n/g foreach ($pre, $match, $post);
+
+      s/\n/\\n/g foreach ($pre, $match, $post); # ... and back
 
       # info: pre, match, post
       my @match = (pre => $pre, match => GREEN.$match.RESET, post => $post);
