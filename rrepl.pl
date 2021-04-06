@@ -35,8 +35,7 @@ BEGIN
    }
 }
 
-my $GRAY = color 'ansi242';
-my $PINK = color 'ansi205';
+my ($GRAY, $PINK) = map {color "ansi$_"} (242, 205);
 
 my $help = << '-------';
 Perl regex REPL
@@ -97,11 +96,11 @@ elsif (@ARGV == 0) # rr
 
 sub repl
 {
-   my $term = Term::ReadLine->new('Regex REPL');
-   $term->ornaments(0);
+   my $term = Term::ReadLine->new ('Regex REPL');
+   $term->ornaments (0);
    my $OUT = $term->OUT || \*STDOUT;
 
-   my $prompt = CYAN . (@_ ? '$scalar>> ' : '/regex/>> ') . RESET;
+   my $prompt = CYAN.(@_?'$scalar':'/regex/').'>>'.RESET.' ';
 
    while (defined ($_ = $term->readline($prompt)))
    {
@@ -131,34 +130,32 @@ sub match
 
    if ($str =~ /$reg/)
    {
-      my @info;
       my ($pre, $match, $post) = ($`, $&, $');
       s/\n/\\n/g foreach ($pre, $match, $post);
 
       # info: pre, match, post
-      my @match = (pre => $pre, match => $match, post => $post);
+      my @match = (pre => $pre, match => GREEN.$match.RESET, post => $post);
 
+      my @info;
       while (my ($key, $val) = splice @match, 0, 2)
       {
          next unless $val;
-         $val = $key eq 'match' ? GREEN.$val.RESET : $GRAY.$val.RESET;
+         $val = $GRAY.$val.RESET unless $key eq 'match';
          push @info, $PINK.$key.RESET.': '.$val;
       }
 
-      my $info = join ', ', @info;
       my $underline;
-
-      unless ($gcstring)
+      if ($gcstring)
       {
-         $underline = ' ' x length($pre) . '^' x length($match);
-      } else {
          $underline = ' ' x Unicode::GCString->new($pre)->columns . '^' x Unicode::GCString->new($match)->columns;
+      } else {
+         $underline = ' ' x length($pre) . '^' x length($match);
       }
 
-      # color newlines in blue
-      s/\\n/BLUE.BOLD.'\n'.RESET/eg foreach ($pre, $post);
+      s/\\n/BLUE.BOLD.$&.RESET/eg foreach ($pre, $post); # newlines in blue
 
-      say $pre . GREEN.$match.RESET . $post, " ($info)";
+      # show match
+      say $pre.GREEN.$match.RESET.$post, ' (', join (', ', @info), ')';
       say $underline;
    }
    else {
