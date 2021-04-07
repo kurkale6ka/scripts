@@ -5,7 +5,6 @@
 # todo:
 #  - sanitize input (chroot, ..., or warn)
 #  - mX...X for matching
-#  - regex errors + escape /s
 
 use v5.22;
 use warnings;
@@ -74,7 +73,7 @@ sub validate_regex
 
    if ($reg =~ /$regex_repl/)
    {
-      # fix \\/\, / preceded by \ but not actually escaped
+      # FIXME? \\/\ (/ preceded by \ but not actually escaped)
       if ($1 =~ m#(?<!\\)/#)
       {
          warn RED.'/s need to be escaped'.RESET, "\n";
