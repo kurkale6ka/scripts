@@ -11,7 +11,7 @@ use warnings;
 use open qw/:std :encoding(UTF-8)/;
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
-use Getopt::Long qw/GetOptions :config bundling/;
+use Getopt::Long 'GetOptions';
 
 my $gcstring;
 
@@ -52,9 +52,9 @@ rr /regex/
 
 # Options
 GetOptions (
-   's|string'  => \my $string,
-   'v|verbose' => sub {},
-   'h|help'    => sub { print $help; exit }
+   string  => \my $string,
+   verbose => sub {},
+   help    => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # 2 args max
