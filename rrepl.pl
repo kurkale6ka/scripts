@@ -46,8 +46,8 @@ rr /regex/
 --string,  -s : force string
 --verbose, -v : enable regex debug mode
 
-* \n can be used in string (remember to protect from shell)
 * in the REPL loop the regex format is regex/flags
+* \n can be used in string (remember to protect from shell)
 * install Unicode::GCString for better underlining (^^^) of wide characters
 -------
 
@@ -74,6 +74,7 @@ sub validate_regex
 
    if ($reg =~ /$regex_repl/)
    {
+      # fix \\/\, / preceded by \ but not actually escaped
       if ($1 =~ m#(?<!\\)/#)
       {
          warn RED.'/s need to be escaped'.RESET, "\n";
