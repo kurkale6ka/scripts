@@ -12,7 +12,7 @@ use warnings;
 use open qw/:std :encoding(UTF-8)/;
 use Term::ReadLine;
 use Term::ANSIColor qw/color :constants/;
-use Getopt::Long 'GetOptions';
+use Getopt::Long qw/GetOptions :config bundling/;
 
 my $gcstring;
 
@@ -43,6 +43,7 @@ Perl regex REPL
 rr [string] [regex] # without arguments reads multiline text from STDIN
 rr /regex/
 
+--string,  -s : force string
 --verbose, -v : enable regex debug mode
 
 * \n can be used in string (remember to protect from shell)
@@ -52,8 +53,9 @@ rr /regex/
 
 # Options
 GetOptions (
-   verbose => sub {},
-   help    => sub { print $help; exit }
+   's|string'  => \my $string,
+   'v|verbose' => sub {},
+   'h|help'    => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
 # 2 args max
@@ -64,7 +66,7 @@ my ($str, $reg);
 
 my $flags = qr/[msixpodualngc]/;
 my $regex_arg  = qr% ^/ (.+?)     (?<!\\) /($flags*)   $ %x;
-my $regex_repl = qr%    (.+?) (?: (?<!\\) /($flags+) )?$ %x; # 2nd / cannot be preceded by \
+my $regex_repl = qr%    (.+?) (?: (?<!\\) /($flags+) )?$ %x; # /flags cannot be preceded by \
 
 sub validate_regex
 {
@@ -76,7 +78,7 @@ sub validate_regex
       {
          warn RED.'/s need to be escaped'.RESET, "\n";
       }
-      if ($reg = eval (defined $2 ? "qr/$1/$2" : "qr/$1/"))
+      if ($reg = eval (defined $2 ? "qr/$1/$2" : defined $1 ? "qr/$1/" : ''))
       {
          return 1;
       } else {
@@ -93,17 +95,17 @@ sub validate_regex
 if (@ARGV == 1)
 {
    # rr scalar
-   if ($ARGV[0] !~ /$regex_arg/)
+   if ($string or $ARGV[0] !~ /$regex_arg/)
    {
       $str = $ARGV[0];
       repl();
    }
    else # rr /regex/
    {
-      my ($regex, $flags) = ($1, $2);
-      # $regex =~ s#(?<!\\)/#\\/#g;
-      $reg = eval "qr/$regex/$flags"; # get flags
-      repl ('regex');
+      # remove //s to turn $regex_arg into $regex_repl
+      $reg = substr $ARGV[0], 1;
+      $reg =~ s#/$##;
+      repl ('regex') if validate_regex $reg;
    }
 }
 elsif (@ARGV == 2) # rr scalar regex
@@ -130,7 +132,7 @@ sub repl
 
    while (defined ($_ = $term->readline ($prompt)))
    {
-      next unless $_; # empty prompt>>
+      next unless length; # empty prompt>>
 
       $_ = decode('UTF-8', $_, Encode::FB_CROAK | Encode::LEAVE_SRC);
 
