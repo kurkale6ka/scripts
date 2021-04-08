@@ -57,6 +57,7 @@ sub fzf_results
       # trim any fzf extended search mode characters
       $query =~ s/^'//;
       $query =~ tr/^\\$//d;
+      $query =~ s/'/'"'"'/g;
       return undef;
    }
 }
@@ -87,7 +88,7 @@ sub Open
    }
 
    # grep only
-   exec qw/rg -S/, $query, $file if $only;
+   exec qw/rg -FS/, $query, $file if $only;
 
    # personal help files
    if (-f "$ENV{REPOS_BASE}/help/$file")
@@ -125,7 +126,9 @@ sub Grep
 {
    while (1)
    {
-      @results = `rg -S $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l $query | fzf $fzf_opts --preview 'rg -S --color=always $query {}'`;
+      my $preview = "rg -FS --color=always '$query' {}";
+      $preview =~ s/[\\"`\$]/\\$&/g; # quote sh ""s special characters (\ " ` $)
+      @results = `rg -FS $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l '$query' | fzf $fzf_opts --preview "$preview"`;
       chomp @results;
       Open '--hls' if fzf_results @results;
    }
@@ -139,16 +142,16 @@ if (@ARGV)
    # rg -Sl patt1 | ... | xargs rg -S pattn
    # also for fd ... $1
    $query = shift;
+   $query =~ s/'/'"'"'/g;
 
    Grep if $grep; # force searching for files with occurrences of topic
 
    # fd without query matches anything, thus fzf will filter on whole paths,
    # this is why with query (--exact), -p is needed so query can filter on whole paths too
-   my $mode = defined $exact ? "-pF $query" : '';
+   my $mode = defined $exact ? "-pF '$query'" : '';
 
    # -q isn't required with 'exact', it's supplied to enable highlighting
-   chomp (@results = `$find $mode | fzf -q$query $fzf_opts $preview`);
-
+   chomp (@results = `$find $mode | fzf -q'$query' $fzf_opts $preview`);
 }
 # Search trough all help files
 else
