@@ -55,7 +55,8 @@ sub fzf_results
       return 1;
    } else {
       # trim any fzf extended search mode characters
-      $query =~ tr/^$\'//d;
+      $query =~ s/^'//;
+      $query =~ tr/^\\$//d;
       return undef;
    }
 }
