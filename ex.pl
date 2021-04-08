@@ -120,7 +120,7 @@ my $find = "fd -tf $hidden -E.git -E.svn -E.hg --ignore-file ~/.gitignore";
 my $fzf_opts = '-0 -1 --cycle --print-query --expect=alt-v';
 my $preview = q/--preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi'/;
 
-sub Grep()
+sub Grep
 {
    while (1)
    {
@@ -157,10 +157,11 @@ else
    chomp (@results = `$find | fzf $mode $fzf_opts $preview`);
 }
 
+# Match topic
 if (fzf_results @results)
 {
-   Open;
+   Open
 } else {
-   # if no matching filenames were found, list files with occurrences of topic
-   Grep;
+   # no matching filenames => list files with occurrences of topic
+   Grep
 }
