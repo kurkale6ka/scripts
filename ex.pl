@@ -57,7 +57,8 @@ sub fzf_results
       # trim any fzf extended search mode characters
       $query =~ s/^'//;
       $query =~ tr/^\\$//d;
-      $query =~ s/'/'"'"'/g;
+
+      $query =~ s/'/'"'"'/g; # protect 's
       return undef;
    }
 }
