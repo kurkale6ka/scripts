@@ -22,9 +22,9 @@ ex [options] [topic]
 --view,          -v: view with your $EDITOR, use Alt-v from within fzf
 ────
 
-# Arguments
-my $dir = '.';
-my $hidden = 1;
+my ($dir, $hidden) = ('.', 1);
+
+# Options
 GetOptions (
    'H|hidden!'     => \$hidden,
    'd|directory=s' => \$dir,
@@ -60,11 +60,11 @@ sub fzf_results
    }
 }
 
-sub Open(;$)
+sub Open
 {
    my $open = $^O eq 'darwin' ? 'open' : 'xdg-open';
 
-   my (undef, undef, $ext) = fileparse($file, qr/\.[^.]+$/);
+   my (undef, undef, $ext) = fileparse ($file, qr/\.[^.]+$/);
 
    # open with your EDITOR
    if ($key or $view)
