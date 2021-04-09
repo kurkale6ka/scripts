@@ -72,12 +72,14 @@ sub Open
    # open with your EDITOR
    if ($key or $view)
    {
+      my $EDITOR = $ENV{EDITOR} || 'vi';
+
       # open with nvim (send to running instance)?
-      if (@_ and $ENV{EDITOR} =~ /vim/i)
+      if (@_ and $EDITOR =~ /vim/i)
       {
-         exec $ENV{EDITOR}, $file, '-c', "0/$query", '-c', 'noh|norm zz<cr>';
+         exec $EDITOR, $file, '-c', "0/$query", '-c', 'noh|norm zz<cr>';
       } else {
-         exec $ENV{EDITOR}, $file;
+         exec $EDITOR, $file;
       }
    }
 
