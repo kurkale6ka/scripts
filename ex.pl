@@ -163,11 +163,11 @@ sub Open
 sub Grep
 {
    my $query = shift;
-   my ($query_bak, $file, @results);
+   my ($query_bak, $key, $file);
 
    do {
       $query_bak = $query;
-      ($query, undef, $file) = @results = fzf $query;
+      ($query, $key, $file) = fzf $query;
    }
    until ($file);
 
@@ -175,7 +175,7 @@ sub Grep
    {
       exec qw/rg -FS/, $query_bak, $file;
    } else {
-      Open @results;
+      Open $query_bak, $key, $file;
    }
 }
 
