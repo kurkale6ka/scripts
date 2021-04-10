@@ -42,29 +42,68 @@ chdir $dir or die RED.$!.RESET, "\n";
 
 $hidden = $hidden ? '--hidden' : '';
 
-# Globals
-my ($query, $key, $file, @results);
-
 # Functions
-sub fzf_results
+sub fzf
 {
-   exit 1 unless grep /\S/, @_; # canceled with Esc or ^C
-   ($query, $key, $file) = @_;
+   my ($query) = @_;
+   $query =~ s/'/'"'"'/g if @_; # protect 's
 
-   if ($file) {
-      return 1;
+   my $find = "fd -tf $hidden -E.git -E.svn -E.hg --ignore-file ~/.gitignore";
+   my $fzf_opts = '-0 -1 --cycle --print-query --expect=alt-v';
+
+   my $preview;
+
+   if ($grep)
+   {
+      $preview = "rg -FS --color=always '$query' {}";
+      $preview =~ s/[\\"`\$]/\\$&/g; # quote sh ""s special characters: \ " ` $
    } else {
-      # trim any fzf extended search mode characters
+      $preview = "if file --mime {} | grep -q binary; then echo 'No preview available' 1>&2; else cat {}; fi";
+   }
+
+   if ($grep)
+   {
+      $_ = `rg -FS $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l '$query' | fzf $fzf_opts --preview "$preview"`;
+   } else {
+      if (@_)
+      {
+         # fd without query matches anything, thus fzf will filter on whole paths,
+         # this is why with query (--exact), -p is needed so query can filter on whole paths too
+         my $mode = defined $exact ? "-pF '$query'" : '';
+
+         # -q isn't required with 'exact', it's supplied to enable highlighting
+         $_ = `$find $mode | fzf -q'$query' $fzf_opts --preview "$preview"`;
+      }
+      # Search trough all help files
+      else
+      {
+         # fuzzy (default) or exact?
+         my $mode = defined $exact ? '-e' : '';
+         $_ = `$find | fzf $mode $fzf_opts --preview "$preview"`;
+      }
+   }
+
+   chomp (my @results = split /\n/);
+
+   exit 1 unless grep /\S/, @results; # canceled with Esc or ^C
+
+   $query = $results[0];
+   my (undef, $key, $file) = @results;
+
+   # no results: trim any fzf extended search mode characters
+   unless ($file)
+   {
       $query =~ s/^'//;
       $query =~ tr/^\\$//d;
-
-      $query =~ s/'/'"'"'/g; # protect 's
-      return undef;
    }
+
+   return ($query, $key, $file);
 }
 
 sub Open
 {
+   my ($query, $key, $file) = @_;
+
    my $open = $^O eq 'darwin' ? 'open' : 'xdg-open';
 
    my (undef, undef, $ext) = fileparse ($file, qr/\.[^.]+$/);
@@ -75,7 +114,7 @@ sub Open
       my $EDITOR = $ENV{EDITOR} || 'vi';
 
       # open with nvim (send to running instance)?
-      if (@_ and $EDITOR =~ /vim/i)
+      if ($grep and $EDITOR =~ /vim/i)
       {
          exec $EDITOR, $file, '-c', "0/$query", '-c', 'noh|norm zz<cr>';
       } else {
@@ -89,9 +128,6 @@ sub Open
    {
       exec $open, $file;
    }
-
-   # grep only
-   exec qw/rg -FS/, $query, $file if $only;
 
    # personal help files
    if (-f "$ENV{REPOS_BASE}/help/$file")
@@ -121,21 +157,26 @@ sub Open
    }
 }
 
-my $find = "fd -tf $hidden -E.git -E.svn -E.hg --ignore-file ~/.gitignore";
-my $fzf_opts = '-0 -1 --cycle --print-query --expect=alt-v';
-my $preview = q/--preview 'if file --mime {} | grep -q binary; then echo "No preview available" 1>&2; else cat {}; fi'/;
-
 sub Grep
 {
-   while (1)
+   my $query = shift;
+   my ($query_bak, $file, @results);
+
+   do {
+      $query_bak = $query;
+      ($query, undef, $file) = @results = fzf $query;
+   }
+   until ($file);
+
+   if ($only) # grep -o
    {
-      my $preview = "rg -FS --color=always '$query' {}";
-      $preview =~ s/[\\"`\$]/\\$&/g; # quote sh ""s special characters (\ " ` $)
-      @results = `rg -FS $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l '$query' | fzf $fzf_opts --preview "$preview"`;
-      chomp @results;
-      Open '--hls' if fzf_results @results;
+      exec qw/rg -FS/, $query_bak, $file;
+   } else {
+      Open @results;
    }
 }
+
+my @results;
 
 # Main
 # Search help files matching topic
@@ -144,31 +185,29 @@ if (@ARGV)
    # multiple args, split @ARGV with -e?
    # rg -Sl patt1 | ... | xargs rg -S pattn
    # also for fd ... $1
-   $query = shift;
-   $query =~ s/'/'"'"'/g;
+   my $query = shift;
 
-   Grep if $grep; # force searching for files with occurrences of topic
-
-   # fd without query matches anything, thus fzf will filter on whole paths,
-   # this is why with query (--exact), -p is needed so query can filter on whole paths too
-   my $mode = defined $exact ? "-pF '$query'" : '';
-
-   # -q isn't required with 'exact', it's supplied to enable highlighting
-   chomp (@results = `$find $mode | fzf -q'$query' $fzf_opts $preview`);
+   if ($grep) # force searching for files with occurrences of topic
+   {
+      Grep $query;
+   } else {
+      @results = fzf $query;
+   }
 }
 # Search trough all help files
 else
 {
-   # fuzzy (default) or exact?
-   my $mode = defined $exact ? '-e' : '';
-   chomp (@results = `$find | fzf $mode $fzf_opts $preview`);
+   @results = fzf;
 }
 
+my ($query, $key, $file) = @results;
+
 # Match topic
-if (fzf_results @results)
+if ($file)
 {
-   Open
+   Open @results;
 } else {
    # no matching filenames => list files with occurrences of topic
-   Grep
+   $grep = 1;
+   Grep $query;
 }
