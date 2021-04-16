@@ -26,10 +26,10 @@ my ($dir, $hidden) = ('.', 1);
 
 # Options
 GetOptions (
-   'H|hidden!'     => \$hidden,
-   'd|directory=s' => \$dir,
+   'H|hidden!'     => \   $hidden,
+   'd|directory=s' => \   $dir,
    'e|exact'       => \my $exact,
-   'g|grep'        => \my $grep,
+   'g|grep:s'      => \my $grep,
    'o|only'        => \my $only,
    'v|view'        => \my $view,
    'h|help'        => sub { print $help; exit }
@@ -45,23 +45,37 @@ $hidden = $hidden ? '--hidden' : '';
 # Functions
 sub fzf
 {
-   my ($query) = @_;
-   $query =~ s/'/'"'"'/g if @_; # protect 's
-   $query //= '';
+   my ($query, $grep) = @_;
 
-   my $fzf_opts = '-0 -1 --cycle --print-query --expect=alt-v';
+   $query =~ s/'/'"'"'/g if defined $query; # 'escape' 's
+
+   my $fzf_opts = '-0 -1 --cycle --print-query --expect=alt-enter';
    my @results;
 
-   # TODO: h ssh -g port
-   #       find files matching ssh and grep for port
-   #       add :s to grep option
-   #       len iabrev
-   if ($grep)
+   if (defined $grep and (length $grep or length $query))
    {
-      my $preview = "rg -FS --color=always '$query' {}";
+      my $pattern;
+
+      if (length $grep) {
+         $pattern = $grep;
+      } elsif (length $query) {
+         $pattern = $query;
+      }
+
+      my $find = "rg -FS $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l '$pattern'";
+      my $preview = "rg -FS --color=always '$pattern' {}";
+
       $preview =~ s/[\\"`\$]/\\$&/g; # quote sh ""s special characters: \ " ` $
 
-      @results = `rg -FS $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l '$query' | fzf $fzf_opts --preview "$preview"`;
+      my $mode;
+      my $patt = '';
+      if (length $query and length $grep)
+      {
+         $patt = "-q'$query'";
+         $mode = defined $exact ? '-e' : '';
+      }
+
+      @results = `$find | fzf $mode $patt $fzf_opts --preview "$preview"`;
    }
    else
    {
@@ -69,7 +83,7 @@ sub fzf
       my $preview = "if file --mime {} | grep -q binary; then echo 'No preview available' 1>&2; else cat {}; fi";
 
       # search help files matching topic
-      if ($query)
+      if (length $query)
       {
          # fd without query matches anything, thus fzf will filter on whole paths,
          # this is why with query (--exact), -p is needed so query can filter on whole paths too
@@ -162,12 +176,12 @@ sub Open
 
 sub Grep
 {
-   my $query = shift;
+   my ($query, $grep) = @_;
    my ($query_bak, $key, $file);
 
    do {
       $query_bak = $query;
-      ($query, $key, $file) = fzf $query;
+      ($query, $key, $file) = fzf $query, $grep;
    }
    until ($file);
 
@@ -179,38 +193,29 @@ sub Grep
    }
 }
 
-my @results;
-
 # Main
-# Search help files matching topic
-if (@ARGV)
-{
-   # multiple args, split @ARGV with -e?
-   # rg -Sl patt1 | ... | xargs rg -S pattn
-   # also for fd ... $1
-   my $query = shift;
 
-   if ($grep) # force searching for files with occurrences of topic
-   {
-      Grep $query;
-   } else {
-      @results = fzf $query;
-   }
-}
-# Search trough all help files
-else
-{
-   @results = fzf;
-}
+# multiple args, split @ARGV with -e?
+# rg -Sl patt1 | ... | xargs rg -S pattn
+# also for fd ... $1
+my $query = shift;
+my $file;
 
-my ($query, $key, $file) = @results;
+# Search files matching topic
 
-# Match topic
+# grep -l | fzf
+Grep ($query // '', $grep) if defined $grep;
+
+# find | fzf
+my @results = defined $query ? fzf $query : fzf;
+
+($query, undef, $file) = @results;
+
+# filename match
 if ($file)
 {
    Open @results;
 } else {
-   # no matching filenames => list files with occurrences of topic
-   $grep = 1;
-   Grep $query;
+   # list files with occurrences of topic
+   Grep ($query, $grep // '');
 }
