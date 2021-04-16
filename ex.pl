@@ -67,12 +67,12 @@ sub fzf
 
       $preview =~ s/[\\"`\$]/\\$&/g; # quote sh ""s special characters: \ " ` $
 
-      my $mode;
-      my $patt = '';
+      my ($mode, $patt) = ('', '');
+
       if (length $query and length $grep)
       {
          $patt = "-q'$query'";
-         $mode = defined $exact ? '-e' : '';
+         $mode = '-e' if defined $exact;
       }
 
       @results = `$find | fzf $mode $patt $fzf_opts --preview "$preview"`;
