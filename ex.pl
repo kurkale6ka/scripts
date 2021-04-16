@@ -55,9 +55,15 @@ sub fzf
    if (defined $grep and (length $grep or length $query))
    {
       my $pattern;
+      my ($mode, $patt) = ('', '');
 
       if (length $grep) {
          $pattern = $grep;
+         if (length $query)
+         {
+            $patt = "-q'$query'";
+            $mode = '-e' if defined $exact;
+         }
       } elsif (length $query) {
          $pattern = $query;
       }
@@ -66,14 +72,6 @@ sub fzf
       my $preview = "rg -FS --color=always '$pattern' {}";
 
       $preview =~ s/[\\"`\$]/\\$&/g; # quote sh ""s special characters: \ " ` $
-
-      my ($mode, $patt) = ('', '');
-
-      if (length $query and length $grep)
-      {
-         $patt = "-q'$query'";
-         $mode = '-e' if defined $exact;
-      }
 
       @results = `$find | fzf $mode $patt $fzf_opts --preview "$preview"`;
    }
@@ -128,7 +126,7 @@ sub Open
       my $EDITOR = $ENV{EDITOR} // 'vi';
 
       # open with nvim (send to running instance)?
-      if ($grep and length $query and $EDITOR =~ /vim/i)
+      if (defined $grep and length $query and $EDITOR =~ /vim/i)
       {
          exec $EDITOR, $file, '-c', "0/$query", '-c', 'noh|norm zz<cr>';
       } else {
@@ -180,7 +178,7 @@ sub Grep
    my ($query_bak, $key, $file);
 
    do {
-      $query_bak = $query;
+      $query_bak = length $grep ? $grep : $query;
       ($query, $key, $file) = fzf $query, $grep;
    }
    until ($file);
@@ -217,5 +215,6 @@ if ($file)
    Open @results;
 } else {
    # list files with occurrences of topic
-   Grep ($query, $grep // '');
+   $grep = 1;
+   Grep ($query, '');
 }
