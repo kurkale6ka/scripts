@@ -73,7 +73,7 @@ mp -[l]M    : core (or local) modules code <= export PERLDOC_SRC_PAGER=$EDITOR
 mp -        : file test operators
 
 - fzf is needed for -v, -m, -M and <section/topic> lookup
-  alt-enter will swap -m/-M actions
+  alt-Enter will swap -m/-M actions
 
 - extra options will be passed through to perldoc (ex: -q for FAQ search)
 

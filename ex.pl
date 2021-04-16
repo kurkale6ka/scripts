@@ -19,7 +19,7 @@ ex [options] [topic]
 --exact,         -e: exact filename matches
 --grep,          -g: grep for occurrences of topic in files
 --only,          -o: output filetred lines only
---view,          -v: view with your $EDITOR, use Alt-v from within fzf
+--view,          -v: view with your $EDITOR, use alt-Enter from within fzf
 ────
 
 my ($dir, $hidden) = ('.', 1);
