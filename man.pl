@@ -2,7 +2,7 @@
 
 # Easier access to Perl help topics
 
-use v5.12;
+use v5.14;
 use warnings;
 use utf8;
 use re '/aa';
@@ -51,7 +51,7 @@ if ($ENV{PERL_LOCAL_LIB_ROOT})
 # Get info: try man, then perldoc
 sub info
 {
-   (my $topic = shift) =~ s/'/'"'"'/g;
+   my $topic = shift =~ s/'/'"'"'/gr;
    unless (system ("man -M $MANPATH -S $MANSECT '$topic' 2>/dev/null") == 0)
    {
       exec 'perldoc', $topic;
