@@ -12,8 +12,7 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
 use POSIX 'SIGINT';
 
-my $B = color 'bold';
-my $R = color 'reset';
+my ($B, $R) = map color($_), qw(bold reset);
 
 # Catch SIGINT
 POSIX::sigaction (SIGINT, POSIX::SigAction->new (sub {
@@ -23,7 +22,7 @@ POSIX::sigaction (SIGINT, POSIX::SigAction->new (sub {
 $| = 1;
 
 # Help
-my $help = << "------";
+my $help = << "──────";
 Usage: calc math-expr
 
 x can be used in lieu of *
@@ -40,7 +39,7 @@ Tips:
 • exponent notation (m${B}e${R}n ⇔ m×10ⁿ) is supported
 • for arrows support, install Term::ReadLine::Gnu
 • symlink this script to =
-------
+──────
 
 # Valid Math Symbols
 my %fractions = (
