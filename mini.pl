@@ -1,9 +1,10 @@
 #! /usr/bin/env perl
 
-# Copy mini configs to paste on remote systems
+# Copy mini configs for pasting on remote systems
 #
-# mini
-# mini -a : inputrc, vimrc & SHELL...
+# - inputrc
+# - vimrc
+# - Bash/Korn rcs
 
 use v5.12;
 use warnings;
@@ -11,11 +12,17 @@ use Getopt::Long qw/GetOptions :config bundling/;
 
 chdir $ENV{REPOS_BASE} or die "$!\n";
 
+# Help
+my $help = << '';
+mini [options] [pattern]
+--all, -a : inputrc, vimrc & Bash rc files
+--ksh, -k : use Korn vs Bash
+
 # options
 GetOptions (
    'a|all'  => \my $all,
    'k|ksh'  => \my $ksh,
-   'h|help' => \my $help
+   'h|help' => sub { print $help; exit }
 ) or die "Error in command line arguments\n";
 
 my @configs = qw/inputrc vimrc/;
@@ -24,12 +31,6 @@ if ($ksh) {
    push @configs, qw/profile kshrc/;
 } elsif ($all) {
    push @configs, 'bashrc';
-}
-
-if ($help) {
-   my $shell = $ksh ? 'Korn' : 'Bash';
-   say "mini : copy mini configs (-a : inputrc, vimrc & $shell...)";
-   exit;
 }
 
 # configs
