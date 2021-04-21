@@ -16,7 +16,7 @@ chdir $ENV{REPOS_BASE} or die "$!\n";
 my $help = << '';
 mini [options] [pattern]
 --all, -a : inputrc, vimrc & bashrc (or kshrc + profile with -k)
---ksh, -k : use Korn (vs Bash) rc files with -a
+--ksh, -k : like -a but use Korn (vs Bash) rc files
 
 # options
 GetOptions (
