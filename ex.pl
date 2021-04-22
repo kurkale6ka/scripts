@@ -19,6 +19,7 @@ ex [options] [topic]
 --exact,         -e: exact filename matches
 --grep,          -g: grep for occurrences of topic in files
 --only,          -o: output filetred lines only
+--raw,           -r: force 'cat'
 --view,          -v: view with your $EDITOR, use alt-Enter from within fzf
 ────
 
@@ -31,6 +32,7 @@ GetOptions (
    'e|exact'       => \my $exact,
    'g|grep:s'      => \my $grep,
    'o|only'        => \my $only,
+   'r|raw'         => \my $raw,
    'v|view'        => \my $view,
    'h|help'        => sub { print $help; exit }
 ) or die RED.'Error in command line arguments'.RESET, "\n";
@@ -145,7 +147,7 @@ sub Open
    }
 
    # personal help files
-   if (-f "$ENV{REPOS_BASE}/help/$file")
+   if (not defined $raw and -f "$ENV{REPOS_BASE}/help/$file")
    {
       if ($ext =~ /\.md$/i)
       {
