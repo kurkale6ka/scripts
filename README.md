@@ -6,6 +6,7 @@
 * [SSH setup](mkssh.pl)
 * ssh, [Source personal dot files on SSH shared accounts](ssh.pl)
 * =, [Simple calculator](calc.pl)
+* mini, [Copy mini configs for pasting on remote systems](mini.pl)
 * mkconfig, [Dot files setup](mkconfig.pl)
 * pc, [Fuzzy password lookup plus copy to clipboard](pc.pl)
 * vpn, [OpenVPN helper for NordVPN](vpn.pl)

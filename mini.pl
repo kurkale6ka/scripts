@@ -74,7 +74,7 @@ else
 
    # get file contents
    say;
-   chomp ($_ = `cat "$mini{$_}"`);
+   chomp ($_ = `cat '$mini{$_}'`);
 }
 
 open my $CLIPBOARD, '|-', $^O eq 'darwin' ? 'pbcopy' : 'xclip' or die "$!\n";
