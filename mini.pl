@@ -54,7 +54,7 @@ if ($all or $ksh)
       "RC$rc";
    }
    @configs;
-   say 'all ', $ksh ? 'ksh' : 'bash';
+   say 'all ', $ksh ? 'ksh' : 'bash' if -t STDOUT;
 }
 else
 {
@@ -73,11 +73,16 @@ else
    exit 1 unless $? == 0;
 
    # get file contents
-   say;
+   say if -t STDOUT;
    chomp ($_ = `cat '$mini{$_}'`);
 }
 
-open my $CLIPBOARD, '|-', $^O eq 'darwin' ? 'pbcopy' : 'xclip' or die "$!\n";
+if (-t STDOUT)
+{
+   open my $CLIPBOARD, '|-', $^O eq 'darwin' ? 'pbcopy' : 'xclip' or die "$!\n";
 
-# copy to system clipboard
-say $CLIPBOARD $_
+   # copy to system clipboard
+   say $CLIPBOARD $_
+} else {
+   say
+}
