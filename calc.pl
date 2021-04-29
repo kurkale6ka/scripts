@@ -24,9 +24,12 @@ BEGIN {
 my ($B, $R) = map color($_), qw(bold reset);
 
 # Catch SIGINT
-POSIX::sigaction (SIGINT, POSIX::SigAction->new (sub {
-   print YELLOW.'KeyboardInterrupt'.RESET;
-}));
+if (@ARGV == 0) # with -b I can still cancel
+{
+   POSIX::sigaction (SIGINT, POSIX::SigAction->new (sub {
+      print YELLOW.'KeyboardInterrupt'.RESET;
+   }));
+}
 
 $| = 1;
 
