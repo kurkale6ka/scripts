@@ -15,13 +15,12 @@ use Getopt::Long 'GetOptions';
 
 my $gcstring;
 
-BEGIN
-{
+BEGIN {
    use Encode;
    Encode -> import ('decode');
    @ARGV = map { decode('UTF-8', $_, Encode::FB_CROAK | Encode::LEAVE_SRC) } @ARGV;
 
-   if (@ARGV > 1 and grep /^--?v(e(r(b(o(se?)?)?)?)?)?$/n, @ARGV)
+   if (grep /^--?v(e(r(b(o(se?)?)?)?)?)?$/n, @ARGV)
    {
       require re;
       re -> import ('debug');
