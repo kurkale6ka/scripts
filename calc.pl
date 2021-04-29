@@ -12,6 +12,15 @@ use Term::ANSIColor qw/color :constants/;
 use Getopt::Long 'GetOptions';
 use POSIX 'SIGINT';
 
+# --bignum, --tests
+BEGIN {
+   if (grep {/^--?b(i(g(n(um?)?)?)?)?$/n or /^--?t(e(s(ts?)?)?)?$/n} @ARGV)
+   {
+      require bignum;
+      bignum->import;
+   }
+}
+
 my ($B, $R) = map color($_), qw(bold reset);
 
 # Catch SIGINT
@@ -32,6 +41,7 @@ x can be used in lieu of *
 _ holds the result of the previous calculation
 
 Options:
+--bignum,  -b : big numbers support
 --tests,   -t : run unit tests
 --unicode, -u : print supported Unicode symbols (no -- in interactive mode)
 
@@ -93,6 +103,7 @@ my $ans; # memory
 
 # Options
 GetOptions (
+   bignum  => sub {},
    tests   => \my $tests,
    unicode => sub { print $unicode; exit },
    help    => sub { print $help;    exit }
@@ -246,10 +257,11 @@ Parens Unicode                   | ⟮5+2⟯*（4-15）                     | -7
 Numbers Unicode                  | 𝟭𝟥 + 𝟨𝟿                            | 82
 Squeeze                          | 3 --- 4                            | -1
 Squeeze power                    | 3 ***************** 3              | 27
+Big Number                       | 82376613842809255677 ** 3          | 559000000000000000063037470301555182935702892172500189973733
 Combined 1.                      | -5e2 + 12                          | -488
 Combined 2.                      | ❨4÷8❩⁷                             | 0.0078125
 Combined 3.                      | ⅕e-12                              | 2e-13
-Combined 4.                      | 3²/(2-19)(4+1.1) − 7(12-100) + 3^6 | 1342.3
+Combined 4. (≠ bc or python3) !? | 3²/(2-19)(4+1.1) − 7(12-100) + 3^6 | 1342.30000000000000000000000000000000000000024
 Combined 5.                      | ⅒(3-5)                             | -0.2
 Memory _ set                     | 17 - 39                            | -22
 Memory _ get                     | _^2                                | -484
