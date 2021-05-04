@@ -14,17 +14,16 @@ use Getopt::Long qw/GetOptions :config bundling pass_through/;
 # Arguments
 my $custom_fields = 1;
 my $squeeze = 1 if $^O eq 'darwin';
-my ($long, $help, @extra_options);
 
 GetOptions (
    'c|custom-fields!' => \$custom_fields,
-   'l|long'           => \$long,
+   'l|long'           => \my $long,
    'z|squeeze!'       => \$squeeze,
-   'h|help'           => \$help,
+   'h|help'           => \my $help,
    '<>'               => \&extra,
 ) or die RED.'Error in command line arguments'.RESET, "\n";
 
-my ($selinux, $pattern);
+my (@extra_options, $selinux, $pattern);
 
 sub extra {
    foreach (@_) {
@@ -46,15 +45,10 @@ my ($usage, @fields, @ps);
 
 if ($^O eq 'linux')
 {
-   $usage = << 'MSG';
-pg [options] pattern
-
+   $usage = << '';
 --(no-)custom-fields, -c: PID STAT EUSER EGROUP START CMD
 --long,               -l: PID PPID PGID SID TTY TPGID STAT EUSER EGROUP START CMD
 --(no-)squeeze,       -z: squeeze! no context lines
-
-ps options can be passed through
-MSG
 
    if ($custom_fields)
    {
@@ -73,15 +67,10 @@ MSG
 
 } elsif ($^O eq 'darwin') {
 
-   $usage = << 'MSG';
-pg [options] pattern
-
+   $usage = << '';
 --(no-)custom-fields, -c: PID STAT USER GID STARTED COMMAND
 --long,               -l: PID PPID PGID SESS TTY TPGID STAT USER GID STARTED COMMAND
 --(no-)squeeze,       -z: squeeze! no context lines (default)
-
-ps options can be passed through
-MSG
 
    if ($custom_fields)
    {
@@ -99,12 +88,15 @@ MSG
 }
 
 # Help
-sub help() {
-   print $usage;
+if ($help or not defined $pattern)
+{
+   print << "";
+pg [options] pattern\n
+$usage
+ps options can be passed through
+
    exit;
 }
-
-help() if $help or not $pattern;
 
 my $search;
 my $self = qr/\Q$0\E\b/;
