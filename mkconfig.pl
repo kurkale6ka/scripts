@@ -205,6 +205,7 @@ sub init()
    nmap
    dos2unix
    wgetpaste
+   whois
    );
 
    system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install --HEAD neovim};
@@ -360,13 +361,15 @@ sub links($)
       # scripts
       [qw( sf scripts/backup.pl        ~/bin/b            )],
       [qw( sf scripts/ex.pl            ~/bin/ex           )],
-      [qw( sf scripts/calc.pl          ~/bin/calc         )],
+      [qw( sf scripts/calc.pl          ~/bin/=            )],
       [qw( sf scripts/cert.pl          ~/bin/cert         )],
       [qw( sf scripts/mkconfig.pl      ~/bin/mkconfig     )],
       [qw( sf scripts/mini.pl          ~/bin/mini         )],
       [qw( sf scripts/pics.pl          ~/bin/pics         )],
       [qw( sf scripts/pc.pl            ~/bin/pc           )],
       [qw( sf scripts/rseverywhere.pl  ~/bin/rseverywhere )],
+      [qw( sf scripts/vpn.pl           ~/bin/vpn          )],
+      [qw( sf scripts/www.pl           ~/bin/www          )],
       [qw( sf scripts/colors_term.bash ~/bin              )],
       [qw( sf scripts/colors_tmux.bash ~/bin              )],
       # config
