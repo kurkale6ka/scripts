@@ -3,46 +3,46 @@
 # Copy mini configs for pasting on remote systems
 #
 # - inputrc
-# - vimrc
 # - Bash/Korn rcs
+# - vimrc
 
 use v5.12;
 use warnings;
-use Getopt::Long qw/GetOptions :config bundling/;
+use Getopt::Long 'GetOptions';
 
 chdir $ENV{REPOS_BASE} or die "$!\n";
 
 # Help
 my $help = << '';
 mini [options] [pattern]
---all, -a : inputrc, vimrc & bashrc (or kshrc + profile with -k)
---ksh, -k : like -a but use Korn (vs Bash) rc files
+--bash, -b : inputrc, bashrc, vimrc
+--ksh,  -k : profile,  kshrc, vimrc
 
 # options
 GetOptions (
-   'a|all'  => \my $all,
-   'k|ksh'  => \my $ksh,
-   'h|help' => sub { print $help; exit }
+   bash => \my $bash,
+   ksh  => \my $ksh,
+   help => sub { print $help; exit }
 ) or die "Error in command line arguments\n";
 
-my @configs = qw/inputrc vimrc/;
+my @configs = 'vimrc';
 
-if ($ksh) {
+if ($bash) {
+   push @configs, qw/inputrc bashrc/;
+} elsif ($ksh) {
    push @configs, qw/profile kshrc/;
-} elsif ($all) {
-   push @configs, 'bashrc';
 }
 
 # configs
 my %mini = (
-   bashrc  => 'bash/.bashrc.mini',
    inputrc => 'config/dotfiles/.inputrc.mini',
+   bashrc  => 'bash/.bashrc.mini',
    profile => 'config/ksh/.profile.mini',
    kshrc   => 'config/ksh/.kshrc.mini',
    vimrc   => 'vim/.vimrc.mini'
 );
 
-if ($all or $ksh)
+if ($bash or $ksh)
 {
    $_ = join "\n", map
    {
