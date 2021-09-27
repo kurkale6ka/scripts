@@ -213,6 +213,7 @@ sub check()
          warn "\n", RED.$base.BOLD.'.ca'.RESET.RED."$ext not found".RESET, "\n";
 
          $intermediate = $term->readline(YELLOW.'Intermediate CA certificates'.RESET.': ', $cert);
+         $intermediate =~ s/\h+\z//;
 
          warn RED.'not found'.RESET, "\n" unless -f $intermediate;
       }
