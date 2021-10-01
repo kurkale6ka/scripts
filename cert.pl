@@ -257,7 +257,7 @@ sub check()
 
    foreach (keys %modulus)
    {
-      if (-f "$base.$_")
+      if ($_ eq 'crt' or -f "$base.$_")
       {
          $modulus{$_} = run '-g', $modulus{$_} unless $view;
       } else {
@@ -272,7 +272,7 @@ sub check()
    }
 
    # display
-   say $PINK.'Certificate/key match test'.RESET;
+   say $PINK.'Modulus match test'.RESET;
 
    foreach (sort keys %modulus)
    {
