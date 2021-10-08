@@ -9,6 +9,7 @@
 use v5.22;
 use warnings;
 use File::Basename 'fileparse';
+use File::Temp 'tempfile';
 use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;
 use List::Util qw/first uniq/;
@@ -59,13 +60,20 @@ $subject     = '-subject'     if $subject;
 
 # Checks
 die $help unless @ARGV == 1;
-die RED.$!.RESET, "\n" unless -f $ARGV[0] or $csr;
+# die RED.$!.RESET, "\n" unless -f $ARGV[0] or $csr;
 
 my $cert = shift;
 my @certificates = qw/.crt .pem/;
+my ($base, $dirs, $ext);
 
-my ($base, $dirs, $ext) = fileparse($cert, qr/\.[^.]+$/);
-$dirs = '' if $dirs eq './';
+unless (-f $cert)
+{
+   chomp (my $cert_from_url = `openssl s_client -showcerts -connect $cert:443 </dev/null 2>/dev/null`);
+   $cert = File::Temp->new(SUFFIX => '.crt');
+   say $cert $cert_from_url;
+}
+   ($base, $dirs, $ext) = fileparse($cert, qr/\.[^.]+$/);
+   $dirs = '' if $dirs eq './';
 
 # use certificate.crt if given certificate.key for instance
 sub change_cert
