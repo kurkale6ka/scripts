@@ -8,6 +8,9 @@
 # for bash, remember to add (see EOF):
 # "$REPOS_BASE"/bash/.bash_profile_after:
 # exec bash --rcfile "$REPOS_BASE"/bash/.bashrc
+#
+# switch to /usr/bin/ssh vs /usr/local/bin/ssh with:
+# PATH=/usr/bin:$PATH ssh
 
 # use strict;
 # use warnings;
