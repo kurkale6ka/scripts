@@ -68,7 +68,7 @@ my ($base, $dirs, $ext) = fileparse($cert, qr/\.[^.]+$/);
 $dirs = '' if $dirs eq './';
 
 # use certificate.crt if given certificate.key for instance
-sub change_cert()
+sub change_cert
 {
    return if grep /$ext/io, @certificates;
    if (my $ext = first {-f $dirs.$base.$_} @certificates)
@@ -76,10 +76,6 @@ sub change_cert()
       $cert = $dirs.$base.$ext;
    }
 }
-
-sub cert();
-sub csr();
-sub check();
 
 # readline
 my $term = Term::ReadLine->new ('certificates');
@@ -122,7 +118,7 @@ sub run(@)
    }
 }
 
-sub cert()
+sub cert
 {
    # Certificate
    unless ($dates or $fingerprint or $issuer or $subject or $text)
@@ -140,7 +136,7 @@ sub cert()
 }
 
 # CSR
-sub csr()
+sub csr
 {
    unless ($csr)
    {
@@ -181,14 +177,14 @@ sub csr()
 }
 
 # Check 'chain of trust' + cert/key match
-sub check()
+sub check
 {
    $check = 1;
 
    # Chain of Trust tests
    say $PINK.'Chain of Trust'.RESET;
 
-   sub chain($)
+   sub chain
    {
       my $cert = shift;
       my $command = "openssl crl2pkcs7 -nocrl -certfile $cert | openssl pkcs7 -noout -print_certs";
