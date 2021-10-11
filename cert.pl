@@ -244,7 +244,7 @@ sub check
          #
          # -untrusted <intermediate CA certificates>
          run '-g', "openssl verify -untrusted $intermediate $cert";
-         say 'verify certificate chains: ', $? == 0 ? 'ok' : 'fail';
+         say 'verify certificate chains: ', $? == 0 ? 'ok' : RED.'fail'.RESET;
 
          # show chain
          print "\n" unless $view;
