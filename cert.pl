@@ -4,7 +4,7 @@
 # create CSR
 #
 # wrapper around:
-# openssl x509, req, rsa
+# openssl x509, req, rsa, ...
 
 use v5.22;
 use warnings;
@@ -21,7 +21,7 @@ my $GRAY = color 'ansi242';
 my $help = << '----------';
 Show Certificate/CSR info
 
-cert [options] file
+cert [options] file|URL
 
 --check,       -c : chain of trust + cert/key match
 --csr,         -r : create CSR
@@ -58,22 +58,25 @@ $fingerprint = '-fingerprint' if $fingerprint;
 $issuer      = '-issuer'      if $issuer;
 $subject     = '-subject'     if $subject;
 
+my $url;
+
 # Checks
 die $help unless @ARGV == 1;
-# die RED.$!.RESET, "\n" unless -f $ARGV[0] or $csr;
 
 my $cert = shift;
 my @certificates = qw/.crt .pem/;
-my ($base, $dirs, $ext);
 
 unless (-f $cert)
 {
+   $url = 1;
    chomp (my $cert_from_url = `openssl s_client -showcerts -connect $cert:443 </dev/null 2>/dev/null`);
-   $cert = File::Temp->new(SUFFIX => '.crt');
+   $cert_from_url or die RED.'URL issue'.RESET, "\n";
+   $cert = File::Temp->new (SUFFIX => '.crt');
    say $cert $cert_from_url;
 }
-   ($base, $dirs, $ext) = fileparse($cert, qr/\.[^.]+$/);
-   $dirs = '' if $dirs eq './';
+
+my ($base, $dirs, $ext) = fileparse($cert, qr/\.[^.]+$/);
+$dirs = '' if $dirs eq './';
 
 # use certificate.crt if given certificate.key for instance
 sub change_cert
@@ -212,7 +215,7 @@ sub check
       my $intermediate = "${dirs}${base}.ca$ext";
 
       # ask for intermediate CAs
-      unless (-f $intermediate)
+      unless ($url or -f $intermediate)
       {
          warn "\n", RED.$base.BOLD.'.ca'.RESET.RED."$ext not found".RESET, "\n";
 
@@ -223,13 +226,15 @@ sub check
       }
 
       # verify + show chain
-      if (-f $intermediate or $view)
+      if ($url or -f $intermediate or $view)
       {
          unless (-f $intermediate)
          {
             $intermediate ||= 'undef';
             $intermediate = RED.$intermediate.RESET;
          }
+
+         $intermediate = $cert if $url;
 
          # verify
          #
@@ -238,7 +243,8 @@ sub check
          #  signing) as these trusted certificates will be in the OS/browser store
          #
          # -untrusted <intermediate CA certificates>
-         run "openssl verify -untrusted $intermediate $cert";
+         run '-g', "openssl verify -untrusted $intermediate $cert";
+         say 'verify certificate chains: ', $? == 0 ? 'ok' : 'fail';
 
          # show chain
          print "\n" unless $view;
