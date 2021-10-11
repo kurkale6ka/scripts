@@ -64,6 +64,9 @@ my $url;
 die $help unless @ARGV == 1;
 
 my $cert = shift;
+$cert =~ m#(.+://)?\K[^/]+#; # strip protocol://
+$cert = $&;
+
 my @certificates = qw/.crt .pem/;
 
 unless (-f $cert)
