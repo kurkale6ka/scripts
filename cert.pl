@@ -117,19 +117,15 @@ if ($check) {
 sub run(@)
 {
    my $get = shift if $_[0] eq '-g';
-   unless ($view)
-   {
-      unless ($check)
-      {
-         exec @_;
-      } elsif ($get) {
-         return `@_`;
-      } else {
-         system @_;
-      }
-   } else {
+   if ($view) {
       say "@_";
-      exit unless $check;
+      exit unless $check or $url;
+   } elsif ($get) {
+      return `@_`;
+   } elsif ($check) {
+      system @_;
+   } else {
+      exec @_;
    }
 }
 
