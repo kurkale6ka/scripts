@@ -67,12 +67,13 @@ my $cert = shift;
 $cert =~ m#(.+://)?\K[^/]+#; # strip protocol://
 $cert = $&;
 
+sub run(@);
 my @certificates = qw/.crt .pem/;
 
 unless (-f $cert)
 {
    $url = 1;
-   chomp (my $cert_from_url = `openssl s_client -showcerts -connect $cert:443 </dev/null 2>/dev/null`);
+   chomp (my $cert_from_url = run '-g', "openssl s_client -showcerts -connect $cert:443 </dev/null 2>/dev/null");
    $cert_from_url or die RED.'URL issue'.RESET, "\n";
    $cert = File::Temp->new (SUFFIX => '.crt');
    say $cert $cert_from_url;
@@ -247,7 +248,7 @@ sub check
          #
          # -untrusted <intermediate CA certificates>
          run '-g', "openssl verify -untrusted $intermediate $cert";
-         say 'verify certificate chains: ', $? == 0 ? 'ok' : RED.'fail'.RESET;
+         say 'verify certificate chains: ', $?==0 ? 'ok' : RED.'fail'.RESET unless $view;
 
          # show chain
          print "\n" unless $view;
