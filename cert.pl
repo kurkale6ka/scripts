@@ -203,7 +203,7 @@ sub check
       unless ($view)
       {
          $_ = run '-g', $command;
-         s/\n+\K\n//g;
+         s/\n{2,}\K\n//g;
          s/^.*cn\h*=\h*/$GRAY.$&.RESET/megi;
          say;
       } else {
