@@ -73,7 +73,7 @@ my @certificates = qw/.crt .pem/;
 unless (-f $cert)
 {
    $url = 1;
-   chomp (my $cert_from_url = run '-g', "openssl s_client -showcerts -connect $cert:443 </dev/null 2>/dev/null");
+   my $cert_from_url = run '-g', "openssl s_client -showcerts -connect $cert:443 </dev/null 2>/dev/null";
    $cert_from_url or die RED.'URL issue'.RESET, "\n";
    $cert = File::Temp->new (SUFFIX => '.crt');
    say $cert $cert_from_url;
@@ -121,7 +121,8 @@ sub run(@)
       say "@_";
       exit unless $check or $url;
    } elsif ($get) {
-      return `@_`;
+      chomp (my $output = `@_`);
+      return $output;
    } elsif ($check) {
       system @_;
    } else {
@@ -201,7 +202,7 @@ sub check
       my $command = "openssl crl2pkcs7 -nocrl -certfile $cert | openssl pkcs7 -noout -print_certs";
       unless ($view)
       {
-         chomp ($_ = run '-g', $command);
+         $_ = run '-g', $command;
          s/^.*cn\h*=\h*/$GRAY.$&.RESET/megi;
          say;
       } else {
@@ -243,7 +244,7 @@ sub check
          #  signing) as these trusted certificates will be in the OS/browser store
          #
          # -untrusted <intermediate CA certificates>
-         run '-g', "openssl verify -untrusted $intermediate $cert";
+         run '-g', qw/openssl verify -untrusted/, $intermediate, $cert;
          say 'verify certificate chains: ', $?==0 ? 'ok' : RED.'fail'.RESET unless $view;
 
          # show chain
@@ -277,7 +278,6 @@ sub check
 
    my $err = '';
    unless ($view) {
-      chomp %modulus;
       $err = ', modulus mismatch' unless scalar (uniq values %modulus) == 1;
    }
 
