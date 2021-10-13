@@ -244,6 +244,8 @@ sub check
          #  signing) as these trusted certificates will be in the OS/browser store
          #
          # -untrusted <intermediate CA certificates>
+         #
+         # `` (-g) to discard output but still set $?
          run '-g', qw/openssl verify -untrusted/, $intermediate, $cert;
          say 'verify certificate chains: ', $?==0 ? 'ok' : RED.'fail'.RESET unless $view;
 
@@ -261,7 +263,7 @@ sub check
 
    # Certificate/key match test
    my %modulus = (
-      crt => "openssl x509 -in $cert            -noout -modulus | openssl md5",
+      crt => "openssl x509 -in $cert -noout -modulus | openssl md5",
       key => "openssl rsa  -in ${dirs}$base.key -noout -modulus | openssl md5",
       csr => "openssl req  -in ${dirs}$base.csr -noout -modulus | openssl md5",
    );
