@@ -203,7 +203,8 @@ sub check
       unless ($view)
       {
          $_ = run '-g', $command;
-         s/\n{2,}\K\n//g;
+         s/\n{2,}(?=issuer)/\n/gi;
+         s/\n{2,}\K\n|\n\z//g;
          s/^.*cn\h*=\h*/$GRAY.$&.RESET/megi;
          say;
       } else {
