@@ -19,11 +19,12 @@ use Time::Seconds;
 
 my $PINK = color 'ansi205';
 my $GRAY = color 'ansi242';
+my $R = color 'reset';
 
-my $help = << '----------';
+my $help = << "----------";
 Show Certificate/CSR info
 
-cert [options] file|URL
+cert [options $GRAY(default -sid)$R] file|URL
 
 --check,       -c : chain of trust + cert/key match
 --csr,         -r : create CSR
