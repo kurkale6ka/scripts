@@ -14,6 +14,8 @@ use Getopt::Long qw/GetOptions :config bundling/;
 use Term::ANSIColor qw/color :constants/;
 use List::Util qw/first uniq/;
 use Term::ReadLine;
+use Time::Piece;
+use Time::Seconds;
 
 my $PINK = color 'ansi205';
 my $GRAY = color 'ansi242';
@@ -136,7 +138,24 @@ sub cert
    unless ($dates or $fingerprint or $issuer or $subject or $text)
    {
       # default fields
-      run qw/openssl x509 -in/, $cert, qw/-noout -subject -issuer -dates/;
+      $_ = run '-g', qw/openssl x509 -in/, $cert, qw/-noout -subject -issuer -dates/;
+
+      my ($d_end) = /^notafter=\K.+/mgi;
+      my $now = Time::Piece->new->epoch();
+      my $end = Time::Piece->strptime($d_end,'%b %e %T %Y %Z')->epoch();
+      my $days = int Time::Seconds->new($end-$now)->days;
+
+      if ($end >= $now) {
+         $d_end = GREEN.$d_end.RESET.", $days days left";
+      } else {
+         $d_end = RED.$d_end.RESET;
+      }
+
+      s/^.*cn\h*=\h*//mgi;
+      s/^notbefore=/from: /mgi;
+      s/^notafter=.+/  to: $d_end/mgi;
+
+      say;
    } elsif (defined $text) {
       # whole cert
       run qw/openssl x509 -in/, $cert, qw/-noout -text/;
