@@ -140,6 +140,7 @@ sub cert
    {
       # default fields
       $_ = run '-g', qw/openssl x509 -in/, $cert, qw/-noout -subject -issuer -dates/;
+      return if $view;
 
       my ($d_end) = /^notafter=\K.+/mgi;
       my $now = Time::Piece->new->epoch();
