@@ -146,7 +146,7 @@ sub cert
       my $days = int Time::Seconds->new($end-$now)->days;
 
       if ($end >= $now) {
-         $d_end = GREEN.$d_end.RESET.", $days days left";
+         $d_end = GREEN.$d_end.RESET . ", $days day" . ($days==1?'':'s') . ' left';
       } else {
          $d_end = RED.$d_end.RESET;
       }
