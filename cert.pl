@@ -31,9 +31,8 @@ cert [options] file|URL
 --fingerprint, -f
 --text,        -t
 --view,        -v : print openssl commands
-
-${GRAY}defaults$R
---subject,     -s
+$GRAY–––––––––$R
+--subject,     -s : ${GRAY}defaults$R
 --issuer,      -i
 --dates,       -d
 
