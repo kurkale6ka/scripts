@@ -11,8 +11,8 @@ use warnings;
 use File::Basename 'fileparse';
 use File::Temp 'tempfile';
 use Getopt::Long qw/GetOptions :config bundling/;
-use Term::ANSIColor qw/color :constants/;
 use List::Util qw/first uniq/;
+use Term::ANSIColor qw/color :constants/;
 use Term::ReadLine;
 use Time::Piece;
 use Time::Seconds;
@@ -22,24 +22,26 @@ my $GRAY = color 'ansi242';
 my $R = color 'reset';
 
 my $help = << "----------";
-Show Certificate/CSR info
+Certificate/CSR information
 
-cert [options $GRAY(default -sid)$R] file|URL
+cert [options] file|URL
 
 --check,       -c : chain of trust + cert/key match
 --csr,         -r : create CSR
---dates,       -d
 --fingerprint, -f
---issuer,      -i
---subject,     -s
 --text,        -t
 --view,        -v : print openssl commands
+
+${GRAY}defaults$R
+--subject,     -s
+--issuer,      -i
+--dates,       -d
 
 Intermediate certificates can be appended to:
 * the certificate itself
 * the certificate and put in a separate chain file
 
-SSL Certificate Checker
+SSL certificate checker
 https://www.digicert.com/help/
 ----------
 
@@ -73,13 +75,19 @@ $cert = $&;
 sub run(@);
 my @certificates = qw/.crt .pem/;
 
+# get certificate from URL
 unless (-f $cert)
 {
    $url = 1;
    my $cert_from_url = run '-g', "openssl s_client -showcerts -connect $cert:443 </dev/null 2>/dev/null";
-   $cert_from_url or die RED.'URL issue'.RESET, "\n";
-   $cert = File::Temp->new (SUFFIX => '.crt');
-   say $cert $cert_from_url;
+   unless ($view)
+   {
+      die RED.'URL issue'.RESET,         "\n" unless $cert_from_url;
+      die RED.'Certificate issue'.RESET, "\n" unless $cert_from_url =~ /-----BEGIN/;
+
+      $cert = File::Temp->new (SUFFIX => '.crt');
+      say $cert $cert_from_url;
+   }
 }
 
 my ($base, $dirs, $ext) = fileparse($cert, qr/\.[^.]+$/);
