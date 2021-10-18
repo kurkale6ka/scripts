@@ -161,8 +161,8 @@ sub cert
       }
 
       s/^.*cn\h*=\h*//mgi;
-      s/^notbefore=/from: /mgi;
-      s/^notafter=.+/  to: $d_end/mgi;
+      s/^notbefore=/$GRAY.'from: '.$R/megi;
+      s/^notafter=.+/$GRAY.'  to: '.$R.$d_end/megi;
 
       say;
    } elsif (defined $text) {
