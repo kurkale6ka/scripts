@@ -160,9 +160,10 @@ sub cert
          $d_end = RED.$d_end.RESET;
       }
 
-      s/^.*cn\h*=\h*//mgi;
-      s/^notbefore=/$GRAY.'from: '.$R/megi;
-      s/^notafter=.+/$GRAY.'  to: '.$R.$d_end/megi;
+      s/^subject.+cn\h*=\h*/$GRAY.'subject: '.RESET/megi;
+      s/^issuer.+cn\h*=\h*/$GRAY.' issuer: '.RESET/megi;
+      s/^notbefore=/$GRAY.'   from: '.RESET/megi;
+      s/^notafter=.+/$GRAY.'     to: '.RESET.$d_end/megi;
 
       say;
    } elsif (defined $text) {
