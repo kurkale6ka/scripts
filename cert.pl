@@ -68,7 +68,7 @@ my $url;
 die $help unless @ARGV == 1;
 
 my $cert = shift;
-$cert =~ m#(.+://)?\K[^/]+#; # strip protocol://
+$cert =~ m#(?:.+://.*?@)?\K[^/:]+#; # strip scheme://user:pass@ + :port
 $cert = $&;
 
 sub run(@);
