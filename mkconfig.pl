@@ -41,13 +41,6 @@ vim-pairs
 vim-swap
 );
 
-sub init();
-sub checkout();
-sub update();
-sub status();
-sub links($); # add|del
-sub tags();
-
 my $update = 1 unless @ARGV; # default action
 
 # Options
@@ -90,7 +83,7 @@ curl -fLo $ENV{REPOS_BASE}/vim/autoload/plug.vim --create-dirs https://raw.githu
 REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
 
 # Help
-sub help()
+sub help
 {
    print <<~ "MSG";
    ${S}SYNOPSIS${R}
@@ -145,24 +138,24 @@ make_path ($ENV{XDG_CONFIG_HOME} //= "$ENV{HOME}/.config");
 make_path (  $ENV{XDG_DATA_HOME} //= "$ENV{HOME}/.local/share");
 
 # Actions
-$init      and init;
-$update    and update;
-$status    and status;
-$links     and links 'add';
-$del_links and links 'del';
-$tags      and tags;
+$init      and init();
+$update    and update();
+$status    and status();
+$links     and links ('add');
+$del_links and links ('del');
+$tags      and tags();
 
 # Subroutines
-sub init()
+sub init
 {
    say "$CYAN*$R Checking out repositories in ${BLUE}$ENV{REPOS_BASE}${R}...";
-   checkout or return;
+   checkout() or return;
 
    say "$CYAN*$R Linking dot files";
-   links 'add';
+   links ('add');
 
    say "$CYAN*$R Generating tags";
-   tags;
+   tags();
 
    say "$CYAN*$R Creating fuzzy cd database";
    system 'bash', "$ENV{REPOS_BASE}/scripts/db-create";
@@ -217,7 +210,7 @@ sub init()
 }
 
 # private
-sub checkout()
+sub checkout
 {
    chdir $ENV{REPOS_BASE} or return;
 
@@ -268,7 +261,7 @@ sub checkout()
    }
 }
 
-sub update()
+sub update
 {
    say 'Updating repos...';
 
@@ -303,7 +296,7 @@ sub update()
    waitpid $_, 0 foreach @children;
 }
 
-sub status()
+sub status
 {
    my @children;
 
@@ -336,7 +329,7 @@ sub status()
    waitpid $_, 0 foreach @children;
 }
 
-sub links($)
+sub links
 {
    my $action = shift;
 
@@ -407,7 +400,7 @@ sub links($)
    }
 }
 
-sub tags()
+sub tags
 {
    # Notes:
    #   repos/zsh/autoload can't be added since the function names are 'missing'
