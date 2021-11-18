@@ -148,6 +148,53 @@ $tags      and tags();
 # Subroutines
 sub init
 {
+   # macOS
+   if ($^O eq 'darwin')
+   {
+      say "$CYAN*$R Installing Homebrew formulae...";
+
+      my @formulae = qw(
+      cpanminus
+      bash
+      zsh
+      shellcheck
+      ed
+      gnu-sed
+      gawk
+      vim
+      fd
+      findutils
+      coreutils
+      grep
+      ripgrep
+      mariadb
+      sqlite
+      colordiff
+      bat
+      git
+      ctags
+      gnu-tar
+      iproute2mac
+      tcpdump
+      telnet
+      tmux
+      weechat
+      tree
+      gcal
+      nmap
+      dos2unix
+      wgetpaste
+      whois
+      );
+
+      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install --HEAD neovim};
+      $? == 0 or return;
+
+      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install slhck/moreutils/moreutils --without-parallel};
+      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install parallel --force};
+      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install}, @formulae;
+   }
+
    say "$CYAN*$R Checking out repositories in ${BLUE}$ENV{REPOS_BASE}${R}...";
    checkout() or return;
 
@@ -162,51 +209,6 @@ sub init
 
    say "$CYAN*$R Configuring git";
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
-
-   # macOS
-   $^O eq 'darwin' or return;
-
-   say "$CYAN*$R Installing Homebrew formulae...";
-
-   my @formulae = qw(
-   bash
-   zsh
-   shellcheck
-   ed
-   gnu-sed
-   gawk
-   vim
-   fd
-   findutils
-   coreutils
-   grep
-   ripgrep
-   mariadb
-   sqlite
-   colordiff
-   bat
-   git
-   ctags
-   gnu-tar
-   iproute2mac
-   tcpdump
-   telnet
-   tmux
-   weechat
-   tree
-   gcal
-   nmap
-   dos2unix
-   wgetpaste
-   whois
-   );
-
-   system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install --HEAD neovim};
-   $? == 0 or return;
-
-   system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install slhck/moreutils/moreutils --without-parallel};
-   system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install parallel --force};
-   system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install}, @formulae;
 }
 
 # private
