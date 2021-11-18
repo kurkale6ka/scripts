@@ -78,7 +78,7 @@ if (-d dirname $ENV{REPOS_BASE})
 }
 
 my $vim_help = << "";
-${CYAN}to install vim-plug${R}:
+${CYAN}vim-plug install${R}:
 curl -fLo $ENV{REPOS_BASE}/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
 
@@ -213,11 +213,11 @@ sub init
    say "$CYAN*$R Configuring git";
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
 
-   # Extra
-   say "\n$vim_help\n";
+   # Extra packages/plugins
+   say "\n$vim_help";
 
-   print <<~ '-------------';
-   Install these additional packages:
+   print <<~ "-------------";
+   ${CYAN}additional packages${R}:
    cpanm -l ~/perl5 local::lib # conf .zshrc for explanations
    ctags sqlite3
    -------------
