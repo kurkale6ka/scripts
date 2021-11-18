@@ -212,6 +212,15 @@ sub init
 
    say "$CYAN*$R Configuring git";
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
+
+   # Extra
+   say "\n$vim_help\n";
+
+   print <<~ '-------------';
+   Install these additional packages:
+   cpanm -l ~/perl5 local::lib # conf .zshrc for explanations
+   ctags sqlite3
+   -------------
 }
 
 # private
@@ -264,8 +273,8 @@ sub checkout
 
    if (all {$_ == 0} @statuses)
    {
+      # move vim plugins
       system ('mv', @plugins, $plugins) == 0 or die RED.$!.RESET, "\n";
-      say $vim_help;
       return 1;
    } else {
       return 0;
