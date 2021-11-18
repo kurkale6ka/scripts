@@ -108,13 +108,13 @@ sub help
    exit;
 }
 
-help if $long_help;
+help() if $long_help;
 
 # More checks
 if (@ARGV)
 {
    warn RED.'Non-option arguments not allowed'.RESET, "\n";
-   help;
+   help();
 }
 
 if ($init and any {defined} $update, $status, $links, $del_links, $tags)
@@ -213,6 +213,12 @@ sub init
 sub checkout
 {
    chdir $ENV{REPOS_BASE} or return;
+
+   # Check if ssh keys have been registered with the agent
+   unless (system ('ssh-add -l >/dev/null') == 0)
+   {
+      die RED.'Please add your ssh key to the agent'.RESET, "\n";
+   }
 
    my @children;
    my @statuses;
