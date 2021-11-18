@@ -67,14 +67,14 @@ unless ($ENV{REPOS_BASE})
    $ENV{REPOS_BASE} ||= '~/github';
    $ENV{REPOS_BASE} =~ s/~/$ENV{HOME}/;
 
-   if (-d dirname $ENV{REPOS_BASE})
-   {
-      make_path $ENV{REPOS_BASE};
-   } else {
-      die RED."parent folder doesn't exist".RESET, "\n";
-   }
-
    print "\n";
+}
+
+if (-d dirname $ENV{REPOS_BASE})
+{
+   make_path $ENV{REPOS_BASE};
+} else {
+   die RED."parent folder doesn't exist".RESET, "\n";
 }
 
 my $vim_help = << "";
@@ -219,7 +219,7 @@ sub checkout
    # Check if ssh keys have been registered with the agent
    unless (system ('ssh-add -l >/dev/null') == 0)
    {
-      die RED.'Please add your ssh key to the agent'.RESET, "\n";
+      die RED.'Please add your ssh key to the agent'.RESET, "\n" unless $download;
    }
 
    my @children;
@@ -239,11 +239,11 @@ sub checkout
       }
 
       # kid
-      unless ($download)
+      if ($download)
       {
-         system qw/git clone/, "git\@github.com:$user/$repo.git";
-      } else {
          system qw/git clone/, "https://github.com/$user/$repo.git";
+      } else {
+         system qw/git clone/, "git\@github.com:$user/$repo.git";
       }
 
       unless ($? == 0)
