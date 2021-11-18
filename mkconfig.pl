@@ -84,7 +84,7 @@ curl -fLo $ENV{REPOS_BASE}/vim/autoload/plug.vim --create-dirs https://raw.githu
 REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
 
 ${CYAN}additional packages${R}
-cpanm -l ~/perl5 local::lib ${GRAY}# conf .zshrc for explanations${R}
+cpanm -l ~/perl5 local::lib ${GRAY}# see .zshrc for explanations, needs cpanminus${R}
 ctags sqlite3
 -------------
 
