@@ -16,6 +16,7 @@ use List::Util qw/any all/;
 
 my $BLUE   = color 'ansi69';
 my $CYAN   = color 'ansi45';
+my $GRAY   = color 'ansi242';
 my $YELLOW = color 'yellow';
 my $S = color 'bold';
 my $R = color 'reset';
@@ -77,10 +78,15 @@ if (-d dirname $ENV{REPOS_BASE})
    die RED."parent folder doesn't exist".RESET, "\n";
 }
 
-my $vim_help = << "";
-${CYAN}vim-plug install${R}:
+my $help_extra = << "-------------";
+${CYAN}vim-plug${R}
 curl -fLo $ENV{REPOS_BASE}/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
+
+${CYAN}additional packages${R}
+cpanm -l ~/perl5 local::lib ${GRAY}# conf .zshrc for explanations${R}
+ctags sqlite3
+-------------
 
 # Help
 sub help
@@ -104,7 +110,7 @@ sub help
    --long-help, -H: Long help
    MSG
 
-   print "\n$vim_help" if $long_help;
+   print "\n$help_extra" if $long_help;
    exit;
 }
 
@@ -214,13 +220,7 @@ sub init
    system 'bash', "$ENV{REPOS_BASE}/config/git.bash";
 
    # Extra packages/plugins
-   say "\n$vim_help";
-
-   print <<~ "-------------";
-   ${CYAN}additional packages${R}:
-   cpanm -l ~/perl5 local::lib # conf .zshrc for explanations
-   ctags sqlite3
-   -------------
+   print "\n$help_extra";
 }
 
 # private
