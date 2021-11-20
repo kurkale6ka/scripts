@@ -42,6 +42,16 @@ vim-pairs
 vim-swap
 );
 
+my $help_extra = << "-------------";
+${CYAN}vim-plug${R}
+curl -fLo $ENV{REPOS_BASE}/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
+
+${CYAN}additional packages${R}
+cpanm -l ~/perl5 local::lib ${GRAY}# see .zshrc for explanations, needs cpanminus${R}
+ctags sqlite3
+-------------
+
 my $update = 1 unless @ARGV; # default action
 
 # Options
@@ -56,6 +66,8 @@ GetOptions (
    'H|long-help' => \my $long_help,
    'h|help'      => \&help
 ) or die RED.'Error in command line arguments'.RESET, "\n";
+
+help() if $long_help;
 
 # Repos root folder setup
 unless ($ENV{REPOS_BASE})
@@ -77,16 +89,6 @@ if (-d dirname $ENV{REPOS_BASE})
 } else {
    die RED."parent folder doesn't exist".RESET, "\n";
 }
-
-my $help_extra = << "-------------";
-${CYAN}vim-plug${R}
-curl -fLo $ENV{REPOS_BASE}/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
-
-${CYAN}additional packages${R}
-cpanm -l ~/perl5 local::lib ${GRAY}# see .zshrc for explanations, needs cpanminus${R}
-ctags sqlite3
--------------
 
 # Help
 sub help
@@ -113,8 +115,6 @@ sub help
    print "\n$help_extra" if $long_help;
    exit;
 }
-
-help() if $long_help;
 
 # More checks
 if (@ARGV)
