@@ -201,7 +201,7 @@ sub init
       system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install}, @formulae;
       system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install parallel --force};
       system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew tap beeftornado/rmtree};
-      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install rmtree};
+      system qw{env HOMEBREW_NO_AUTO_UPDATE=1 brew install beeftornado/rmtree/brew-rmtree};
 
       # needed by gln in links ('add') below
       $ENV{PATH} = '/usr/local/opt/coreutils/libexec/gnubin:'.$ENV{PATH};
