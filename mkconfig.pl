@@ -49,6 +49,7 @@ REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
 
 ${CYAN}additional packages${R}
 cpanm -l ~/perl5 local::lib ${GRAY}# see .zshrc for explanations, needs cpanminus${R}
+cpanm Term::ReadLine::Gnu
 ctags sqlite3
 -------------
 
