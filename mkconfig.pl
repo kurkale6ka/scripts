@@ -168,6 +168,7 @@ sub init
       ed
       gnu-sed
       gawk
+      jq
       vim
       fd
       findutils
