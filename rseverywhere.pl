@@ -4,7 +4,7 @@
 
 use v5.12;
 use warnings;
-use Getopt::Long qw/GetOptions :config pass_through/;
+use Getopt::Long qw/GetOptions :config bundling pass_through/;
 use lib "$ENV{REPOS_BASE}/config/tmux";
 use Nodes;
 
@@ -17,8 +17,9 @@ Sync repos to remotes
 rseverywhere @cluster ... node[range] ... [-exclude] ...
 
 Rsync options:
---(no-)delete-excluded, --delete if 'no-'
---dry
+--(no-)delete-excluded, -d
+--dry,                  -n
+--user,                 -u
 
 MSG
    return $msg.Nodes::help();
@@ -33,9 +34,10 @@ my $del = 1;
 my $dry;
 
 GetOptions (
-   'delete-excluded!' => \$del,
-   'dry'              => \$dry,
-   'help'             => sub { print help; exit; },
+   'd|delete-excluded!' => \$del,
+   'n|dry'              => \$dry,
+   'u|user=s'           => \$user,
+   'h|help'             => sub { print help; exit; },
 ) or die "Error in command line arguments\n";
 
 $del = $del ? '--delete-excluded' : '--delete';
