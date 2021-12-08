@@ -170,6 +170,7 @@ sub init
       gawk
       jq
       vim
+      htop
       hyperfine
       fd
       findutils
