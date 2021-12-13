@@ -186,6 +186,7 @@ sub init
       ctags
       gnu-tar
       iproute2mac
+      openssh
       tcpdump
       telnet
       tmux
