@@ -185,6 +185,7 @@ sub init
       git
       ctags
       gnu-tar
+      ipcalc
       iproute2mac
       openssh
       tcpdump
