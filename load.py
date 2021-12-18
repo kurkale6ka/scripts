@@ -1,8 +1,8 @@
 #! /usr/bin/env python3
 
-import re
+'''Load average with clear time slices and trend'''
 
-'''Load average'''
+import re
 
 class fg:
    BOLD   = '\033[1m'
