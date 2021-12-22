@@ -4,7 +4,7 @@
 
 import re
 import argparse
-from subprocess import run, Popen, PIPE
+from subprocess import run, PIPE
 from os import execlp as exec, environ as env
 
 sites = env['XDG_DATA_HOME'] + '/sites'
@@ -24,10 +24,17 @@ with open(sites) as file:
    else:
       site = run(fzf, stdin=file, stdout=PIPE, text=True)
 
-pattern = re.compile('https?://\S+') # or
-# re.compile('www\.\S+') or
-# re.compile('\S+\.com\b')
+pattern  = re.compile(r'https?://\S+')
+pattern1 = re.compile(r'www\.\S+')
+pattern2 = re.compile(r'\S+\.com\b')
 
-url = pattern.findall(site.stdout) [0]
+url = pattern.findall(site.stdout) or \
+      pattern1.findall(site.stdout) or \
+      pattern2.findall(site.stdout)
+
+url = url[0]
+
+if not re.match(r'\Ahttp', url, re.IGNORECASE):
+   url = "https://" + url
 
 exec('open', 'open', url)
