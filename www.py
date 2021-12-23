@@ -8,9 +8,10 @@ from subprocess import run, PIPE
 from os import execlp as exec, environ as env
 
 sites = env['XDG_DATA_HOME'] + '/sites'
+desc = 'fuzzy search & open of websites ({})'.format(sites.replace(env['HOME'], '~'))
 
 # Arguments
-parser = argparse.ArgumentParser('www', description=f'fuzzy search & open of websites ({sites})')
+parser = argparse.ArgumentParser(prog='www', description=desc)
 parser.add_argument("-s", "--sites", type=str, help="file with your bookmarked sites")
 parser.add_argument("pattern", nargs="?", type=str, help="site filter criteria")
 args = parser.parse_args()
