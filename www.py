@@ -4,6 +4,7 @@
 
 import re
 import argparse
+from sys import stderr as STDERR
 from subprocess import run, PIPE
 from os import execlp, environ as env
 
@@ -32,9 +33,13 @@ match = re.match(r'https?://\S+', site) or \
       re.match(r'www\.\S+', site) or \
       re.search(r'\S+\.com\b', site)
 
-url = match.group()
+if match:
+   url = match.group()
 
-if not re.match('http', url, re.IGNORECASE):
-   url = "https://" + url
+   if not re.match('http', url, re.IGNORECASE):
+      url = "https://" + url
 
-execlp('open', 'open', url)
+   execlp('open', 'open', url)
+else:
+   error = f"No valid URL in: {site}" if site else 'No match'
+   print(error, file=STDERR)
