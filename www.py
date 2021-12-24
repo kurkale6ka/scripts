@@ -5,7 +5,7 @@
 import re
 import argparse
 from subprocess import run, PIPE
-from os import execlp as exec, environ as env
+from os import execlp, environ as env
 
 sites = env['XDG_DATA_HOME'] + '/sites'
 desc = 'fuzzy search & open of websites ({})'.format(sites.replace(env['HOME'], '~'))
@@ -20,22 +20,21 @@ args = parser.parse_args()
 fzf = ['fzf', '-0', '-1', '--cycle', '--height', '60%']
 
 with open(sites) as file:
+
    if args.pattern:
       site = run(fzf + ['-q', args.pattern], stdin=file, stdout=PIPE, text=True)
    else:
       site = run(fzf, stdin=file, stdout=PIPE, text=True)
 
-pattern  = re.compile(r'https?://\S+')
-pattern1 = re.compile(r'www\.\S+')
-pattern2 = re.compile(r'\S+\.com\b')
+   site = site.stdout
 
-url = pattern.findall(site.stdout) or \
-      pattern1.findall(site.stdout) or \
-      pattern2.findall(site.stdout)
+match = re.match(r'https?://\S+', site) or \
+      re.match(r'www\.\S+', site) or \
+      re.search(r'\S+\.com\b', site)
 
-url = url[0]
+url = match.group()
 
-if not re.match(r'\Ahttp', url, re.IGNORECASE):
+if not re.match('http', url, re.IGNORECASE):
    url = "https://" + url
 
-exec('open', 'open', url)
+execlp('open', 'open', url)
