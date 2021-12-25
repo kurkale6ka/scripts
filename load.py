@@ -2,7 +2,7 @@
 
 '''Load average with clear time slices and trend'''
 
-import re
+import os, re
 
 class fg:
    BOLD   = '\033[1m'
@@ -22,10 +22,7 @@ if one > five or one > fifteen:
    trend = '(increasing)'
 
 # get cores count
-with open('/proc/cpuinfo') as file:
-   count = re.findall(r'^processor\s*:\s*\d', file.read(), re.MULTILINE)
-   count = len(count)
-
+count = os.cpu_count()
 cores = 'cores' if count > 1 else 'core'
 
 # Output
