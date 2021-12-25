@@ -2,11 +2,11 @@
 
 """Fuzzy search & open of websites loaded from a file"""
 
-import re
 import argparse
-from sys import stderr as STDERR
-from subprocess import run, PIPE
+import re
+import sys
 from os import execlp, environ as env
+from subprocess import run, PIPE
 
 sites = env['XDG_DATA_HOME'] + '/sites'
 desc = 'fuzzy search & open of websites ({})'.format(sites.replace(env['HOME'], '~'))
@@ -27,7 +27,7 @@ with open(sites) as file:
    else:
       site = run(fzf, stdin=file, stdout=PIPE, text=True)
 
-   site = site.stdout
+   site = site.stdout.rstrip('\n')
 
 match = re.match(r'https?://\S+', site) or \
       re.match(r'www\.\S+', site) or \
@@ -39,7 +39,11 @@ if match:
    if not re.match('http', url, re.IGNORECASE):
       url = "https://" + url
 
-   execlp('open', 'open', url)
+   print(site)
+   if sys.platform == 'darwin':
+      execlp('open', 'open', url)
+   else:
+      execlp('xdg-open', 'open', url)
 else:
    error = f"No valid URL in: {site}" if site else 'No match'
-   print(error, file=STDERR)
+   print(error, file=sys.stderr)
