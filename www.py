@@ -9,7 +9,7 @@ from os import execlp, environ as env
 from subprocess import run, PIPE
 
 sites = env['XDG_DATA_HOME'] + '/sites'
-desc = 'fuzzy search & open of websites ({})'.format(sites.replace(env['HOME'], '~'))
+desc = f'fuzzy search & open of websites ({sites.replace(env["HOME"], "~")})'
 
 # Arguments
 parser = argparse.ArgumentParser(prog='www', description=desc)
