@@ -2,7 +2,7 @@
 
 '''Load average with clear time slices and trend'''
 
-import os, re
+import os
 
 class fg:
    BOLD   = '\033[1m'
