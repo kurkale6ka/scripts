@@ -1,20 +1,39 @@
 # from helpers import *
+'''Helpers for interactive python 3 sessions
+
+ls() ~> dir()
+ p() -> print()
+ h() -> help()
+'''
 
 # aliases
 h = help
 p = print
 
-# dir() without __...__
-def ls(obj, columns=4, width=20):
-   '''List dir() entries in columns, omitting __...__'''
+# dir() without __...__ or _...
+def ls(obj, lines=12, width=15):
 
-   listing = [d for d in dir(obj) if not d.startswith('__')]
+   '''List dir() entries in rows,
+   omitting __...__ or _... entries'''
 
-   i = 0
-   for member in listing:
-      fields = listing[i:i+columns]
-      count = len(fields)
-      if fields:
-         fmt = ('{:' + str(width) + '}') * count
-         print(fmt.format(*fields))
-         i += count
+   rows = []
+   lst = [d for d in dir(obj) if not d.startswith('_')]
+   length = len(lst)
+
+   if lines > length:
+      lines = length + 1
+
+   # Divide list in rows of equal size
+   for i in range(0, len(lst), lines):
+
+      row = lst[i:i+lines] # one part
+      size = len(row)
+
+      if size < lines:
+         row.extend([''] * (lines - size))
+      rows.append(row)
+
+   # Output in formatted columns
+   for columns in zip(*rows):
+      fmt = ('{:' + str(width) + '}') * len(columns)
+      print(fmt.format(*columns))
