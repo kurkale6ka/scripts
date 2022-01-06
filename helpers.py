@@ -11,17 +11,22 @@ h = help
 p = print
 
 # dir() without __...__ or _...
-def ls(obj, width=15, lines=12):
+def ls(obj='void', width=15, lines=12):
 
    '''List dir() entries in rows,
    omitting __...__ or _... entries'''
 
-   rows = []
-   lst = [d for d in dir(obj) if not d.startswith('_')]
-   length = len(lst)
+   # not sure how to pass the current scope (ref: help(dir))
+   if obj != 'void':
+      lst = [d for d in dir(obj) if not d.startswith('_')]
+   else:
+      lst = [d for d in dir()    if not d.startswith('_')]
 
+   length = len(lst)
    if lines > length:
       lines = length + 1
+
+   rows = []
 
    # Divide list in rows of equal size
    for i in range(0, length, lines):
