@@ -11,7 +11,7 @@ h = help
 p = print
 
 # dir() without __...__ or _...
-def ls(obj='void', width=15, lines=12):
+def ls(obj='void', lines=12):
 
    '''List dir() entries in rows,
    omitting __...__ or _... entries'''
@@ -25,7 +25,7 @@ def ls(obj='void', width=15, lines=12):
 
    length = len(lst)
    if lines > length:
-      lines = length + 1
+      lines = length
 
    rows = []
 
@@ -40,6 +40,7 @@ def ls(obj='void', width=15, lines=12):
       rows.append(row)
 
    # Output in formatted columns
+   width = max(map(len, lst)) + 2
    for columns in zip(*rows):
       fmt = ('{:' + str(width) + '}') * len(columns)
       print(fmt.format(*columns))
