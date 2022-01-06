@@ -24,7 +24,7 @@ def ls(obj, lines=12, width=15):
       lines = length + 1
 
    # Divide list in rows of equal size
-   for i in range(0, len(lst), lines):
+   for i in range(0, length, lines):
 
       row = lst[i:i+lines] # one part
       size = len(row)
