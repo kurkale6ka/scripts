@@ -16,11 +16,12 @@ def ls(obj='void', width=15, lines=12):
    '''List dir() entries in rows,
    omitting __...__ or _... entries'''
 
-   # not sure how to pass the current scope (ref: help(dir))
    if obj != 'void':
-      lst = [d for d in dir(obj) if not d.startswith('_')]
+      dirs = dir(obj)
    else:
-      lst = [d for d in dir()    if not d.startswith('_')]
+      dirs = globals().keys()
+
+   lst = [d for d in dirs if not d.startswith('_')]
 
    length = len(lst)
    if lines > length:
