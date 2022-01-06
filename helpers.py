@@ -11,7 +11,7 @@ h = help
 p = print
 
 # dir() without __...__ or _...
-def ls(obj, lines=12, width=15):
+def ls(obj, width=15, lines=12):
 
    '''List dir() entries in rows,
    omitting __...__ or _... entries'''
