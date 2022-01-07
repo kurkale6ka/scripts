@@ -11,7 +11,7 @@ h = help
 p = print
 
 # dir() without __...__ or _...
-def ls(obj='void', lines=12):
+def ls(obj='void', screen_lines=None):
 
    '''List dir() entries in rows,
    omitting __...__ or _... entries'''
@@ -22,16 +22,29 @@ def ls(obj='void', lines=12):
       dirs = globals().keys()
 
    lst = [d for d in dirs if not d.startswith('_')]
-
    length = len(lst)
-   if lines > length:
+
+   # Setup the display grid
+   min_lines = 7
+   if length < min_lines:
       lines = length
+   else:
+      # aim for 4 columns..
+      lines = length // 4
+      # ..but reduce (upping lines) if lines < min_lines
+      if lines < min_lines and length >= min_lines:
+         lines = min_lines
+
+   # overwrite
+   if screen_lines:
+      if screen_lines <= length:
+         lines = screen_lines
+      else:
+         lines = length
 
    rows = []
-
    # Divide list in rows of equal size
    for i in range(0, length, lines):
-
       row = lst[i:i+lines] # one part
       size = len(row)
 
