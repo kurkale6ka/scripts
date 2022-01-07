@@ -13,7 +13,7 @@ p = print
 # dir() without __...__ or _...
 def ls(obj='void', screen_lines=None):
 
-   '''List dir() entries in rows,
+   '''List dir() entries in sorted columns,
    omitting __...__ or _... entries'''
 
    if obj != 'void':
@@ -27,7 +27,7 @@ def ls(obj='void', screen_lines=None):
    # Setup the display grid
    min_lines = 7
    if length < min_lines:
-      lines = length
+      lines = length or 1
    else:
       # aim for 4 columns..
       lines = length // 4
@@ -53,7 +53,7 @@ def ls(obj='void', screen_lines=None):
       rows.append(row)
 
    # Output in formatted columns
-   width = max(map(len, lst)) + 2
+   width = max(map(len, lst), default=1) + 2
    for columns in zip(*rows):
       fmt = ('{:' + str(width) + '}') * len(columns)
       print(fmt.format(*columns))
