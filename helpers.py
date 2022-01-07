@@ -11,12 +11,14 @@ h = help
 p = print
 
 # dir() without __...__ or _...
-def ls(obj='void', screen_lines=None):
+def ls(obj=None, screen_lines=None):
 
    '''List dir() entries in sorted columns,
    omitting __...__ or _... entries'''
 
-   if obj != 'void':
+   if obj == 'builtins' or obj == 'b':
+      dirs = [d for d in dir(__builtins__) if d.islower()]
+   elif obj != None:
       dirs = dir(obj)
    else:
       dirs = globals().keys()
