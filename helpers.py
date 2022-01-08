@@ -1,4 +1,5 @@
-# from helpers import *
+from itertools import zip_longest
+
 '''Helpers for interactive python 3 sessions
 
 ls() ~> dir()
@@ -47,15 +48,10 @@ def ls(obj=None, screen_lines=None):
    rows = []
    # Divide list in rows of equal size
    for i in range(0, length, lines):
-      row = lst[i:i+lines] # one part
-      size = len(row)
-
-      if size < lines:
-         row.extend([''] * (lines - size))
-      rows.append(row)
+      rows.append(lst[i:i+lines]) # one part
 
    # Output in formatted columns
    width = max(map(len, lst), default=1) + 2
-   for columns in zip(*rows):
+   for columns in zip_longest(*rows, fillvalue=''):
       fmt = ('{:' + str(width) + '}') * len(columns)
       print(fmt.format(*columns))
