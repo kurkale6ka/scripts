@@ -21,6 +21,7 @@ def ls(obj=None, screen_lines=None):
          'builtins' or 'b'
    '''
 
+   # build the list from dir()
    if obj == 'builtins' or obj == 'b':
       dirs = [d for d in dir(__builtins__) if d.islower()]
    elif obj != None:
@@ -29,10 +30,11 @@ def ls(obj=None, screen_lines=None):
       dirs = globals().keys()
 
    lst = [d for d in dirs if not d.startswith('_')]
-   length = len(lst)
 
    # Setup the display grid
+   length = len(lst)
    min_lines = 7
+
    if length < min_lines:
       lines = length or 1
    else:
@@ -49,13 +51,14 @@ def ls(obj=None, screen_lines=None):
       else:
          lines = length
 
+   # Divide the list in rows of equal size
    rows = []
-   # Divide list in rows of equal size
    for i in range(0, length, lines):
       rows.append(lst[i:i+lines]) # one part
 
    # Output in formatted columns
    width = max(map(len, lst), default=1) + 2
    for columns in zip_longest(*rows, fillvalue=''):
-      fmt = ('{:' + str(width) + '}') * len(columns)
+      fmt = ('{:' + str(width) + '}') * (len(columns) - 1)
+      fmt += '{}'
       print(fmt.format(*columns))
