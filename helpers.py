@@ -15,7 +15,11 @@ p = print
 def ls(obj=None, screen_lines=None):
 
    '''List dir() entries in sorted columns,
-   omitting __...__ or _... entries'''
+   omitting __...__ or _... entries
+
+   args: same as dir() +
+         'builtins' or 'b'
+   '''
 
    if obj == 'builtins' or obj == 'b':
       dirs = [d for d in dir(__builtins__) if d.islower()]
