@@ -1,11 +1,11 @@
-from itertools import zip_longest
-
 '''Helpers for interactive python 3 sessions
 
 ls() ~> dir()
  p() -> print()
  h() -> help()
 '''
+
+from itertools import zip_longest
 
 # aliases
 h = help
