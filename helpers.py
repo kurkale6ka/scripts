@@ -11,7 +11,8 @@ from itertools import zip_longest
 h = help
 p = print
 
-# dir() without __...__ or _...
+# ls()
+# similar to dir() without __...__ or _...
 def ls(obj=None, screen_lines=None):
 
    '''List dir() entries in sorted columns,
@@ -22,12 +23,12 @@ def ls(obj=None, screen_lines=None):
    '''
 
    # build the list from dir()
-   if obj == 'builtins' or obj == 'b':
+   if obj in ['builtins', 'b']:
       dirs = [d for d in dir(__builtins__) if d.islower()]
    elif obj != None:
       dirs = dir(obj)
    else:
-      dirs = globals().keys()
+      dirs = globals()
 
    lst = [d for d in dirs if not d.startswith('_')]
 
