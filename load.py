@@ -4,12 +4,8 @@
 
 import os
 
-class fg:
-   BOLD   = '\033[1m'
-   ITALIC = '\033[3m'
-   RESET  = '\033[0m'
-   GREEN  = '\033[32m'
-   RED    = '\033[31m'
+esc = '\033['
+GREEN, RED, BOLD, ITALIC, RESET = [f'{esc}{code}m' for code in (32, 31, 1, 3, 0)]
 
 # load average
 with open('/proc/loadavg') as file:
@@ -26,8 +22,8 @@ count = os.cpu_count()
 cores = 'cores' if count > 1 else 'core'
 
 # Output
-load = [ (fg.GREEN if count > float(l) else fg.RED) + l + fg.RESET for l in load ]
+load = [ (GREEN if count > float(ld) else RED) + ld + RESET for ld in load ]
 
-print('   1,    5,   15 :', fg.ITALIC + 'minutes' + fg.RESET)
-print(', '.join(load), ':', fg.BOLD + str(count) + fg.RESET, cores,
-      fg.ITALIC + 'load average', trend + fg.RESET)
+print('   1,    5,   15 :', ITALIC + 'minutes' + RESET)
+print(', '.join(load), ':', BOLD + str(count) + RESET, cores,
+      ITALIC + 'load average', trend + RESET)
