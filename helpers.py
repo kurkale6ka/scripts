@@ -28,7 +28,7 @@ def ls(obj=None, screen_lines=None):
    elif obj != None:
       dirs = dir(obj)
    else:
-      dirs = globals()
+      dirs = sorted(globals())
 
    lst = [d for d in dirs if not d.startswith('_')]
 
