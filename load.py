@@ -2,7 +2,7 @@
 
 '''Load average with clear time slices and trend'''
 
-import os
+from os import cpu_count
 
 esc = '\033['
 GREEN, RED, BOLD, ITALIC, RESET = [f'{esc}{code}m' for code in (32, 31, 1, 3, 0)]
@@ -18,7 +18,7 @@ if one > five or one > fifteen:
    trend = '(increasing)'
 
 # get cores count
-count = os.cpu_count()
+count = cpu_count()
 cores = 'cores' if count > 1 else 'core'
 
 # Output
