@@ -36,7 +36,7 @@ match = re.match(r'https?://\S+', site) or \
 if match:
    url = match.group()
 
-   if not re.match('http', url, re.IGNORECASE):
+   if not url.casefold().startswith('http'):
       url = "https://" + url
 
    print(site)
