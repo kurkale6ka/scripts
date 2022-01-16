@@ -27,7 +27,7 @@ with open(sites) as file:
    else:
       site = run(fzf, stdin=file, stdout=PIPE, text=True)
 
-   site = site.stdout.rstrip('\n')
+   site = site.stdout.rstrip()
 
 match = re.match(r'https?://\S+', site) or \
       re.match(r'www\.\S+', site) or \
