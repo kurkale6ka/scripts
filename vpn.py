@@ -265,8 +265,8 @@ countries = {
 # "ax": "Åland Islands"
 }
 
-# uk fix
-countries['uk'] = countries['gb']
+# # uk fix
+# countries['uk'] = countries['gb']
 
 def list(pattern=''):
    pattern = pattern.lower()
@@ -275,7 +275,8 @@ def list(pattern=''):
          if args.batch:
             print(country)
          else:
-            print(code.replace('uk', 'gb').upper(), '->', country)
+            print(code.upper(), '->', country)
+            # print(code.replace('uk', 'gb').upper(), '->', country)
 
 if args.list == 1:
    list()
