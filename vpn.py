@@ -1,10 +1,16 @@
 #! /usr/bin/env python3
 
-''''''
+'''OpenVPN helper for NordVPN
+
+DNS leak fix:
+  Install (openvpn-)update-systemd-resolved
+  systemctl enable --now systemd-resolved
+'''
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("-s", "--show", nargs='?', default=None)
+parser.add_argument("-b", "--batch", action="store_true", help="no codes with --list")
+parser.add_argument("-l", "--list", default=None, nargs='?', const=1, help="show countries")
 args = parser.parse_args()
 
 countries = {
@@ -259,12 +265,19 @@ countries = {
 # "ax": "Åland Islands"
 }
 
-def show(pattern=None):
-   for code, country in countries.items():
-      if not pattern or any(pattern.lower() in c for c in (code, country.lower())):
-         print(code.upper(), '->', country)
+# uk fix
+countries['uk'] = countries['gb']
 
-if args.show == None:
-   show()
-else:
-   show(args.show)
+def list(pattern=''):
+   pattern = pattern.lower()
+   for code, country in countries.items():
+      if not pattern or pattern == code or pattern in country.lower():
+         if args.batch:
+            print(country)
+         else:
+            print(code.replace('uk', 'gb').upper(), '->', country)
+
+if args.list == 1:
+   list()
+elif args.list:
+   list(args.list)
