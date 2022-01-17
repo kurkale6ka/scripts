@@ -7,7 +7,15 @@ DNS leak fix:
   systemctl enable --now systemd-resolved
 '''
 
+from os import chdir
+from subprocess import run, PIPE
 import argparse
+
+vpn = '/etc/openvpn'
+auth = vpn + '/details'
+protocol = 'udp'
+download_url = 'https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip'
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-b", "--batch", action="store_true", help="no codes with --list")
 parser.add_argument("-l", "--list", default=None, nargs='?', const=1, help="show countries")
@@ -269,9 +277,8 @@ countries = {
 # countries['uk'] = countries['gb']
 
 def list(pattern=''):
-   pattern = pattern.lower()
    for code, country in countries.items():
-      if not pattern or pattern == code or pattern in country.lower():
+      if not pattern or pattern.lower() in code + country.lower():
          if args.batch:
             print(country)
          else:
@@ -282,3 +289,7 @@ if args.list == 1:
    list()
 elif args.list:
    list(args.list)
+else:
+   fzf = ['fzf', '-0', '-1', '--cycle', '--height', '60%']
+   chdir(f'{vpn}/ovpn_{protocol}')
+   print('Hello')
