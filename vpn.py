@@ -21,6 +21,9 @@ parser.add_argument("-b", "--batch", action="store_true", help="no codes with --
 parser.add_argument("-l", "--list", default=None, nargs='?', const=1, help="show countries")
 args = parser.parse_args()
 
+esc = '\033['
+CYAN, RED, RESET = [f'{esc}{code}m' for code in (36, 31, 0)]
+
 countries = {
 # "af": "Afghanistan",
 "al": "Albania",
@@ -282,7 +285,7 @@ def list(pattern=''):
          if args.batch:
             print(country)
          else:
-            print(code.upper(), '->', country)
+            print(CYAN+code.upper() + RESET, '->', country)
             # print(code.replace('uk', 'gb').upper(), '->', country)
 
 if args.list == 1:
