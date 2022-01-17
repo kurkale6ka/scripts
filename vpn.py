@@ -16,7 +16,7 @@ auth = vpn + '/details'
 protocol = 'udp'
 download_url = 'https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip'
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(usage="vpn [options] [pattern] (or use zsh completion)")
 parser.add_argument("pattern", nargs='?')
 parser.add_argument("-b", "--batch", action="store_true", help="no codes with --list")
 parser.add_argument("-l", "--list", default=None, nargs='?', const=1, help="show countries")
@@ -314,4 +314,3 @@ else:
    '--down-pre',
    '--dhcp-option', 'DOMAIN-ROUTE', '.',
    '--auth-user-pass', auth)
-
