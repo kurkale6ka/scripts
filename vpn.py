@@ -304,9 +304,9 @@ else:
       config = run(fzf, input=configs, stdout=PIPE, text=True)
       config = vpn_configs + '/' + config.stdout.rstrip()
 
-   os.execlp('openvpn',
+   os.execlp('openvpn', 'openvpn',
    '--config', config,
-   '--script-security', 2,
+   '--script-security', '2',
    '--setenv', 'PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
    '--up', '/usr/bin/update-systemd-resolved',
    '--up-restart',
