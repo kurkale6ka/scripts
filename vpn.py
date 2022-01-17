@@ -11,19 +11,29 @@ import os
 import argparse
 from subprocess import run, PIPE
 
-vpn = '/etc/openvpn'
-auth = vpn + '/details'
-protocol = 'udp'
+vpn          = '/etc/openvpn'
+auth         = vpn + '/details'
+protocol     = 'udp'
+vpn_configs  = f'{vpn}/ovpn_{protocol}'
 download_url = 'https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip'
 
 parser = argparse.ArgumentParser(usage="vpn [options] [pattern] (or use zsh completion)")
 parser.add_argument("pattern", nargs='?')
+parser.add_argument("-a", "--auth", help=f"credentials file ({vpn}/details)")
 parser.add_argument("-b", "--batch", action="store_true", help="no codes with --list")
+parser.add_argument("-c", "--config", help=f"config file instead of pattern ({vpn_configs}/...)")
+parser.add_argument("-d", "--download", action="store_true", help=f"download config files ({download_url})")
 parser.add_argument("-l", "--list", default=None, nargs='?', const=1, help="show countries")
+parser.add_argument("-p", "--protocol", help="defaults to udp")
 args = parser.parse_args()
 
+# Colors
 esc = '\033['
 CYAN, RED, RESET = [f'{esc}{code}m' for code in (36, 31, 0)]
+
+if not any((args.download, args.list)):
+   if os.geteuid() != 0:
+      exit(RED + 'Run as root' + RESET)
 
 countries = {
 # "af": "Afghanistan",
@@ -298,7 +308,6 @@ else:
    if args.pattern:
       fzf.extend(('-q', args.pattern))
 
-   vpn_configs = f'{vpn}/ovpn_{protocol}'
    with os.scandir(vpn_configs) as ls:
       configs = '\n'.join(sorted(file.name for file in ls if file.name.endswith('.ovpn')))
       config = run(fzf, input=configs, stdout=PIPE, text=True)
