@@ -17,6 +17,7 @@ protocol = 'udp'
 download_url = 'https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip'
 
 parser = argparse.ArgumentParser()
+parser.add_argument("pattern", nargs='?')
 parser.add_argument("-b", "--batch", action="store_true", help="no codes with --list")
 parser.add_argument("-l", "--list", default=None, nargs='?', const=1, help="show countries")
 args = parser.parse_args()
@@ -285,7 +286,7 @@ def list(pattern=''):
          if args.batch:
             print(country)
          else:
-            print(CYAN+code.upper() + RESET, '->', country)
+            print(CYAN + code.upper() + RESET, '->', country)
             # print(code.replace('uk', 'gb').upper(), '->', country)
 
 if args.list == 1:
@@ -294,7 +295,23 @@ elif args.list:
    list(args.list)
 else:
    fzf = ['fzf', '-0', '-1', '--cycle', '--height', '60%']
-   with os.scandir(f'{vpn}/ovpn_{protocol}') as ls:
-      configs = [file for file in ls if file.endswith('.ovpn')]
-      config = run(fzf, stdin=configs, stdout=PIPE, text=True)
-      print(config)
+   if args.pattern:
+      fzf.extend(('-q', args.pattern))
+
+   vpn_configs = f'{vpn}/ovpn_{protocol}'
+   with os.scandir(vpn_configs) as ls:
+      configs = '\n'.join(sorted(file.name for file in ls if file.name.endswith('.ovpn')))
+      config = run(fzf, input=configs, stdout=PIPE, text=True)
+      config = vpn_configs + '/' + config.stdout.rstrip()
+
+   os.execlp('openvpn',
+   '--config', config,
+   '--script-security', 2,
+   '--setenv', 'PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+   '--up', '/usr/bin/update-systemd-resolved',
+   '--up-restart',
+   '--down', '/usr/bin/update-systemd-resolved',
+   '--down-pre',
+   '--dhcp-option', 'DOMAIN-ROUTE', '.',
+   '--auth-user-pass', auth)
+
