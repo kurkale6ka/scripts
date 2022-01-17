@@ -7,9 +7,9 @@ DNS leak fix:
   systemctl enable --now systemd-resolved
 '''
 
-from os import chdir
-from subprocess import run, PIPE
+import os
 import argparse
+from subprocess import run, PIPE
 
 vpn = '/etc/openvpn'
 auth = vpn + '/details'
