@@ -291,5 +291,7 @@ elif args.list:
    list(args.list)
 else:
    fzf = ['fzf', '-0', '-1', '--cycle', '--height', '60%']
-   chdir(f'{vpn}/ovpn_{protocol}')
-   print('Hello')
+   with os.scandir(f'{vpn}/ovpn_{protocol}') as ls:
+      configs = [file for file in ls if file.endswith('.ovpn')]
+      config = run(fzf, stdin=configs, stdout=PIPE, text=True)
+      print(config)
