@@ -19,14 +19,11 @@ args = parser.parse_args()
 
 # Site selection
 fzf = ['fzf', '-0', '-1', '--cycle', '--height', '60%']
+if args.pattern:
+   fzf.extend(('-q', args.pattern))
 
 with open(sites) as file:
-
-   if args.pattern:
-      site = run(fzf + ['-q', args.pattern], stdin=file, stdout=PIPE, text=True)
-   else:
-      site = run(fzf, stdin=file, stdout=PIPE, text=True)
-
+   site = run(fzf, stdin=file, stdout=PIPE, text=True)
    site = site.stdout.rstrip()
 
 match = re.match(r'https?://\S+', site) or \
