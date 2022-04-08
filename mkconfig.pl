@@ -392,7 +392,7 @@ sub links
       [qw( sf scripts/pc.pl            ~/bin/pc           )],
       [qw( sf scripts/rseverywhere.pl  ~/bin/rseverywhere )],
       [qw( sf scripts/vpn.pl           ~/bin/vpn          )],
-      [qw( sf scripts/www.pl           ~/bin/www          )],
+      [qw( sf scripts/www.py           ~/bin/www          )],
       [qw( sf scripts/colors_term.bash ~/bin              )],
       [qw( sf scripts/colors_tmux.bash ~/bin              )],
       # config
