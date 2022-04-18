@@ -19,7 +19,7 @@ parser.add_argument("pattern", nargs="?", type=str, help="site filter criteria")
 args = parser.parse_args()
 
 # Site selection
-fzf = ['fzf', '-0', '-1', '--cycle', '--height', '60%']
+fzf = ('fzf', '-0', '-1', '--cycle', '--height', '60%')
 if args.pattern:
    fzf.extend(('-q', args.pattern))
 
