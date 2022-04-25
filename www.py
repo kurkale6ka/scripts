@@ -4,7 +4,6 @@
 
 import argparse
 import re
-import sys
 import webbrowser as browser
 from os import environ as env
 from subprocess import run, PIPE
@@ -41,4 +40,4 @@ if match:
    browser.open(url)
 else:
    error = f"No valid URL in: {site}" if site else 'No match'
-   print(error, file=sys.stderr)
+   exit(error)
