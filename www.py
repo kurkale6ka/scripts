@@ -20,24 +20,27 @@ args = parser.parse_args()
 # Site selection
 fzf = ['fzf', '-0', '-1', '--cycle', '--height', '60%'] # can't be a tuple because of -q
 if args.pattern:
-   fzf.extend(('-q', args.pattern))
+    fzf.extend(('-q', args.pattern))
 
-with open(sites) as file:
-   site = run(fzf, stdin=file, stdout=PIPE, text=True)
-   site = site.stdout.rstrip()
+try:
+    with open(sites) as file:
+        site = run(fzf, stdin=file, stdout=PIPE, text=True)
+        site = site.stdout.rstrip()
+except FileNotFoundError:
+    exit('Add your bookmarks to: ' + sites.replace(env["HOME"], "~"))
 
 match = search(r'https?://\S+', site) or \
         search(r'www\.\S+',     site) or \
         search(r'\S+\.com\b',   site)
 
 if match:
-   url = match.group()
+    url = match.group()
 
-   if not url.casefold().startswith('http'):
-      url = "https://" + url
+    if not url.casefold().startswith('http'):
+        url = "https://" + url
 
-   print(url)
-   browser.open(url)
+    print(url)
+    browser.open(url)
 else:
-   error = f"No valid URL in: {site}" if site else 'No match'
-   exit(error)
+    error = f"No valid URL in: {site}" if site else 'No match'
+    exit(error)
