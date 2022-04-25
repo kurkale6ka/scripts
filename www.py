@@ -3,8 +3,8 @@
 """Fuzzy search & open of websites loaded from a file"""
 
 import argparse
-import re
 import webbrowser as browser
+from re import search
 from os import environ as env
 from subprocess import run, PIPE
 
@@ -26,9 +26,9 @@ with open(sites) as file:
    site = run(fzf, stdin=file, stdout=PIPE, text=True)
    site = site.stdout.rstrip()
 
-match = re.search(r'https?://\S+', site) or \
-        re.search(r'www\.\S+',     site) or \
-        re.search(r'\S+\.com\b',   site)
+match = search(r'https?://\S+', site) or \
+        search(r'www\.\S+',     site) or \
+        search(r'\S+\.com\b',   site)
 
 if match:
    url = match.group()
