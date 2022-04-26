@@ -15,6 +15,7 @@
 # - batcat, ln -s /bin/batcat ~/bin/bat
 # - ripgrep
 # - python3-pip
+# - wslu (needed to open browser pages)
 
 use v5.26;
 use warnings;
