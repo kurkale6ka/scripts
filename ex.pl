@@ -79,7 +79,7 @@ sub fzf
    }
    else
    {
-      my $find = "fd -tf $hidden -E.git -E.svn -E.hg --ignore-file ~/.gitignore";
+      my $find = "fd -tf $hidden --strip-cwd-prefix -E.git -E.svn -E.hg --ignore-file ~/.gitignore";
       my $preview = "if file --mime {} | grep -q binary; then echo 'No preview available' 1>&2; else cat {}; fi";
 
       # search help files matching topic
