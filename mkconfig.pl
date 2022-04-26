@@ -5,6 +5,12 @@
 #
 # run this script with:
 # perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.pl) -h
+#
+# TODO:
+# - ssh github to accept IP
+# - eval `ssh-agent -s`
+# - ssh-add
+# - make available in -h : $ENV{REPOS_BASE}/scripts/db-create + change to python
 
 use v5.26;
 use warnings;
