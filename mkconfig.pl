@@ -11,6 +11,10 @@
 # - eval `ssh-agent -s`
 # - ssh-add
 # - make available in -h : $ENV{REPOS_BASE}/scripts/db-create + change to python
+# - fd-find, ln -s /bin/fdfind ~/bin/fd
+# - batcat, ln -s /bin/batcat ~/bin/bat
+# - ripgrep
+# - python3-pip
 
 use v5.26;
 use warnings;
