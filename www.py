@@ -26,8 +26,8 @@ try:
     with open(sites) as file:
         site = run(fzf, stdin=file, stdout=PIPE, text=True)
         site = site.stdout.rstrip()
-except FileNotFoundError:
-    exit('Add your bookmarks to: ' + sites.replace(env["HOME"], "~"))
+except FileNotFoundError as err:
+    exit('Add your bookmarks to: ' + err.filename.replace(env["HOME"], "~"))
 
 match = search(r'https?://\S+', site) or \
         search(r'www\.\S+',     site) or \
