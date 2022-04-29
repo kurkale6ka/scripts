@@ -394,7 +394,6 @@ sub links
       # scripts
       [qw( sf scripts/backup.pl        ~/bin/b            )],
       [qw( sf scripts/ex.pl            ~/bin/ex           )],
-      [qw( sf scripts/cal.py           ~/bin/cal          )],
       [qw( sf scripts/calc.pl          ~/bin/=            )],
       [qw( sf scripts/cert.pl          ~/bin/cert         )],
       [qw( sf scripts/helpers.py       ~/.pyrc            )],

@@ -11,6 +11,8 @@ options:
   * always provide -3/-y (must be used in 1st position)
 '''
 
+# TODO: argparse fro -3, -y, -h for them plus gcal, ncal help
+
 from sys import argv
 from os import execlp
 from shutil import which
@@ -44,4 +46,6 @@ else:
     exit('Please install gcal, ncal or cal!')
 
 cal.extend(args)
-execlp(cal[0], *cal)
+
+if __name__  == "__main__":
+    execlp(cal[0], *cal)
