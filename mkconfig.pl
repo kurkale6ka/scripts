@@ -7,7 +7,7 @@
 # perl <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.pl) -h
 #
 # TODO:
-# - ssh github to accept IP
+# - ssh -T git@github.com to accept IP
 # - eval `ssh-agent -s`
 # - ssh-add
 # - make available in -h : $ENV{REPOS_BASE}/scripts/db-create + change to python
