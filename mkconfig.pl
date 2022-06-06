@@ -354,7 +354,7 @@ sub status
       }
 
       # kid
-      my @status = `git status -b --show-stash --porcelain`;
+      my @status = `git status -b --porcelain`;
 
       if (@status > 1 or any {/ahead|behind/} @status)
       {
