@@ -1,11 +1,11 @@
 FROM debian:stable-slim
-RUN apt update && apt upgrade -y
-RUN apt install -y \
-    zsh \
+RUN apt-get update && apt-get -y upgrade
+RUN apt-get -y install \
     ca-certificates \
-    openssh \
-    perl
+    openssl \
+    perl \
+    zsh
 WORKDIR /usr/local/src
-COPY cert.pl mkconfig.pl .
-CMD [ "zsh" ]
+COPY cert.pl mkconfig.pl ./
 ENTRYPOINT [ "perl" ]
+CMD [ "-e", "print 'Perl script expected\n'" ]
