@@ -1,7 +1,9 @@
 FROM debian:stable-slim
-RUN apt update && apt upgrade -y
-RUN apt install -y \
+RUN apt-get update && apt-get -y upgrade
+RUN apt-get -y install \
     zsh \
-    ipcalc \
+    ipcalc
+ENV PROMPT='%n@zsh:%~%# '
+ENV RPROMPT='%m'
 WORKDIR /usr/local/src
 CMD [ "zsh" ]
