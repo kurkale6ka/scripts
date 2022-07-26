@@ -3,8 +3,7 @@ RUN apt-get update && apt-get -y upgrade
 RUN apt-get -y install \
     ca-certificates \
     openssl \
-    perl \
-    zsh
+    perl
 WORKDIR /usr/local/src
 COPY cert.pl mkconfig.pl ./
 ENTRYPOINT [ "perl" ]
