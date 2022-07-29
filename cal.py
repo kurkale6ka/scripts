@@ -29,11 +29,14 @@ def cmd(exe):
 
 if cmd('gcal'):
 
+    # -s, --starting-day 1 (Monday)
     cal = ['gcal', '-s1']
 
     if own_args.three:
+        # previous, actual and next month: month mode commands
         cal.append('.')
     elif own_args.year:
+        # -b, --blocks: displays 4 blocks with 3 months at a time (4x3 = 12)
         cal.append('-b4')
 
 elif cmd('ncal'):
