@@ -15,9 +15,12 @@ from shutil import which
 import argparse
 
 parser = argparse.ArgumentParser(prog='cal', description=desc, formatter_class=argparse.RawDescriptionHelpFormatter, add_help=False)
-parser.add_argument("-h", "--help", action="store_true", help="show own help + \"cal\"'s one")
+
+parser.add_argument("-h", "--help",  action="store_true", help="show own help + \"cal\"'s one")
 parser.add_argument("-3", "--three", action="store_true", help="three months display")
-parser.add_argument("-y", "--year", action="store_true", help="whole year display")
+parser.add_argument("-y", "--year",  action="store_true", help="whole year display")
+
+# Store own args as argparse.Namespace and the rest as list
 own_args, args = parser.parse_known_args()
 
 # check if command is in PATH
@@ -25,6 +28,7 @@ def cmd(exe):
     return which(exe) is not None
 
 if cmd('gcal'):
+
     cal = ['gcal', '-s1']
 
     if own_args.three:
@@ -33,12 +37,28 @@ if cmd('gcal'):
         cal.append('-b4')
 
 elif cmd('ncal'):
+
+    # -M Monday, -b oldstyle format: horizontal
     cal = ['ncal', '-Mb']
 
+    # needed as we shadow ncal's ones
+    if own_args.three:
+        cal.append('-3')
+    elif own_args.year:
+        cal.append('-y')
+
 elif cmd('cal'):
-    cal = ['cal', '-m']
+
     # UNIX/FreeBSD version of cal:
-    # cal -m above could fail as support for -m3y was unknown last time I checked
+    # cal -m could fail as support for -m3y was unknown last time I checked
+
+    # -m, --monday
+    cal = ['cal', '-m']
+
+    if own_args.three:
+        cal.append('-3')
+    elif own_args.year:
+        cal.append('-y')
 
 else:
     exit('Please install gcal, ncal or cal!')
