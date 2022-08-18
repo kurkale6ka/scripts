@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""Fuzzy search & open of websites loaded from a file"""
+"""Fuzzy search/launch of websites bookmarked in a file"""
 
 import argparse
 import webbrowser as browser
@@ -9,11 +9,10 @@ from os import environ as env
 from subprocess import run, PIPE
 
 sites = env['XDG_DATA_HOME'] + '/sites'
-desc = f'fuzzy search & open of websites ({sites.replace(env["HOME"], "~")})'
+desc = f'Fuzzy search/launch of websites bookmarked in a file ({sites.replace(env["HOME"], "~")})'
 
 # Arguments
 parser = argparse.ArgumentParser(prog='www', description=desc)
-parser.add_argument("-s", "--sites", type=str, help="file with your bookmarked sites")
 parser.add_argument("pattern", nargs="?", type=str, help="site filter criteria")
 args = parser.parse_args()
 
