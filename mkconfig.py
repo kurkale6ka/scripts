@@ -31,7 +31,7 @@ Repo(base+'zsh')
 )
 
 def status(repo):
-    return repo.name() + ' ' + repo.status()
+    return '{}: {}'.format(repo.name(), repo.status())
 
 with Pool() as pool:
     for status in pool.imap(status, repos):
