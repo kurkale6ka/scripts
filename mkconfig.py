@@ -3,27 +3,23 @@
 ''''''
 
 from os import environ as env
+from os.path import basename
 from multiprocessing import Pool
 from subprocess import run
 
 base = env['HOME']+'/github/'
 
 class Repo(object):
-
-    """"""
-
     def __init__(self, path):
-        """"""
         self.path = path
 
+    def name(self):
+        return basename(self.path)
+
     def status(self):
-
-        st = ('git', '-C', self.path, '-c', 'color.status=always', 'status', '-sb')
-        run(st)
-
-        # tag_cmd = ('git', '-C', self.path, 'describe', '--tags', 'origin/main')
-        # tag = run(tag_cmd, capture_output=True, text=True)
-        # self.current = tag.stdout.rstrip().split('-')[0]
+        cmd = ('git', '-C', self.path, '-c', 'color.status=always', 'status', '-sb')
+        st = run(cmd, capture_output=True, text=True)
+        return st.stdout.rstrip()
 
 repos = (
 Repo(base+'bash'),
@@ -34,16 +30,9 @@ Repo(base+'vim'),
 Repo(base+'zsh')
 )
 
-# def status(repo):
-#     repo.status()
-#     return repo
-
-from time import perf_counter
-start = perf_counter()
+def status(repo):
+    return repo.name() + ' ' + repo.status()
 
 with Pool() as pool:
-    for repo in repos:
-        pool.apply_async(repo.status())
-
-end = perf_counter()
-print('Time elapsed:', end - start)
+    for status in pool.imap(status, repos):
+        print(status)
