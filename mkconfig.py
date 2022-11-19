@@ -1,15 +1,16 @@
 #! /usr/bin/env python3
 
-''''''
+'''Dot files setup'''
 
 from os import environ as env
 from os.path import basename
 from multiprocessing import Pool
 from subprocess import run
+from colorama import Fore as fg, Style as st
 
-base = env['HOME']+'/github/'
+class Repo:
+    base = env['HOME']+'/github/'
 
-class Repo(object):
     def __init__(self, path):
         self.path = path
 
@@ -22,16 +23,16 @@ class Repo(object):
         return st.stdout.rstrip()
 
 repos = (
-Repo(base+'bash'),
-Repo(base+'config'),
-Repo(base+'help'),
-Repo(base+'scripts'),
-Repo(base+'vim'),
-Repo(base+'zsh')
+Repo(Repo.base+'bash'),
+Repo(Repo.base+'config'),
+Repo(Repo.base+'help'),
+Repo(Repo.base+'scripts'),
+Repo(Repo.base+'vim'),
+Repo(Repo.base+'zsh')
 )
 
 def status(repo):
-    return '{}: {}'.format(repo.name(), repo.status())
+    return '{:>7}: {}'.format(fg.CYAN + repo.name() + fg.RESET, repo.status())
 
 with Pool() as pool:
     for status in pool.imap(status, repos):
