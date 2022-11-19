@@ -31,9 +31,9 @@ Repo(Repo.base+'vim'),
 Repo(Repo.base+'zsh')
 )
 
-def status(repo):
-    return '{:>7}: {}'.format(fg.CYAN + repo.name() + fg.RESET, repo.status())
+def get_status(repo):
+    return '{}{:>7}{}: {}'.format(fg.CYAN, repo.name(), fg.RESET, repo.status())
 
 with Pool() as pool:
-    for status in pool.imap(status, repos):
+    for status in pool.imap(get_status, repos):
         print(status)
