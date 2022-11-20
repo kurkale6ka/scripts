@@ -11,6 +11,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", "--status", action="store_true", help="git status")
+parser.add_argument("-p", "--pull", action="store_true", help="git pull")
 args = parser.parse_args()
 
 base = env['HOME']+'/github/'
@@ -33,6 +34,11 @@ def get_status(repo):
     if repo.is_dirty() or repo.active_branch.name not in ('main', 'master'):
         print(f'{fg.CYAN}{basename(repo.git.working_dir)}{fg.RESET}: {repo.git(c="color.status=always").status("-sb")}')
 
+def pull(repo):
+    print(f'{fg.CYAN}{basename(repo.git.working_dir)}{fg.RESET}: {repo.git(c="color.ui=always").pull()}')
+
 with Pool() as pool:
     if args.status:
         for _ in pool.imap(get_status, repos): pass
+    if args.pull:
+        for _ in pool.imap(pull, repos): pass
