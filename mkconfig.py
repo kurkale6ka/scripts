@@ -20,10 +20,8 @@ Repo(base+'zsh')
 )
 
 def get_status(repo):
-    # return '{}{:>7}{}: {}'.format(fg.CYAN, repo.name(), fg.RESET, repo.status('-sb'))
     if repo.is_dirty():
-        return basename(repo.git.working_dir) + repo.git.status('-sb')
+        print('{}{}{}: {}'.format(fg.CYAN, basename(repo.git.working_dir), fg.RESET, repo.git(c='color.status=always').status('-sb')))
 
 with Pool() as pool:
-    for status in pool.imap(get_status, repos):
-        print(status)
+    for status in pool.imap(get_status, repos): pass
