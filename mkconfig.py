@@ -10,6 +10,7 @@ from colorama import Fore as fg, Style as st
 import argparse
 
 parser = argparse.ArgumentParser()
+parser.add_argument("-i", "--init", action="store_true", help="Initial setup")
 parser.add_argument("-s", "--status", action="store_true", help="git status")
 parser.add_argument("-p", "--pull", action="store_true", help="git pull")
 args = parser.parse_args()
