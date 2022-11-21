@@ -31,7 +31,7 @@ Repo(base+'zsh'),
 )
 
 def get_status(repo):
-    if repo.is_dirty() or repo.active_branch.name not in ('main', 'master'):
+    if repo.is_dirty(untracked_files=True) or repo.active_branch.name not in ('main', 'master'):
         print(f'{fg.CYAN}{basename(repo.git.working_dir)}{fg.RESET}: {repo.git(c="color.status=always").status("-sb")}')
 
 def pull(repo):
