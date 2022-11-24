@@ -5,8 +5,8 @@ create CSR
 '''
 
 import OpenSSL.crypto as crypto
-
 import argparse
+
 parser = argparse.ArgumentParser()
 parser.add_argument("certificate", type=str, help="certificate file|URL")
 args = parser.parse_args()
