@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#! ~/py-envs/utils/bin/python
 
 '''Show Certificate/CSR info
 create CSR
@@ -16,3 +16,5 @@ with open(args.certificate) as f:
 
 print(cert.get_subject())
 print(cert.get_issuer())
+print(cert.get_notBefore())
+print(cert.get_notAfter())
