@@ -21,8 +21,8 @@ with open(args.certificate, 'rb') as f:
 
 print('{:>7}: {}'.format('subject', cert.subject.rfc4514_string()))
 print('{:>7}: {}'.format('issuer', cert.issuer.rfc4514_string()))
-print('{:>7}: {}'.format('from', cert.not_valid_before))
-print('{:>7}: {}'.format('to', cert.not_valid_after))
+print('{:>7}: {}'.format('from', cert.not_valid_before.strftime('%d %b %Y %R')))
+print('{:>7}: {}'.format('to', cert.not_valid_after.strftime('%d %b %Y %R')))
 
 if args.subject:
     print(cert.subject)
