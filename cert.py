@@ -4,38 +4,25 @@
 create CSR
 '''
 
-import OpenSSL.crypto as crypto
+from cryptography import x509
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("certificate", type=str, help="certificate file|URL")
+parser.add_argument("-f", "--fingerprint", action="store_true", help="")
+parser.add_argument("-s", "--subject", action="store_true", help="")
+parser.add_argument("-i", "--issuer", action="store_true", help="")
+parser.add_argument("-d", "--dates", action="store_true", help="")
+parser.add_argument("-t", "--text", action="store_true", help="")
 args = parser.parse_args()
 
-class Certificate:
+with open(args.certificate, 'rb') as f:
+    cert = x509.load_pem_x509_certificate(f.read())
 
-    def __init__(self, certificate):
-       with open(certificate) as f:
-           self._cert = crypto.load_certificate(crypto.FILETYPE_PEM, f.read())
+print('{:>7}: {}'.format('subject', cert.subject.rfc4514_string()))
+print('{:>7}: {}'.format('issuer', cert.issuer.rfc4514_string()))
+print('{:>7}: {}'.format('from', cert.not_valid_before))
+print('{:>7}: {}'.format('to', cert.not_valid_after))
 
-    @property
-    def subject(self):
-        return self._cert.get_subject()
-
-    @property
-    def issuer(self):
-        return self._cert.get_issuer()
-
-    @property
-    def start(self):
-        return self._cert.get_notBefore()
-
-    @property
-    def end(self):
-        return self._cert.get_notAfter()
-
-cert = Certificate(args.certificate)
-
-print(cert.subject)
-print(cert.issuer)
-print(cert.start)
-print(cert.end)
+if args.subject:
+    print(cert.subject)
