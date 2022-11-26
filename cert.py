@@ -16,38 +16,50 @@ parser.add_argument("-d", "--dates", action="store_true", help="")
 parser.add_argument("-t", "--text", action="store_true", help="")
 args = parser.parse_args()
 
-def prefix(prefix):
-    def decorator(func):
-        def wrapper(*args):
-            return prefix + ': ' + func(*args)
-        return wrapper
-    return decorator
+class Field:
+    def __init__(self, label, value):
+        self._label = label
+        self._value = value
+
+    @property
+    def label(self):
+        return self._label
+
+    @property
+    def value(self):
+        return self._value
 
 class MyCertificate:
 
     def __init__(self, certificate):
-        # self.x509 = None
+        self._fields = []
         with open(certificate, 'rb') as f:
-            self.cert = x509.load_pem_x509_certificate(f.read())
+            self._cert = x509.load_pem_x509_certificate(f.read())
 
-    @property
     def subject(self):
-        return self.cert.subject.rfc4514_string()
+        self._fields.append(Field('subject', self._cert.subject.rfc4514_string()))
+
+    def issuer(self):
+        self._fields.append(Field('issuer', self._cert.issuer.rfc4514_string()))
+
+    def start(self):
+        self._fields.append(Field('from', self._cert.not_valid_before.strftime('%d %b %Y %R')))
+
+    def end(self):
+        self._fields.append(Field('to', self._cert.not_valid_after.strftime('%d %b %Y %R')))
 
     @property
-    @prefix('subject')
-    def label_subject(self):
-        return self.subject
+    def fields(self):
+        return self._fields
+
+    def __str__():
+        # print all fields
+        pass
 
 cert = MyCertificate(args.certificate)
-# cert.x509 = x509
-
-# print('{:>7}: {}'.format('subject', cert.subject.rfc4514_string()))
-# print('{:>7}: {}'.format('issuer', cert.issuer.rfc4514_string()))
-# print('{:>7}: {}'.format('from', cert.not_valid_before.strftime('%d %b %Y %R')))
-# print('{:>7}: {}'.format('to', cert.not_valid_after.strftime('%d %b %Y %R')))
 
 if args.subject:
-    print(cert.subject)
-else:
-    print(cert.label_subject)
+    cert.subject
+
+for field in cert.fields:
+    print(field.label+':', field.value)
