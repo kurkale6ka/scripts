@@ -1,5 +1,9 @@
 #! ~/py-envs/utils/bin/python
 
+# TODO: exclude -t <-> ...
+# format for print
+# add colors
+
 '''Show Certificate/CSR info
 create CSR
 '''
@@ -17,9 +21,10 @@ parser.add_argument("-t", "--text", action="store_true", help="")
 args = parser.parse_args()
 
 class Field:
-    def __init__(self, label, value):
+    def __init__(self, label, value, cmd=None):
         self._label = label
         self._value = value
+        self._cmd = cmd
 
     @property
     def label(self):
@@ -29,37 +34,53 @@ class Field:
     def value(self):
         return self._value
 
+    @property
+    def cmd(self):
+        return self._cmd
+
 class MyCertificate:
 
     def __init__(self, certificate):
-        self._fields = []
         with open(certificate, 'rb') as f:
             self._cert = x509.load_pem_x509_certificate(f.read())
 
+    @property
     def subject(self):
-        self._fields.append(Field('subject', self._cert.subject.rfc4514_string()))
-
-    def issuer(self):
-        self._fields.append(Field('issuer', self._cert.issuer.rfc4514_string()))
-
-    def start(self):
-        self._fields.append(Field('from', self._cert.not_valid_before.strftime('%d %b %Y %R')))
-
-    def end(self):
-        self._fields.append(Field('to', self._cert.not_valid_after.strftime('%d %b %Y %R')))
+        return Field('subject', self._cert.subject.rfc4514_string())
 
     @property
-    def fields(self):
-        return self._fields
+    def issuer(self):
+        return Field('issuer', self._cert.issuer.rfc4514_string())
 
-    def __str__():
-        # print all fields
-        pass
+    @property
+    def start(self):
+        return Field('from', self._cert.not_valid_before.strftime('%d %b %Y %R'))
 
-cert = MyCertificate(args.certificate)
+    @property
+    def end(self):
+        return Field('to', self._cert.not_valid_after.strftime('%d %b %Y %R'))
 
-if args.subject:
-    cert.subject
+    def __str__(self):
+        _fields = (self.subject, self.issuer, self.start, self.end)
+        width = max(len(f.label) for f in _fields)
+        return ''.join('{:>{}}: {}'.format(f.label, width, f.value) + '\n' for f in _fields)
 
-for field in cert.fields:
-    print(field.label+':', field.value)
+if __name__  == "__main__":
+
+    cert = MyCertificate(args.certificate)
+    fields = []
+
+    if args.subject:
+        fields.append(cert.subject)
+
+    if args.issuer:
+        fields.append(cert.issuer)
+
+    if args.dates:
+        fields.extend((cert.start, cert.end))
+
+    if not fields:
+        print(cert)
+
+    for field in fields:
+        print(field.label+':', field.value)
