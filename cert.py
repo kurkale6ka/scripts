@@ -7,7 +7,11 @@
 create CSR
 '''
 
+class colors:
+    grey = '\033[38;5;242m'
+
 from cryptography import x509
+from colorama import Fore as fg
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -61,8 +65,8 @@ class MyCertificate:
 
     @property
     def fields(self):
-        width = max((len(f.label) for f in self._fields), default=1)
-        return '\n'.join('{:>{}}: {}'.format(f.label, width, f.value) for f in self._fields)
+        width = max((len(colors.grey + f.label + fg.RESET) for f in self._fields), default=1)
+        return '\n'.join('{:>{}}: {}'.format(colors.grey + f.label + fg.RESET, width, f.value) for f in self._fields)
 
     def __str__(self):
         for f in 'subject', 'issuer', 'start', 'end':
