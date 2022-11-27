@@ -1,7 +1,6 @@
 #! ~/py-envs/utils/bin/python
 
 # TODO: exclude -t <-> ...
-# format for print
 # add colors
 
 '''Show Certificate/CSR info
@@ -41,46 +40,56 @@ class Field:
 class MyCertificate:
 
     def __init__(self, certificate):
+        self._fields = []
         with open(certificate, 'rb') as f:
             self._cert = x509.load_pem_x509_certificate(f.read())
 
     @property
     def subject(self):
-        return Field('subject', self._cert.subject.rfc4514_string())
+        field = Field('subject', self._cert.subject.rfc4514_string())
+        self._fields.append(field)
+        return field
 
     @property
     def issuer(self):
-        return Field('issuer', self._cert.issuer.rfc4514_string())
+        field = Field('issuer', self._cert.issuer.rfc4514_string())
+        self._fields.append(field)
+        return field
 
     @property
     def start(self):
-        return Field('from', self._cert.not_valid_before.strftime('%d %b %Y %R'))
+        field = Field('from', self._cert.not_valid_before.strftime('%d %b %Y %R'))
+        self._fields.append(field)
+        return field
 
     @property
     def end(self):
-        return Field('to', self._cert.not_valid_after.strftime('%d %b %Y %R'))
+        field = Field('to', self._cert.not_valid_after.strftime('%d %b %Y %R'))
+        self._fields.append(field)
+        return field
+
+    @property
+    def fields(self):
+        width = max(len(f.label) for f in self._fields)
+        return ''.join('{:>{}}: {}'.format(f.label, width, f.value) + '\n' for f in self._fields)
 
     def __str__(self):
-        _fields = (self.subject, self.issuer, self.start, self.end)
-        width = max(len(f.label) for f in _fields)
-        return ''.join('{:>{}}: {}'.format(f.label, width, f.value) + '\n' for f in _fields)
+        self._fields = (self.subject, self.issuer, self.start, self.end)
+        return self.fields
 
 if __name__  == "__main__":
 
     cert = MyCertificate(args.certificate)
-    fields = []
 
     if args.subject:
-        fields.append(cert.subject)
+        cert.subject
 
     if args.issuer:
-        fields.append(cert.issuer)
+        cert.issuer
 
     if args.dates:
-        fields.extend((cert.start, cert.end))
+        cert.start
+        cert.end
 
-    if not fields:
-        print(cert)
-
-    for field in fields:
-        print(field.label+':', field.value)
+    print(cert)
+    # print(cert.fields)
