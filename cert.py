@@ -55,7 +55,7 @@ class MyCertificate:
     def get_field(self, name):
         if name == 'fingerprint':
             field = Field('fingerprint', self._cert.fingerprint(hashes.SHA256()))
-        if name == 'subject':
+        elif name == 'subject':
             field = Field('subject', self._cert.subject.rfc4514_string())
         elif name == 'issuer':
             field = Field('issuer', self._cert.issuer.rfc4514_string())
@@ -82,13 +82,10 @@ if __name__  == "__main__":
 
     if args.fingerprint:
         cert.get_field('fingerprint')
-
     if args.subject:
         cert.get_field('subject')
-
     if args.issuer:
         cert.get_field('issuer')
-
     if args.dates:
         cert.get_field('start')
         cert.get_field('end')
