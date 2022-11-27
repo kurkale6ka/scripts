@@ -37,6 +37,9 @@ class Field:
     def cmd(self):
         return self._cmd
 
+    def __str__(self):
+        return '{}: {}'.format(self._label, self._value)
+
 class MyCertificate:
 
     def __init__(self, certificate):
@@ -70,8 +73,8 @@ class MyCertificate:
 
     @property
     def fields(self):
-        width = max(len(f.label) for f in self._fields)
-        return ''.join('{:>{}}: {}'.format(f.label, width, f.value) + '\n' for f in self._fields)
+        width = max((len(f.label) for f in self._fields), default=1)
+        return '\n'.join('{:>{}}: {}'.format(f.label, width, f.value) for f in self._fields)
 
     def __str__(self):
         self._fields = (self.subject, self.issuer, self.start, self.end)
@@ -91,5 +94,7 @@ if __name__  == "__main__":
         cert.start
         cert.end
 
-    print(cert)
-    # print(cert.fields)
+    if cert.fields:
+        print(cert.fields)
+    else:
+        print(cert)
