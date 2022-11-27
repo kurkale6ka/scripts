@@ -11,6 +11,7 @@ class colors:
     grey = '\033[38;5;242m'
 
 from cryptography import x509
+from cryptography.hazmat.primitives import hashes
 from colorama import Fore as fg
 import argparse
 
@@ -51,15 +52,17 @@ class MyCertificate:
         with open(certificate, 'rb') as f:
             self._cert = x509.load_pem_x509_certificate(f.read())
 
-    def get_field(self, field):
-        if field == 'subject':
-            field = Field(field, self._cert.subject.rfc4514_string())
-        elif field == 'issuer':
-            field = Field(field, self._cert.issuer.rfc4514_string())
-        elif field == 'start':
-            field = Field(field, self._cert.not_valid_before.strftime('%d %b %Y %R'))
-        elif field == 'end':
-            field = Field(field, self._cert.not_valid_after.strftime('%d %b %Y %R'))
+    def get_field(self, name):
+        if name == 'fingerprint':
+            field = Field('fingerprint', self._cert.fingerprint(hashes.SHA256()))
+        if name == 'subject':
+            field = Field('subject', self._cert.subject.rfc4514_string())
+        elif name == 'issuer':
+            field = Field('issuer', self._cert.issuer.rfc4514_string())
+        elif name == 'start':
+            field = Field('from', self._cert.not_valid_before.strftime('%d %b %Y %R'))
+        elif name == 'end':
+            field = Field('to', self._cert.not_valid_after.strftime('%d %b %Y %R'))
         self._fields.append(field)
         return field
 
@@ -76,6 +79,9 @@ class MyCertificate:
 if __name__  == "__main__":
 
     cert = MyCertificate(args.certificate)
+
+    if args.fingerprint:
+        cert.get_field('fingerprint')
 
     if args.subject:
         cert.get_field('subject')
