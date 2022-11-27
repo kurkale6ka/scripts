@@ -47,27 +47,15 @@ class MyCertificate:
         with open(certificate, 'rb') as f:
             self._cert = x509.load_pem_x509_certificate(f.read())
 
-    @property
-    def subject(self):
-        field = Field('subject', self._cert.subject.rfc4514_string())
-        self._fields.append(field)
-        return field
-
-    @property
-    def issuer(self):
-        field = Field('issuer', self._cert.issuer.rfc4514_string())
-        self._fields.append(field)
-        return field
-
-    @property
-    def start(self):
-        field = Field('from', self._cert.not_valid_before.strftime('%d %b %Y %R'))
-        self._fields.append(field)
-        return field
-
-    @property
-    def end(self):
-        field = Field('to', self._cert.not_valid_after.strftime('%d %b %Y %R'))
+    def get_field(self, field):
+        if field == 'subject':
+            field = Field(field, self._cert.subject.rfc4514_string())
+        elif field == 'issuer':
+            field = Field(field, self._cert.issuer.rfc4514_string())
+        elif field == 'start':
+            field = Field(field, self._cert.not_valid_before.strftime('%d %b %Y %R'))
+        elif field == 'end':
+            field = Field(field, self._cert.not_valid_after.strftime('%d %b %Y %R'))
         self._fields.append(field)
         return field
 
@@ -77,7 +65,8 @@ class MyCertificate:
         return '\n'.join('{:>{}}: {}'.format(f.label, width, f.value) for f in self._fields)
 
     def __str__(self):
-        self._fields = (self.subject, self.issuer, self.start, self.end)
+        for f in 'subject', 'issuer', 'start', 'end':
+            self.get_field(f)
         return self.fields
 
 if __name__  == "__main__":
@@ -85,14 +74,14 @@ if __name__  == "__main__":
     cert = MyCertificate(args.certificate)
 
     if args.subject:
-        cert.subject
+        cert.get_field('subject')
 
     if args.issuer:
-        cert.issuer
+        cert.get_field('issuer')
 
     if args.dates:
-        cert.start
-        cert.end
+        cert.get_field('start')
+        cert.get_field('end')
 
     if cert.fields:
         print(cert.fields)
