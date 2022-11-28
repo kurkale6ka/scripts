@@ -1,0 +1,12 @@
+digraph states {
+    ratio=1
+    // splines=false
+    node[shape=plaintext]
+    gaz    -> solid  [label=deposition]
+    gaz    -> liquid [label=condensation]
+    solid  -> gaz    [label=sublimation,color=red]
+    solid  -> liquid [label=melting,color=red]
+    liquid -> solid  [label=solidification]
+    liquid -> gaz    [label=evaporation,color=red]
+    {rank=same solid liquid}
+}
