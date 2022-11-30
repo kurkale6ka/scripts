@@ -5,7 +5,7 @@
 from git import Repo
 from os import environ as env
 from os.path import basename
-from multiprocessing import Pool
+import asyncio
 from colorama import Fore as fg, Style as st
 import argparse
 
@@ -31,9 +31,15 @@ Repo(base+'vim/plugged/vim-swap'),
 Repo(base+'zsh'),
 )
 
-def get_status(repo):
-    # TODO: include stash info
+from time import perf_counter
+start = perf_counter()
+
+async def fetch(repo):
     repo.git.fetch('--prune', '-q')
+
+async def get_status(repo):
+    # TODO: include stash info
+    await fetch(repo)
     if repo.is_dirty(untracked_files=True) or \
        repo.active_branch.name not in ('main', 'master') or \
        repo.git.rev_list('--count', 'HEAD...HEAD@{u}') != '0':
@@ -42,8 +48,14 @@ def get_status(repo):
 def pull(repo):
     print(f'{fg.CYAN}{basename(repo.git.working_dir)}{fg.RESET}: {repo.git(c="color.ui=always").pull()}')
 
-with Pool() as pool:
-    if args.status:
-        for _ in pool.imap(get_status, repos): pass
-    if args.pull:
-        for _ in pool.imap(pull, repos): pass
+async def main():
+    await asyncio.gather(*(get_status(repo) for repo in repos))
+
+if args.status:
+    asyncio.run(main())
+
+# if args.pull:
+#     for _ in pool.imap(pull, repos): pass
+
+end = perf_counter()
+print('Time elapsed:', end - start)
