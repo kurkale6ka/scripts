@@ -35,7 +35,10 @@ from time import perf_counter
 start = perf_counter()
 
 async def fetch(repo):
-    repo.git.fetch('--prune', '-q')
+    proc = await asyncio.create_subprocess_exec('git', '-C', repo.git.working_dir, 'fetch', '--prune', '-q')
+    code = await proc.wait()
+    if not code == 0:
+        print(f'Error while fetching {basename(repo.git.working_dir)}')
 
 async def get_status(repo):
     # TODO: include stash info
