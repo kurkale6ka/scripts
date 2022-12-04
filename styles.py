@@ -33,7 +33,7 @@ class Text(UserString):
 
     @property
     def red(self):
-        return self.style(self._red)
+        return self.style(Text._red)
 
     @red.setter
     def red(self, value):
@@ -41,7 +41,7 @@ class Text(UserString):
 
     @property
     def blue(self):
-        return self.style(self._blue)
+        return self.style(Text._blue)
 
     @blue.setter
     def blue(self, value):
@@ -50,15 +50,15 @@ class Text(UserString):
     # bold, underline, italic
     @property
     def b(self):
-        return self.style(self._b)
+        return self.style(Text._b)
 
     @property
     def u(self):
-        return self.style(self._u)
+        return self.style(Text._u)
 
     @property
     def i(self):
-        return self.style(self._i)
+        return self.style(Text._i)
 
     def __eq__(self, other):
         if isinstance(self._text, dict):
@@ -88,6 +88,4 @@ if __name__  == "__main__":
     print(Text('Hello World').red.rjust(35, '>'))
     print(repr(Text('Hello World').red.b._text['styles']))
 
-    print('\nTests')
-    print('-'*70, '\n')
     unittest.main()
