@@ -3,6 +3,7 @@
 '''Dot files setup'''
 
 from git import Repo
+from git.exc import NoSuchPathError
 from os import environ as env
 from os.path import basename
 import asyncio
@@ -17,22 +18,24 @@ args = parser.parse_args()
 
 base = env['HOME']+'/github/'
 
-repos = (
-Repo(base+'bash'),
-Repo(base+'config'),
-Repo(base+'help'),
-Repo(base+'scripts'),
-Repo(base+'vim'),
-Repo(base+'vim/plugged/vim-blockinsert'),
-Repo(base+'vim/plugged/vim-chess'),
-Repo(base+'vim/plugged/vim-desertEX'),
-Repo(base+'vim/plugged/vim-pairs'),
-Repo(base+'vim/plugged/vim-swap'),
-Repo(base+'zsh'),
-)
+repos = []
+def set_repo(path):
+    try:
+        repos.append(Repo(base + path))
+    except NoSuchPathError:
+        pass
 
-from time import perf_counter
-start = perf_counter()
+set_repo('bash')
+set_repo('config')
+set_repo('help')
+set_repo('scripts')
+set_repo('vim')
+set_repo('vim/plugged/vim-blockinsert')
+set_repo('vim/plugged/vim-chess')
+set_repo('vim/plugged/vim-desertEX')
+set_repo('vim/plugged/vim-pairs')
+set_repo('vim/plugged/vim-swap')
+set_repo('zsh')
 
 async def fetch(repo):
     proc = await asyncio.create_subprocess_exec('git', '-C', repo.git.working_dir, 'fetch', '--prune', '-q')
@@ -56,9 +59,3 @@ async def main():
 
 if args.status:
     asyncio.run(main())
-
-# if args.pull:
-#     for _ in pool.imap(pull, repos): pass
-
-end = perf_counter()
-print('Time elapsed:', end - start)
