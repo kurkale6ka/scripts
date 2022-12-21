@@ -40,11 +40,11 @@ bash
 config
 help
 scripts
-vim
+editor
 zsh
 );
 
-my $plugins = 'vim/plugged';
+my $plugins = 'editor/vim/plugged';
 my @plugins = qw(
 vim-blockinsert
 vim-chess
@@ -55,7 +55,7 @@ vim-swap
 
 my $help_extra = << "-------------";
 ${CYAN}vim-plug${R}
-curl -fLo $ENV{REPOS_BASE}/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+curl -fLo $ENV{REPOS_BASE}/editor/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
 
 ${CYAN}additional packages${R}
@@ -378,10 +378,10 @@ sub links
    # ln -sfT ~/repos/vim ~/.config/nvim
    my @symlinks = (
       # vim
-      [qw( sfT  vim         ~/.config/nvim )],
-      [qw( srfT vim         ~/.vim         )],
-      [qw( srf  vim/.vimrc  ~              )],
-      [qw( srf  vim/.gvimrc ~              )],
+      [qw( sfT  editor/nvim        ~/.config/nvim )],
+      [qw( srfT editor/vim         ~/.vim         )],
+      [qw( srf  editor/vim/.vimrc  ~              )],
+      [qw( srf  editor/vim/.gvimrc ~              )],
       # zsh
       [qw( srf zsh/.zshenv   ~             )],
       [qw( sf  zsh/.zprofile ~/.config/zsh )],
