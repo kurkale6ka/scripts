@@ -379,10 +379,10 @@ sub links
    # ln -sfT ~/repos/vim ~/.config/nvim
    my @symlinks = (
       # vim
-      [qw( sfT  nvim        ~/.config )],
-      [qw( srfT vim         ~/.vim    )],
-      [qw( srf  vim/.vimrc  ~         )],
-      [qw( srf  vim/.gvimrc ~         )],
+      [qw( sfT  nvim        ~/.config/nvim )],
+      [qw( srfT vim         ~/.vim         )],
+      [qw( srf  vim/.vimrc  ~              )],
+      [qw( srf  vim/.gvimrc ~              )],
       # zsh
       [qw( srf zsh/.zshenv   ~             )],
       [qw( sf  zsh/.zprofile ~/.config/zsh )],
