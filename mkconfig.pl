@@ -41,6 +41,7 @@ config
 help
 scripts
 vim
+nvim
 zsh
 );
 
@@ -378,7 +379,7 @@ sub links
    # ln -sfT ~/repos/vim ~/.config/nvim
    my @symlinks = (
       # vim
-      [qw( sfT  vim         ~/.config/nvim )],
+      [qw( sfT  nvim        ~/.config/nvim )],
       [qw( srfT vim         ~/.vim         )],
       [qw( srf  vim/.vimrc  ~              )],
       [qw( srf  vim/.gvimrc ~              )],
