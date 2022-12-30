@@ -417,6 +417,9 @@ sub links
       [qw( srf config/tmux/.tmux.conf      ~           )],
    );
 
+   # ~/.config/repos
+   system 'ln', '-sfT', $ENV{REPOS_BASE}, "$ENV{XDG_CONFIG_HOME}/repos";
+
    foreach (@symlinks)
    {
       my ($opts, $target, $name) = @$_;
