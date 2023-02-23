@@ -5,7 +5,7 @@
 from git import Repo
 from git.exc import NoSuchPathError
 from os import environ as env
-from os.path import basename
+from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
 import asyncio
@@ -15,8 +15,10 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--init", action="store_true", help="Initial setup: WIP...")
 parser.add_argument("-l", "--links", action="store_true", help="Make links")
+parser.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
 parser.add_argument("-s", "--status", action="store_true", help="git status")
 parser.add_argument("-p", "--pull", action="store_true", help="git pull")
+parser.add_argument("-v", "--verbose", action="store_true")
 args = parser.parse_args()
 
 base = env["HOME"] + "/repos/github/"
@@ -55,7 +57,7 @@ async def fetch(repo):
     )
     code = await proc.wait()
     if code != 0:
-        print(f"Error while fetching {basename(repo.git.working_dir)}, code: {code}")
+        print(f"Error while fetching {Path(repo.git.working_dir).name}, code: {code}")
 
 
 async def get_status(repo):
@@ -67,13 +69,13 @@ async def get_status(repo):
         or repo.git.rev_list("--count", "HEAD...HEAD@{u}") != "0"
     ):
         print(
-            f'{Text(basename(repo.git.working_dir)).cyan}: {repo.git(c="color.status=always").status("-sb")}'
+            f'{Text(Path(repo.git.working_dir).name).cyan}: {repo.git(c="color.status=always").status("-sb")}'
         )
 
 
 def pull(repo):
     print(
-        f'{Text(basename(repo.git.working_dir)).cyan}: {repo.git(c="color.ui=always").pull()}'
+        f'{Text(Path(repo.git.working_dir).name).cyan}: {repo.git(c="color.ui=always").pull()}'
     )
 
 
@@ -82,39 +84,80 @@ async def main():
 
 
 class Link:
-    # args is a string, e.g '-rT' => makes a relative link to a directory
-    def __init__(self, src, dst, args=None):
-        self.src, self.dst, self.args = src, dst, args
-
-
-class MyRepo:
     bin = env["HOME"] + "/bin"
 
-    def __init__(self, root, links=()):
-        self._links = links
-        self._root = root
+    # args is a string, e.g '-rT' => makes a relative link to a directory
+    def __init__(self, src, dst, args=None):
+        self._src, self._dst, self._args = src, dst, args
 
-    # TODO: move to class Link
-    def _link(self, src, dst, args):
+    # source getter/setter
+    @property
+    def src(self):
+        return self._src
+
+    @src.setter
+    def src(self, value):
+        self._src = value
+
+    # destination getter/setter
+    @property
+    def dst(self):
+        return self._dst
+
+    @dst.setter
+    def dst(self, value):
+        self._dst = value
+
+    def create(self, verbose=False):
         cmd = ["ln", "-sf"]
-        if args:
-            cmd.append(args)  # extra ln args
-        cmd.append(self._root.rstrip("/") + "/" + src)
-        cmd.append(dst)
+
+        # extra args
+        if verbose:
+            cmd.append("-v")
+        if self._args:
+            cmd.append(self._args)
+
+        cmd.append(self._src)
+        cmd.append(self._dst)
+
         p = Process(target=run, args=(cmd,))
         p.start()
         p.join()
 
-    def create_links(self):
+    def remove(self, verbose=False):
+        cmd = ["rm"]
+        if verbose:
+            cmd.append("-v")
+
+        if Path(self._dst).is_dir() and not Path(self._dst).is_symlink():
+            cmd.append(self._dst + "/" + Path(self._src).name)
+        else:
+            cmd.append(self._dst)
+
+        p = Process(target=run, args=(cmd,))
+        p.start()
+        p.join()
+
+
+class MyRepo:
+    def __init__(self, root, links=()):
+        self._links = links
+        self._root = root
+
+    def create_links(self, verbose=False):
         for link in self._links:
-            self._link(link.src, link.dst, link.args)
+            if link.src:
+                # prepend the repo root
+                link.src = self._root + "/" + link.src
+            else:
+                link.src = self._root
+            link.create(verbose)
 
 
-links = {
-    # TODO: fix nvim, vim links
-    "nvim": (Link("nvim", f"{env['XDG_CONFIG_HOME']}/nvim", "-T"),),
+repo_links = {
+    "nvim": (Link(None, f"{env['XDG_CONFIG_HOME']}/nvim", "-T"),),
     "vim": (
-        Link("vim", f"{env['HOME']}/.vim", "-rT"),
+        Link(None, f"{env['HOME']}/.vim", "-rT"),
         Link(".vimrc", f"{env['HOME']}", "-r"),
         Link(".gvimrc", f"{env['HOME']}", "-r"),
     ),
@@ -131,23 +174,23 @@ links = {
     ),
     "scripts": (
         Link("helpers.py", f"{env['HOME']}/.pyrc", "-r"),
-        Link("backup.pl", f"{MyRepo.bin}/b"),
-        Link("ex.pl", f"{MyRepo.bin}/ex"),
-        Link("calc.pl", f"{MyRepo.bin}/="),
-        Link("cert.pl", f"{MyRepo.bin}/cert"),
-        Link("mkconfig.pl", f"{MyRepo.bin}/mkconfig"),
-        Link("mini.pl", f"{MyRepo.bin}/mini"),
-        Link("pics.pl", f"{MyRepo.bin}/pics"),
-        Link("pc.pl", f"{MyRepo.bin}/pc"),
-        Link("rseverywhere.pl", f"{MyRepo.bin}/rseverywhere"),
-        Link("vpn.pl", f"{MyRepo.bin}/vpn"),
-        Link("www.py", f"{MyRepo.bin}/www"),
-        Link("colors_term.bash", f"{MyRepo.bin}"),
-        Link("colors_tmux.bash", f"{MyRepo.bin}"),
+        Link("backup.pl", f"{Link.bin}/b"),
+        Link("ex.pl", f"{Link.bin}/ex"),
+        Link("calc.pl", f"{Link.bin}/="),
+        Link("cert.pl", f"{Link.bin}/cert"),
+        Link("mkconfig.pl", f"{Link.bin}/mkconfig"),
+        Link("mini.pl", f"{Link.bin}/mini"),
+        Link("pics.pl", f"{Link.bin}/pics"),
+        Link("pc.pl", f"{Link.bin}/pc"),
+        Link("rseverywhere.pl", f"{Link.bin}/rseverywhere"),
+        Link("vpn.pl", f"{Link.bin}/vpn"),
+        Link("www.py", f"{Link.bin}/www"),
+        Link("colors_term.bash", f"{Link.bin}"),
+        Link("colors_tmux.bash", f"{Link.bin}"),
     ),
     "config": (
-        Link("tmux/lay.pl", f"{MyRepo.bin}/lay"),
-        Link("tmux/Nodes.pm", f"{MyRepo.bin}/nodes"),
+        Link("tmux/lay.pl", f"{Link.bin}/lay"),
+        Link("tmux/Nodes.pm", f"{Link.bin}/nodes"),
         Link("dotfiles/.gitignore", f"{env['HOME']}", "-r"),
         Link("dotfiles/.irbrc", f"{env['HOME']}", "-r"),
         Link("dotfiles/.Xresources", f"{env['HOME']}", "-r"),
@@ -156,20 +199,20 @@ links = {
     ),
 }
 
-# TODO: process in parallel
-if args.links:
-    nvim = MyRepo(base + "nvim", links["nvim"])
-    nvim.create_links()
-    vim = MyRepo(base + "vim", links["vim"])
-    vim.create_links()
-    zsh = MyRepo(base + "zsh", links["zsh"])
-    zsh.create_links()
-    bash = MyRepo(base + "bash", links["bash"])
-    bash.create_links()
-    scripts = MyRepo(base + "scripts", links["scripts"])
-    scripts.create_links()
-    config = MyRepo(base + "config", links["config"])
-    config.create_links()
+if __name__ == "__main__":
+    if args.links:
+        for name, links in repo_links.items():
+            repo = MyRepo(base + name, links)
+            p = Process(target=repo.create_links, args=(args.verbose,))
+            p.start()
+            p.join()
 
-if args.status:
-    asyncio.run(main())
+    if args.delete_links:
+        for links in repo_links.values():
+            for link in links:
+                p = Process(target=link.remove, args=(args.verbose,))
+                p.start()
+                p.join()
+
+    if args.status:
+        asyncio.run(main())
