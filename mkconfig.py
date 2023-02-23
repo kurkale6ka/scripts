@@ -160,7 +160,7 @@ repo_links = {
         Link("ex.pl", f"{Link.bin}/ex"),
         Link("calc.pl", f"{Link.bin}/="),
         Link("cert.pl", f"{Link.bin}/cert"),
-        Link("mkconfig.pl", f"{Link.bin}/mkconfig"),
+        Link("mkconfig.py", f"{Link.bin}/mkconfig"),
         Link("mini.pl", f"{Link.bin}/mini"),
         Link("pics.pl", f"{Link.bin}/pics"),
         Link("pc.pl", f"{Link.bin}/pc"),
