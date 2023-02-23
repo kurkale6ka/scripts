@@ -3,84 +3,26 @@
 """Dot files setup"""
 
 from git import Repo
-from git.exc import NoSuchPathError
+from git.exc import NoSuchPathError, GitCommandError
 from os import environ as env
 from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
 import asyncio
-from styles.styles import Text
 import argparse
+# from tqdm.asyncio import tqdm
+from styles.styles import Text
+
+base = env["HOME"] + "/repos/github/"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--init", action="store_true", help="Initial setup: WIP...")
 parser.add_argument("-l", "--links", action="store_true", help="Make links")
 parser.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
 parser.add_argument("-s", "--status", action="store_true", help="git status")
-parser.add_argument("-p", "--pull", action="store_true", help="git pull")
+parser.add_argument("-u", "--update", action="store_true", help="Update repositories")
 parser.add_argument("-v", "--verbose", action="store_true")
 args = parser.parse_args()
-
-base = env["HOME"] + "/repos/github/"
-repos = []
-
-
-# TODO: move to the class
-def set_repo(path):
-    try:
-        repos.append(Repo(base + path))
-    except NoSuchPathError:
-        pass
-
-
-# TODO: move to the class
-set_repo("bash")
-set_repo("config")
-set_repo("help")
-set_repo("scripts")
-set_repo("vim")
-set_repo("vim/plugged/vim-blockinsert")
-set_repo("vim/plugged/vim-chess")
-set_repo("vim/plugged/vim-desertEX")
-set_repo("vim/plugged/vim-pairs")
-set_repo("vim/plugged/vim-swap")
-set_repo("nvim")
-# set_repo('vim-chess')
-# set_repo('vim-desertEX')
-# set_repo('vim-pairs')
-set_repo("zsh")
-
-
-async def fetch(repo):
-    proc = await asyncio.create_subprocess_exec(
-        "git", "-C", repo.git.working_dir, "fetch", "--prune", "-q"
-    )
-    code = await proc.wait()
-    if code != 0:
-        print(f"Error while fetching {Path(repo.git.working_dir).name}, code: {code}")
-
-
-async def get_status(repo):
-    # TODO: include stash info
-    await fetch(repo)
-    if (
-        repo.is_dirty(untracked_files=True)
-        or repo.active_branch.name not in ("main", "master")
-        or repo.git.rev_list("--count", "HEAD...HEAD@{u}") != "0"
-    ):
-        print(
-            f'{Text(Path(repo.git.working_dir).name).cyan}: {repo.git(c="color.status=always").status("-sb")}'
-        )
-
-
-def pull(repo):
-    print(
-        f'{Text(Path(repo.git.working_dir).name).cyan}: {repo.git(c="color.ui=always").pull()}'
-    )
-
-
-async def main():
-    await asyncio.gather(*(get_status(repo) for repo in repos))
 
 
 class Link:
@@ -126,6 +68,7 @@ class Link:
 
     def remove(self, verbose=False):
         cmd = ["rm"]
+
         if verbose:
             cmd.append("-v")
 
@@ -143,6 +86,10 @@ class MyRepo:
     def __init__(self, root, links=()):
         self._links = links
         self._root = root
+        try:
+            self._repo = Repo(self._root)  # git repo wrapper
+        except NoSuchPathError:
+            pass
 
     def create_links(self, verbose=False):
         for link in self._links:
@@ -152,6 +99,41 @@ class MyRepo:
             else:
                 link.src = self._root
             link.create(verbose)
+
+    async def fetch(self):
+        proc = await asyncio.create_subprocess_exec(
+            "git", "-C", self._repo.git.working_dir, "fetch", "--prune", "-q"
+        )
+        code = await proc.wait()
+        if code != 0:
+            print(
+                f"Error while fetching {Path(self._repo.git.working_dir).name}, code: {code}"
+            )
+
+    async def status(self):
+        # TODO: include stash info
+        await self.fetch()
+        if (
+            self._repo.is_dirty(untracked_files=True)
+            or self._repo.active_branch.name not in ("main", "master")
+            or self._repo.git.rev_list("--count", "HEAD...HEAD@{u}") != "0"
+        ):
+            print(
+                Text(Path(self._repo.git.working_dir).name).cyan + ":",
+                self._repo.git(c="color.status=always").status("-sb"),
+            )
+
+    async def update(self):
+        try:
+            print(
+                Text(Path(self._repo.git.working_dir).name).cyan + ":",
+                self._repo.git(c="color.ui=always").pull("--prune"),
+            )
+        except GitCommandError as err:
+            print(
+                Text(Path(self._repo.git.working_dir).name).cyan + ":",
+                Text(err.stderr.lstrip().replace("\n", "\n\t")).red,
+            )
 
 
 repo_links = {
@@ -215,4 +197,35 @@ if __name__ == "__main__":
                 p.join()
 
     if args.status:
+
+        async def main():
+            async with asyncio.TaskGroup() as tg:
+                # TODO:
+                # set_repo("vim/plugged/vim-blockinsert")
+                # set_repo("vim/plugged/vim-chess")
+                # set_repo("vim/plugged/vim-desertEX")
+                # set_repo("vim/plugged/vim-pairs")
+                # set_repo("vim/plugged/vim-swap")
+                # set_repo('vim-chess')
+                # set_repo('vim-desertEX')
+                # set_repo('vim-pairs')
+                for name in repo_links.keys():
+                    repo = MyRepo(base + name, ())
+                    tg.create_task(repo.status())
+
+        asyncio.run(main())
+
+    if args.update:
+
+        async def main():
+            async with asyncio.TaskGroup() as tg:
+                # with tqdm(total=len(repo_links)) as pbar:
+                # pbar.leave(True)
+                # pbar.set_description('Updating repos...')
+                # (leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
+                for name in repo_links.keys():
+                    repo = MyRepo(base + name, ())
+                    tg.create_task(repo.update())
+                    # pbar.update(1)
+
         asyncio.run(main())
