@@ -15,13 +15,16 @@ from styles.styles import Text
 
 base = env["HOME"] + "/repos/github/"
 
+# TODO: snippet start perf / end perf ???
 parser = argparse.ArgumentParser()
+group1 = parser.add_mutually_exclusive_group()
+group2 = parser.add_mutually_exclusive_group()
 parser.add_argument("-i", "--init", action="store_true", help="Initial setup: WIP...")
-parser.add_argument("-l", "--links", action="store_true", help="Make links")
-parser.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
-parser.add_argument("-s", "--status", action="store_true", help="git status")
-parser.add_argument("-u", "--update", action="store_true", help="Update repositories")
 parser.add_argument("-v", "--verbose", action="store_true")
+group1.add_argument("-l", "--links", action="store_true", help="Make links")
+group1.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
+group2.add_argument("-s", "--status", action="store_true", help="git status")
+group2.add_argument("-u", "--update", action="store_true", help="Update repositories")
 args = parser.parse_args()
 
 
@@ -215,10 +218,12 @@ if __name__ == "__main__":
 
         asyncio.run(main())
 
+    # TODO: run too when no args
     if args.update:
 
         async def main():
             async with asyncio.TaskGroup() as tg:
+                # TODO:
                 # with tqdm(total=len(repo_links)) as pbar:
                 # pbar.leave(True)
                 # pbar.set_description('Updating repos...')
