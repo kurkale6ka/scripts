@@ -16,6 +16,7 @@ import argparse
 # from tqdm.asyncio import tqdm
 from styles.styles import Text
 
+# TODO: use env['REPOS_BASE'] instead?
 base = env["HOME"] + "/repos/github/"
 
 # TODO: snippet start perf / end perf ???
@@ -24,7 +25,12 @@ parser = argparse.ArgumentParser()
 links_grp = parser.add_mutually_exclusive_group()
 git_grp = parser.add_mutually_exclusive_group()
 parser.add_argument("-i", "--init", action="store_true", help="Initial setup: WIP...")
-parser.add_argument("-g", "--git-config", action="store_true", help="git config")
+parser.add_argument(
+    "-c", "--cd-db-create", action="store_true", help="Create fuzzy cd database"
+)
+parser.add_argument("--git-clone", action="store_true", help="git clone ...")
+parser.add_argument("--clone-dst", type=str, help="cd to this directory before cloning")
+parser.add_argument("-g", "--git-config", action="store_true", help="git config ...")
 parser.add_argument("-t", "--tags", action="store_true", help="Generate tags")
 parser.add_argument("-v", "--verbose", action="store_true")
 links_grp.add_argument("-l", "--links", action="store_true", help="Make links")
@@ -95,6 +101,8 @@ class MyRepo:
     def __init__(self, root, links=()):
         self._links = links
         self._root = root
+        self._parent = Path(self._root).parent
+        self._name = Path(self._root).name
         try:
             self._repo = Repo(self._root)  # git repo wrapper
         except NoSuchPathError:
@@ -111,13 +119,9 @@ class MyRepo:
 
     async def fetch(self):
         proc = await asyncio.create_subprocess_exec(
-            "git", "-C", self._repo.git.working_dir, "fetch", "--prune", "-q"
+            "git", "-C", self._root, "fetch", "--prune", "-q"
         )
-        code = await proc.wait()
-        if code != 0:
-            print(
-                f"Error while fetching {Path(self._repo.git.working_dir).name}, code: {code}"
-            )
+        await proc.wait()
 
     async def status(self):
         # TODO: include stash info
@@ -128,19 +132,31 @@ class MyRepo:
             or self._repo.git.rev_list("--count", "HEAD...HEAD@{u}") != "0"
         ):
             print(
-                Text(Path(self._repo.git.working_dir).name).cyan + ":",
+                Text(self._name).cyan + ":",
                 self._repo.git(c="color.status=always").status("-sb"),
             )
+
+    async def clone(self, where, verbose=False):
+        # url = f"git@github.com:kurkale6ka/{self._name}.git"
+        url = f"https://github.com/kurkale6ka/{self._name}.git"
+
+        proc = await asyncio.create_subprocess_exec(
+            "git", "-C", where, "clone", url, "" if verbose else "-q"
+        )
+        code = await proc.wait()
+
+        if code == 0:
+            print(f"cloned {Text(self._name).cyan}")
 
     async def update(self):
         try:
             print(
-                Text(Path(self._repo.git.working_dir).name).cyan + ":",
+                Text(self._name).cyan + ":",
                 self._repo.git(c="color.ui=always").pull("--prune"),
             )
         except GitCommandError as err:
             print(
-                Text(Path(self._repo.git.working_dir).name).cyan + ":",
+                Text(self._name).cyan + ":",
                 Text(err.stderr.lstrip().replace("\n", "\n\t")).red,
             )
 
@@ -207,6 +223,15 @@ def remove_links():
             p.join()
 
 
+def cd_db_create():
+    cmd = ("bash", f"{base}scripts/db-create")
+
+    if args.verbose:
+        print(" ".join(cmd).replace(env["HOME"], "~"))
+
+    run(cmd)
+
+
 def git_config():
     cmd = ("bash", f"{base}config/git.bash")
 
@@ -216,6 +241,7 @@ def git_config():
     run(cmd)
 
 
+# TODO: add -v
 def git_status():
     async def main():
         async with asyncio.TaskGroup() as tg:
@@ -235,6 +261,17 @@ def git_status():
     asyncio.run(main())
 
 
+def git_clone():
+    async def main():
+        async with asyncio.TaskGroup() as tg:
+            for name in repo_links.keys():
+                repo = MyRepo(base + name, ())
+                tg.create_task(repo.clone(args.clone_dst or base, verbose=args.verbose))
+
+    asyncio.run(main())
+
+
+# TODO: add -v
 def git_pull():
     async def main():
         async with asyncio.TaskGroup() as tg:
@@ -283,6 +320,12 @@ if __name__ == "__main__":
 
     if args.delete_links:
         remove_links()
+
+    if args.cd_db_create:
+        cd_db_create()
+
+    if args.git_clone:
+        git_clone()
 
     if args.git_config:
         git_config()
