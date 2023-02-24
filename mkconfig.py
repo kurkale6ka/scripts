@@ -9,8 +9,10 @@ from sys import argv
 from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
+from pprint import pprint
 import asyncio
 import argparse
+
 # from tqdm.asyncio import tqdm
 from styles.styles import Text
 
@@ -18,14 +20,15 @@ base = env["HOME"] + "/repos/github/"
 
 # TODO: snippet start perf / end perf ???
 parser = argparse.ArgumentParser()
-group1 = parser.add_mutually_exclusive_group()
-group2 = parser.add_mutually_exclusive_group()
+links_grp = parser.add_mutually_exclusive_group()
+git_grp = parser.add_mutually_exclusive_group()
 parser.add_argument("-i", "--init", action="store_true", help="Initial setup: WIP...")
 parser.add_argument("-v", "--verbose", action="store_true")
-group1.add_argument("-l", "--links", action="store_true", help="Make links")
-group1.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
-group2.add_argument("-s", "--status", action="store_true", help="git status")
-group2.add_argument("-u", "--update", action="store_true", help="Update repositories")
+parser.add_argument("-t", "--tags", action="store_true", help="Generate tags")
+links_grp.add_argument("-l", "--links", action="store_true", help="Make links")
+links_grp.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
+git_grp.add_argument("-s", "--status", action="store_true", help="git status")
+git_grp.add_argument("-u", "--update", action="store_true", help="Update repositories")
 args = parser.parse_args()
 
 
@@ -234,3 +237,28 @@ if __name__ == "__main__":
                     # pbar.update(1)
 
         asyncio.run(main())
+
+    if args.tags:
+        cmd = [
+            "ctags",
+            "-R",
+            f"-f {env['HOME']}/repos/tags",
+            "--langmap=zsh:+.",  # files without extension. TODO: fix! not fully working, e.g. net/dig: variable 'out' not found. (zsh/autoload/*) vs . doesn't help
+            "--exclude=.*~",  # *~ excluded by default: ctags --list-excludes
+            "--exclude=keymap",
+            "--exclude=lazy-lock.json",  # lazy nvim
+            f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after",
+            f"{env['XDG_CONFIG_HOME']}/zsh/after",
+        ]
+        cmd.extend(base + name for name in repo_links.keys() if name != "vim")
+
+        if args.verbose:
+            pprint(cmd)
+            print()
+            print(
+                " ".join(cmd)
+                .replace(env["HOME"], "~")
+                .replace(env["XDG_CONFIG_HOME"], "~/.config")
+            )
+
+        run(cmd)
