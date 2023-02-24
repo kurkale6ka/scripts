@@ -5,6 +5,7 @@
 from git import Repo
 from git.exc import NoSuchPathError, GitCommandError
 from os import environ as env
+from sys import argv
 from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
@@ -218,8 +219,7 @@ if __name__ == "__main__":
 
         asyncio.run(main())
 
-    # TODO: run too when no args
-    if args.update:
+    if len(argv) == 1 or args.update:
 
         async def main():
             async with asyncio.TaskGroup() as tg:
