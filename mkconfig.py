@@ -2,7 +2,7 @@
 
 """Dot files setup"""
 
-from git import Repo
+from git.repo import Repo
 from git.exc import NoSuchPathError, GitCommandError
 from os import environ as env
 from sys import argv
@@ -19,12 +19,14 @@ from styles.styles import Text
 base = env["HOME"] + "/repos/github/"
 
 # TODO: snippet start perf / end perf ???
+# TODO: prog, desc, ...
 parser = argparse.ArgumentParser()
 links_grp = parser.add_mutually_exclusive_group()
 git_grp = parser.add_mutually_exclusive_group()
 parser.add_argument("-i", "--init", action="store_true", help="Initial setup: WIP...")
-parser.add_argument("-v", "--verbose", action="store_true")
+parser.add_argument("-g", "--git-config", action="store_true", help="git config")
 parser.add_argument("-t", "--tags", action="store_true", help="Generate tags")
+parser.add_argument("-v", "--verbose", action="store_true")
 links_grp.add_argument("-l", "--links", action="store_true", help="Make links")
 links_grp.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
 git_grp.add_argument("-s", "--status", action="store_true", help="git status")
@@ -188,77 +190,108 @@ repo_links = {
     ),
 }
 
-if __name__ == "__main__":
-    if args.links:
-        for name, links in repo_links.items():
-            repo = MyRepo(base + name, links)
-            p = Process(target=repo.create_links, args=(args.verbose,))
+
+def create_links():
+    for name, links in repo_links.items():
+        repo = MyRepo(base + name, links)
+        p = Process(target=repo.create_links, args=(args.verbose,))
+        p.start()
+        p.join()
+
+
+def remove_links():
+    for links in repo_links.values():
+        for link in links:
+            p = Process(target=link.remove, args=(args.verbose,))
             p.start()
             p.join()
 
+
+def git_config():
+    cmd = ("bash", f"{base}config/git.bash")
+
+    if args.verbose:
+        print(" ".join(cmd).replace(env["HOME"], "~"))
+
+    run(cmd)
+
+
+def git_status():
+    async def main():
+        async with asyncio.TaskGroup() as tg:
+            # TODO:
+            # set_repo("vim/plugged/vim-blockinsert")
+            # set_repo("vim/plugged/vim-chess")
+            # set_repo("vim/plugged/vim-desertEX")
+            # set_repo("vim/plugged/vim-pairs")
+            # set_repo("vim/plugged/vim-swap")
+            # set_repo('vim-chess')
+            # set_repo('vim-desertEX')
+            # set_repo('vim-pairs')
+            for name in repo_links.keys():
+                repo = MyRepo(base + name, ())
+                tg.create_task(repo.status())
+
+    asyncio.run(main())
+
+
+def git_pull():
+    async def main():
+        async with asyncio.TaskGroup() as tg:
+            # TODO:
+            # with tqdm(total=len(repo_links)) as pbar:
+            # pbar.leave(True)
+            # pbar.set_description('Updating repos...')
+            # (leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
+            for name in repo_links.keys():
+                repo = MyRepo(base + name, ())
+                tg.create_task(repo.update())
+                # pbar.update(1)
+
+    asyncio.run(main())
+
+
+def ctags():
+    cmd = [
+        "ctags",
+        "-R",
+        f"-f {env['HOME']}/repos/tags",
+        "--langmap=zsh:+.",  # files without extension. TODO: fix! not fully working, e.g. net/dig: variable 'out' not found. (zsh/autoload/*) vs . doesn't help
+        "--exclude=.*~",  # *~ excluded by default: ctags --list-excludes
+        "--exclude=keymap",
+        "--exclude=lazy-lock.json",  # lazy nvim
+        f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after",
+        f"{env['XDG_CONFIG_HOME']}/zsh/after",
+    ]
+    cmd.extend(base + name for name in repo_links.keys() if name != "vim")
+
+    if args.verbose:
+        pprint(cmd)
+        print()
+        print(
+            " ".join(cmd)
+            .replace(env["HOME"], "~")
+            .replace(env["XDG_CONFIG_HOME"], "~/.config")
+        )
+
+    run(cmd)
+
+
+if __name__ == "__main__":
+    if args.links:
+        create_links()
+
     if args.delete_links:
-        for links in repo_links.values():
-            for link in links:
-                p = Process(target=link.remove, args=(args.verbose,))
-                p.start()
-                p.join()
+        remove_links()
+
+    if args.git_config:
+        git_config()
 
     if args.status:
+        git_status()
 
-        async def main():
-            async with asyncio.TaskGroup() as tg:
-                # TODO:
-                # set_repo("vim/plugged/vim-blockinsert")
-                # set_repo("vim/plugged/vim-chess")
-                # set_repo("vim/plugged/vim-desertEX")
-                # set_repo("vim/plugged/vim-pairs")
-                # set_repo("vim/plugged/vim-swap")
-                # set_repo('vim-chess')
-                # set_repo('vim-desertEX')
-                # set_repo('vim-pairs')
-                for name in repo_links.keys():
-                    repo = MyRepo(base + name, ())
-                    tg.create_task(repo.status())
-
-        asyncio.run(main())
-
-    if len(argv) == 1 or args.update:
-
-        async def main():
-            async with asyncio.TaskGroup() as tg:
-                # TODO:
-                # with tqdm(total=len(repo_links)) as pbar:
-                # pbar.leave(True)
-                # pbar.set_description('Updating repos...')
-                # (leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
-                for name in repo_links.keys():
-                    repo = MyRepo(base + name, ())
-                    tg.create_task(repo.update())
-                    # pbar.update(1)
-
-        asyncio.run(main())
+    if len(argv) == 1 or args.update:  # no args or --update
+        git_pull()
 
     if args.tags:
-        cmd = [
-            "ctags",
-            "-R",
-            f"-f {env['HOME']}/repos/tags",
-            "--langmap=zsh:+.",  # files without extension. TODO: fix! not fully working, e.g. net/dig: variable 'out' not found. (zsh/autoload/*) vs . doesn't help
-            "--exclude=.*~",  # *~ excluded by default: ctags --list-excludes
-            "--exclude=keymap",
-            "--exclude=lazy-lock.json",  # lazy nvim
-            f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after",
-            f"{env['XDG_CONFIG_HOME']}/zsh/after",
-        ]
-        cmd.extend(base + name for name in repo_links.keys() if name != "vim")
-
-        if args.verbose:
-            pprint(cmd)
-            print()
-            print(
-                " ".join(cmd)
-                .replace(env["HOME"], "~")
-                .replace(env["XDG_CONFIG_HOME"], "~/.config")
-            )
-
-        run(cmd)
+        ctags()
