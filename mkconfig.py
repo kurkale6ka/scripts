@@ -25,9 +25,9 @@ grp_ln = parser.add_mutually_exclusive_group()
 grp_git = parser.add_mutually_exclusive_group()
 parser.add_argument("-i", "--init", action="store_true", help="Initial setup")
 parser.add_argument(
-    "-c", "--cd-db-create", action="store_true", help="Create fuzzy cd database"
+    "-d", "--cd-db-create", action="store_true", help="Create fuzzy cd database"
 )
-grp_cln.add_argument("--clone", action="store_true", help="git clone")
+grp_cln.add_argument("-c", "--clone", action="store_true", help="git clone")
 grp_cln.add_argument(
     "-C", dest="clone_dst", type=str, help="cd to this directory before cloning"
 )
@@ -108,6 +108,21 @@ class MyRepo:
         except NoSuchPathError:
             pass
 
+    async def clone(self, where, verbose=False):
+        # TODO: add parameter
+        # url = f"git@github.com:kurkale6ka/{self._name}.git"
+        url = f"https://github.com/kurkale6ka/{self._name}.git"
+
+        cmd = ["git", "-C", where, "clone", url]
+        if not verbose:
+            cmd.append("-q")
+
+        proc = await asyncio.create_subprocess_exec(*cmd)
+        code = await proc.wait()
+
+        if code == 0:
+            print(f"cloned {Text(self._name).cyan}")
+
     def create_links(self, verbose=False):
         for link in self._links:
             if link.src:
@@ -134,21 +149,6 @@ class MyRepo:
                 Text(self._name).cyan + ":",
                 self._repo.git(c="color.status=always").status("-sb"),
             )
-
-    async def clone(self, where, verbose=False):
-        # TODO: add parameter
-        # url = f"git@github.com:kurkale6ka/{self._name}.git"
-        url = f"https://github.com/kurkale6ka/{self._name}.git"
-
-        cmd = ["git", "-C", where, "clone", url]
-        if not verbose:
-            cmd.append("-q")
-
-        proc = await asyncio.create_subprocess_exec(*cmd)
-        code = await proc.wait()
-
-        if code == 0:
-            print(f"cloned {Text(self._name).cyan}")
 
     async def update(self):
         try:
@@ -212,6 +212,38 @@ repo_links = {
 }
 
 
+def init():
+    print(
+        Text(
+            f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).blue}..."
+        ).cyan
+    )  # TODO: use dir color
+    git_clone()
+
+    print(Text("Linking dot files").cyan)
+    create_links()
+
+    print(Text("Configuring git").cyan)
+    git_config()
+
+    # if not "tags" in args.skip: # TODO: ??
+    print(Text("Generating tags").cyan)
+    ctags()
+
+    print(Text("Creating fuzzy cd database").cyan)
+    cd_db_create()
+
+
+def git_clone():
+    async def main():
+        async with asyncio.TaskGroup() as tg:
+            for name in repo_links.keys():
+                repo = MyRepo(base + name, ())
+                tg.create_task(repo.clone(args.clone_dst or base, verbose=args.verbose))
+
+    asyncio.run(main())
+
+
 def create_links():
     for name, links in repo_links.items():
         repo = MyRepo(base + name, links)
@@ -228,15 +260,6 @@ def remove_links():
             p.join()
 
 
-def cd_db_create():
-    cmd = ("bash", f"{base}scripts/db-create")
-
-    if args.verbose:
-        print(" ".join(cmd).replace(env["HOME"], "~"))
-
-    run(cmd)
-
-
 def git_config():
     cmd = ("bash", f"{base}config/git.bash")
 
@@ -244,44 +267,6 @@ def git_config():
         print(" ".join(cmd).replace(env["HOME"], "~"))
 
     run(cmd)
-
-
-# TODO: add -v
-def git_status():
-    async def main():
-        async with asyncio.TaskGroup() as tg:
-            for name in repo_links.keys():
-                repo = MyRepo(base + name, ())
-                tg.create_task(repo.status())
-
-    asyncio.run(main())
-
-
-def git_clone():
-    async def main():
-        async with asyncio.TaskGroup() as tg:
-            for name in repo_links.keys():
-                repo = MyRepo(base + name, ())
-                tg.create_task(repo.clone(args.clone_dst or base, verbose=args.verbose))
-
-    asyncio.run(main())
-
-
-# TODO: add -v
-def git_pull():
-    async def main():
-        async with asyncio.TaskGroup() as tg:
-            # TODO:
-            # with tqdm(total=len(repo_links)) as pbar:
-            # pbar.leave(True)
-            # pbar.set_description('Updating repos...')
-            # (leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
-            for name in repo_links.keys():
-                repo = MyRepo(base + name, ())
-                tg.create_task(repo.update())
-                # pbar.update(1)
-
-    asyncio.run(main())
 
 
 def ctags():
@@ -310,27 +295,67 @@ def ctags():
     run(cmd)
 
 
+def cd_db_create():
+    cmd = ("bash", f"{base}scripts/db-create")
+
+    if args.verbose:
+        print(" ".join(cmd).replace(env["HOME"], "~"))
+
+    run(cmd)
+
+
+# TODO: add -v
+def git_status():
+    async def main():
+        async with asyncio.TaskGroup() as tg:
+            for name in repo_links.keys():
+                repo = MyRepo(base + name, ())
+                tg.create_task(repo.status())
+
+    asyncio.run(main())
+
+
+# TODO: add -v
+def git_pull():
+    async def main():
+        async with asyncio.TaskGroup() as tg:
+            # TODO:
+            # with tqdm(total=len(repo_links)) as pbar:
+            # pbar.leave(True)
+            # pbar.set_description('Updating repos...')
+            # (leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
+            for name in repo_links.keys():
+                repo = MyRepo(base + name, ())
+                tg.create_task(repo.update())
+                # pbar.update(1)
+
+    asyncio.run(main())
+
+
 if __name__ == "__main__":
+    if args.init:
+        init()
+
+    if args.clone:
+        git_clone()
+
     if args.links:
         create_links()
 
     if args.delete_links:
         remove_links()
 
-    if args.cd_db_create:
-        cd_db_create()
-
-    if args.clone:
-        git_clone()
-
     if args.git_config:
         git_config()
+
+    if args.tags:
+        ctags()
+
+    if args.cd_db_create:
+        cd_db_create()
 
     if args.status:
         git_status()
 
     if len(argv) == 1 or args.update:  # no args or --update
         git_pull()
-
-    if args.tags:
-        ctags()
