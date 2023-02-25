@@ -12,31 +12,32 @@ from multiprocessing import Process
 from pprint import pprint
 import asyncio
 import argparse
-
-# from tqdm.asyncio import tqdm
+from tqdm.asyncio import tqdm
 from styles.styles import Text
 
 # TODO: use env['REPOS_BASE'] instead?
 base = env["HOME"] + "/repos/github/"
 
 # TODO: snippet start perf / end perf ???
-# TODO: prog, desc, ...
-parser = argparse.ArgumentParser()
-links_grp = parser.add_mutually_exclusive_group()
-git_grp = parser.add_mutually_exclusive_group()
-parser.add_argument("-i", "--init", action="store_true", help="Initial setup: WIP...")
+parser = argparse.ArgumentParser(prog="mkconfig", description="Dotfiles setup")
+grp_cln = parser.add_argument_group("Clone repositories")
+grp_ln = parser.add_mutually_exclusive_group()
+grp_git = parser.add_mutually_exclusive_group()
+parser.add_argument("-i", "--init", action="store_true", help="Initial setup")
 parser.add_argument(
     "-c", "--cd-db-create", action="store_true", help="Create fuzzy cd database"
 )
-parser.add_argument("--git-clone", action="store_true", help="git clone ...")
-parser.add_argument("--clone-dst", type=str, help="cd to this directory before cloning")
-parser.add_argument("-g", "--git-config", action="store_true", help="git config ...")
+grp_cln.add_argument("--clone", action="store_true", help="git clone")
+grp_cln.add_argument(
+    "-C", dest="clone_dst", type=str, help="cd to this directory before cloning"
+)
+parser.add_argument("-g", "--git-config", action="store_true", help="git config")
 parser.add_argument("-t", "--tags", action="store_true", help="Generate tags")
 parser.add_argument("-v", "--verbose", action="store_true")
-links_grp.add_argument("-l", "--links", action="store_true", help="Make links")
-links_grp.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
-git_grp.add_argument("-s", "--status", action="store_true", help="git status")
-git_grp.add_argument("-u", "--update", action="store_true", help="Update repositories")
+grp_ln.add_argument("-l", "--links", action="store_true", help="Make links")
+grp_ln.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
+grp_git.add_argument("-s", "--status", action="store_true", help="git status")
+grp_git.add_argument("-u", "--update", action="store_true", help="Update repositories")
 args = parser.parse_args()
 
 
@@ -101,7 +102,6 @@ class MyRepo:
     def __init__(self, root, links=()):
         self._links = links
         self._root = root
-        self._parent = Path(self._root).parent
         self._name = Path(self._root).name
         try:
             self._repo = Repo(self._root)  # git repo wrapper
@@ -111,10 +111,9 @@ class MyRepo:
     def create_links(self, verbose=False):
         for link in self._links:
             if link.src:
-                # prepend the repo root
                 link.src = self._root + "/" + link.src
             else:
-                link.src = self._root
+                link.src = self._root  # needed for the nvim/vim folder links
             link.create(verbose)
 
     async def fetch(self):
@@ -137,12 +136,15 @@ class MyRepo:
             )
 
     async def clone(self, where, verbose=False):
+        # TODO: add parameter
         # url = f"git@github.com:kurkale6ka/{self._name}.git"
         url = f"https://github.com/kurkale6ka/{self._name}.git"
 
-        proc = await asyncio.create_subprocess_exec(
-            "git", "-C", where, "clone", url, "" if verbose else "-q"
-        )
+        cmd = ["git", "-C", where, "clone", url]
+        if not verbose:
+            cmd.append("-q")
+
+        proc = await asyncio.create_subprocess_exec(*cmd)
         code = await proc.wait()
 
         if code == 0:
@@ -204,6 +206,9 @@ repo_links = {
         Link("ctags/.ctags", f"{env['HOME']}", "-r"),
         Link("tmux/.tmux.conf", f"{env['HOME']}", "-r"),
     ),
+    "vim-chess": (),
+    "vim-desertEX": (),
+    "vim-pairs": (),
 }
 
 
@@ -245,15 +250,6 @@ def git_config():
 def git_status():
     async def main():
         async with asyncio.TaskGroup() as tg:
-            # TODO:
-            # set_repo("vim/plugged/vim-blockinsert")
-            # set_repo("vim/plugged/vim-chess")
-            # set_repo("vim/plugged/vim-desertEX")
-            # set_repo("vim/plugged/vim-pairs")
-            # set_repo("vim/plugged/vim-swap")
-            # set_repo('vim-chess')
-            # set_repo('vim-desertEX')
-            # set_repo('vim-pairs')
             for name in repo_links.keys():
                 repo = MyRepo(base + name, ())
                 tg.create_task(repo.status())
@@ -324,7 +320,7 @@ if __name__ == "__main__":
     if args.cd_db_create:
         cd_db_create()
 
-    if args.git_clone:
+    if args.clone:
         git_clone()
 
     if args.git_config:
