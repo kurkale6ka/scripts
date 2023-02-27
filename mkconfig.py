@@ -3,7 +3,8 @@
 """Dot files setup"""
 
 from git.repo import Repo
-from git.exc import NoSuchPathError, GitCommandError
+from git.exc import GitCommandError
+from dataclasses import dataclass
 from os import environ as env
 from sys import argv
 from pathlib import Path
@@ -103,10 +104,7 @@ class MyRepo:
         self._links = links
         self._root = root
         self._name = Path(self._root).name
-        try:
-            self._repo = Repo(self._root)  # git repo wrapper
-        except NoSuchPathError:
-            pass
+        self._repo = Repo(self._root)  # git repo wrapper
 
     async def clone(self, where, verbose=False):
         # TODO: add parameter
@@ -163,61 +161,94 @@ class MyRepo:
             )
 
 
-repo_links = {
-    "nvim": (Link(None, f"{env['XDG_CONFIG_HOME']}/nvim", "-T"),),
-    "vim": (
-        Link(None, f"{env['HOME']}/.vim", "-rT"),
-        Link(".vimrc", f"{env['HOME']}", "-r"),
-        Link(".gvimrc", f"{env['HOME']}", "-r"),
+@dataclass
+class RepoData:
+    name: str
+    enabled: bool  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
+    links: tuple
+
+
+repos = (
+    RepoData(
+        "nvim",
+        enabled=True,
+        links=(Link(None, f"{env['XDG_CONFIG_HOME']}/nvim", "-T"),),
     ),
-    "zsh": (
-        Link(".zshenv", f"{env['HOME']}", "-r"),
-        Link(".zprofile", f"{env['XDG_CONFIG_HOME']}/zsh"),
-        Link(".zshrc", f"{env['XDG_CONFIG_HOME']}/zsh"),
-        Link("autoload", f"{env['XDG_CONFIG_HOME']}/zsh"),
+    RepoData(
+        "vim",
+        enabled=True,
+        links=(
+            Link(None, f"{env['HOME']}/.vim", "-rT"),
+            Link(".vimrc", f"{env['HOME']}", "-r"),
+            Link(".gvimrc", f"{env['HOME']}", "-r"),
+        ),
     ),
-    "bash": (
-        Link(".bash_profile", f"{env['HOME']}", "-r"),
-        Link(".bashrc", f"{env['HOME']}", "-r"),
-        Link(".bash_logout", f"{env['HOME']}", "-r"),
+    RepoData(
+        "zsh",
+        enabled=True,
+        links=(
+            Link(".zshenv", f"{env['HOME']}", "-r"),
+            Link(".zprofile", f"{env['XDG_CONFIG_HOME']}/zsh"),
+            Link(".zshrc", f"{env['XDG_CONFIG_HOME']}/zsh"),
+            Link("autoload", f"{env['XDG_CONFIG_HOME']}/zsh"),
+        ),
     ),
-    "scripts": (
-        Link("helpers.py", f"{env['HOME']}/.pyrc", "-r"),
-        Link("backup.pl", f"{Link.bin}/b"),
-        Link("ex.pl", f"{Link.bin}/ex"),
-        Link("calc.pl", f"{Link.bin}/="),
-        Link("cert.pl", f"{Link.bin}/cert"),
-        Link("mkconfig.py", f"{Link.bin}/mkconfig"),
-        Link("mini.pl", f"{Link.bin}/mini"),
-        Link("pics.pl", f"{Link.bin}/pics"),
-        Link("pc.pl", f"{Link.bin}/pc"),
-        Link("rseverywhere.pl", f"{Link.bin}/rseverywhere"),
-        Link("vpn.pl", f"{Link.bin}/vpn"),
-        Link("www.py", f"{Link.bin}/www"),
-        Link("colors_term.bash", f"{Link.bin}"),
-        Link("colors_tmux.bash", f"{Link.bin}"),
+    RepoData(
+        "bash",
+        enabled=True,
+        links=(
+            Link(".bash_profile", f"{env['HOME']}", "-r"),
+            Link(".bashrc", f"{env['HOME']}", "-r"),
+            Link(".bash_logout", f"{env['HOME']}", "-r"),
+        ),
     ),
-    "config": (
-        Link("tmux/lay.pl", f"{Link.bin}/lay"),
-        Link("tmux/Nodes.pm", f"{Link.bin}/nodes"),
-        Link("dotfiles/.gitignore", f"{env['HOME']}", "-r"),
-        Link("dotfiles/.irbrc", f"{env['HOME']}", "-r"),
-        Link("dotfiles/.Xresources", f"{env['HOME']}", "-r"),
-        Link("ctags/.ctags", f"{env['HOME']}", "-r"),
-        Link("tmux/.tmux.conf", f"{env['HOME']}", "-r"),
+    RepoData(
+        "scripts",
+        enabled=True,
+        links=(
+            Link("helpers.py", f"{env['HOME']}/.pyrc", "-r"),
+            Link("backup.pl", f"{Link.bin}/b"),
+            Link("ex.pl", f"{Link.bin}/ex"),
+            Link("calc.pl", f"{Link.bin}/="),
+            Link("cert.pl", f"{Link.bin}/cert"),
+            Link("mkconfig.py", f"{Link.bin}/mkconfig"),
+            Link("mini.pl", f"{Link.bin}/mini"),
+            Link("pics.pl", f"{Link.bin}/pics"),
+            Link("pc.pl", f"{Link.bin}/pc"),
+            Link("rseverywhere.pl", f"{Link.bin}/rseverywhere"),
+            Link("vpn.pl", f"{Link.bin}/vpn"),
+            Link("www.py", f"{Link.bin}/www"),
+            Link("colors_term.bash", f"{Link.bin}"),
+            Link("colors_tmux.bash", f"{Link.bin}"),
+        ),
     ),
-    "vim-chess": (),
-    "vim-desertEX": (),
-    "vim-pairs": (),
-}
+    RepoData(
+        "config",
+        enabled=True,
+        links=(
+            Link("tmux/lay.pl", f"{Link.bin}/lay"),
+            Link("tmux/Nodes.pm", f"{Link.bin}/nodes"),
+            Link("dotfiles/.gitignore", f"{env['HOME']}", "-r"),
+            Link("dotfiles/.irbrc", f"{env['HOME']}", "-r"),
+            Link("dotfiles/.Xresources", f"{env['HOME']}", "-r"),
+            Link("ctags/.ctags", f"{env['HOME']}", "-r"),
+            Link("tmux/.tmux.conf", f"{env['HOME']}", "-r"),
+        ),
+    ),
+    RepoData("vim-chess", enabled=False, links=()),
+    RepoData("vim-desertEX", enabled=False, links=()),
+    RepoData("vim-pairs", enabled=False, links=()),
+)
+
+repos = (repo for repo in repos if repo.enabled)
 
 
 def init():
     print(
         Text(
-            f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).blue}..."
+            f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).fg(69)}..."
         ).cyan
-    )  # TODO: use dir color
+    )
     git_clone()
 
     print(Text("Linking dot files").cyan)
@@ -237,24 +268,26 @@ def init():
 def git_clone():
     async def main():
         async with asyncio.TaskGroup() as tg:
-            for name in repo_links.keys():
-                repo = MyRepo(base + name, ())
-                tg.create_task(repo.clone(args.clone_dst or base, verbose=args.verbose))
+            for repo in repos:
+                my_repo = MyRepo(base + repo.name, ())
+                tg.create_task(
+                    my_repo.clone(args.clone_dst or base, verbose=args.verbose)
+                )
 
     asyncio.run(main())
 
 
 def create_links():
-    for name, links in repo_links.items():
-        repo = MyRepo(base + name, links)
-        p = Process(target=repo.create_links, args=(args.verbose,))
+    for repo in repos:
+        my_repo = MyRepo(base + repo.name, repo.links)
+        p = Process(target=my_repo.create_links, args=(args.verbose,))
         p.start()
         p.join()
 
 
 def remove_links():
-    for links in repo_links.values():
-        for link in links:
+    for repo in repos:
+        for link in repo.links:
             p = Process(target=link.remove, args=(args.verbose,))
             p.start()
             p.join()
@@ -281,7 +314,7 @@ def ctags():
         f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after",
         f"{env['XDG_CONFIG_HOME']}/zsh/after",
     ]
-    cmd.extend(base + name for name in repo_links.keys() if name != "vim")
+    cmd.extend(base + repo.name for repo in repos if repo.name != "vim")
 
     if args.verbose:
         pprint(cmd)
@@ -308,9 +341,9 @@ def cd_db_create():
 def git_status():
     async def main():
         async with asyncio.TaskGroup() as tg:
-            for name in repo_links.keys():
-                repo = MyRepo(base + name, ())
-                tg.create_task(repo.status())
+            for repo in repos:
+                my_repo = MyRepo(base + repo.name, ())
+                tg.create_task(my_repo.status())
 
     asyncio.run(main())
 
@@ -324,9 +357,9 @@ def git_pull():
             # pbar.leave(True)
             # pbar.set_description('Updating repos...')
             # (leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
-            for name in repo_links.keys():
-                repo = MyRepo(base + name, ())
-                tg.create_task(repo.update())
+            for repo in repos:
+                my_repo = MyRepo(base + repo.name, ())
+                tg.create_task(my_repo.update())
                 # pbar.update(1)
 
     asyncio.run(main())
