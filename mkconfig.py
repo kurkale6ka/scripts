@@ -233,6 +233,7 @@ repos = (
             Link("dotfiles/.Xresources", f"{env['HOME']}", "-r"),
             Link("ctags/.ctags", f"{env['HOME']}", "-r"),
             Link("tmux/.tmux.conf", f"{env['HOME']}", "-r"),
+            Link("XDG/bat_config", f"{env['XDG_CONFIG_HOME']}/bat/config", "-r"), # TODO: create parent folder
         ),
     ),
     RepoData("vim-chess", enabled=False, links=()),

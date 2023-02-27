@@ -168,7 +168,7 @@ sub Open
    # cat
    if ($ext =~ /\.(?!te?xt).+$/i)
    {
-      exec qw/bat --style snip --italic-text always --theme zenburn -mconf:ini/, $file;
+      exec 'bat', $file;
    } else {
       exec 'cat', $file;
    }
