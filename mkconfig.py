@@ -333,6 +333,8 @@ def cd_db_create():
 
     if args.verbose:
         print(" ".join(cmd).replace(env["HOME"], "~"))
+        print()
+        run(("bat", "--language=bash", f"{base}scripts/db-create"))
 
     run(cmd)
 
