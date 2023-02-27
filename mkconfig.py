@@ -21,14 +21,13 @@ from git.repo import Repo
 from git.exc import GitCommandError
 from dataclasses import dataclass
 from os import environ as env
-from sys import argv, stderr
+from sys import argv, stderr, platform
 from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
 from pprint import pprint
 import asyncio
 import argparse
-from tqdm.asyncio import tqdm
 from styles.styles import Text
 
 if not "REPOS_BASE" in env:
@@ -46,6 +45,9 @@ if not "XDG_CONFIG_HOME" in env:
     env["XDG_DATA_HOME"] = f"{env['HOME']}/.local/share"
     Path(env["XDG_CONFIG_HOME"]).mkdir(parents=True, exist_ok=True)
     Path(env["XDG_DATA_HOME"]).mkdir(parents=True, exist_ok=True)
+
+# TODO: also make sure other folders exist (nvim/zsh/bat/...)
+Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
 
 # TODO: snippet start perf / end perf ??? warn ???
 # TODO: --dry-run?
@@ -76,7 +78,10 @@ grp_cln.add_argument(
 )
 parser.add_argument("-g", "--git-config", action="store_true", help="git config")
 parser.add_argument(
-    "-t", "--tags", action="store_true", help="Generate ~/repos/tags (needs ctags)"
+    "-t",
+    "--tags",
+    action="store_true",
+    help="Generate ~/repos/tags (needs universal ctags)",
 )
 parser.add_argument("-v", "--verbose", action="store_true")
 grp_ln.add_argument("-l", "--links", action="store_true", help="Make links")
@@ -143,6 +148,7 @@ class Link:
         p.join()
 
 
+# TODO: rename to Repo?
 class MyRepo:
     def __init__(self, root, links=()):
         self._links = links
@@ -164,7 +170,7 @@ class MyRepo:
         code = await proc.wait()
 
         if code == 0:
-            print("", f"cloned {Text(self._name).cyan}")
+            print(Text("").cyan, f"cloned {self._name}")
 
     def create_links(self, verbose=False):
         for link in self._links:
@@ -193,6 +199,7 @@ class MyRepo:
                 self._repo.git(c="color.status=always").status("-sb"),
             )
 
+    # TODO: is it safe? make safer?
     async def update(self):
         try:
             print(
@@ -289,26 +296,94 @@ repos = (
 repos = (repo for repo in repos if repo.enabled)
 
 
+# TODO: show progress bar with tqdm?
+# for task in tqdm.as_completed(tasks, leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
 def init():
     print(
-        Text(
-            f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).fg(69)}..."
-        ).cyan
+        Text("→").cyan,
+        f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).fg(69)}...",
     )
-    git_clone()
+    git_clone()  # TODO: return code before continuing
 
-    print(Text("Linking dot files").cyan)
+    print(Text("→").cyan, "Linking dot files")
     create_links()
 
-    print(Text("Configuring git").cyan)
+    print(Text("→").cyan, "Configuring git")
     git_config()
 
-    # if not "tags" in args.skip: # TODO: ??
-    print(Text("Generating tags").cyan)
+    print(Text("→").cyan, "Generating tags")
     ctags()
 
-    print(Text("Creating fuzzy cd database").cyan)
+    print(Text("→").cyan, "Creating fuzzy cd database")
     cd_db_create()
+
+    # macOS
+    if platform == "darwin":
+        print(Text("→").cyan, "Installing Homebrew formulae...")
+        formulae = (
+            "cpanminus",
+            "bash",
+            "zsh",
+            "shellcheck",
+            "ed",
+            "gnu-sed",
+            "gawk",
+            "jq",
+            "vim",
+            "htop",
+            "hyperfine",
+            "fd",
+            "findutils",
+            "coreutils",
+            "moreutils",
+            "grep",
+            "ripgrep",
+            "mariadb",
+            "sqlite",
+            "colordiff",
+            "bat",
+            "git",
+            # 'ctags', # make sure this is universal ctags!
+            "gnu-tar",
+            "ipcalc",
+            "iproute2mac",
+            "openssh",
+            "tcpdump",
+            "telnet",
+            "tmux",
+            "weechat",
+            "tree",
+            "gcal",
+            "nmap",
+            "dos2unix",
+            "wgetpaste",
+            "whois",
+        )
+
+        auto_update = "HOMEBREW_NO_AUTO_UPDATE=1"
+
+        # try a single install before continuing
+        cmd = ["env", auto_update, "brew", "install", "--HEAD", "neovim"]
+        res = run(cmd)
+        if res.returncode != 0:
+            exit(1)
+
+        cmd = ["env", auto_update, "brew", "install", formulae]
+        run(cmd)
+
+        cmd = ["env", auto_update, "brew", "install", "parallel", "--force"]
+        run(cmd)
+
+        cmd = ["env", auto_update, "brew", "tap", "beeftornado/rmtree"]
+        run(cmd)
+
+        cmd = ["env", auto_update, "brew", "install", "beeftornado/rmtree/brew-rmtree"]
+        run(cmd)
+
+        # needed when 'ln' is actually 'gln'
+        path = env["PATH"].split(":")
+        path.insert(0, "/usr/local/opt/coreutils/libexec/gnubin")
+        env["PATH"] = ":".join(path)
 
 
 def git_clone():
@@ -404,15 +479,9 @@ def git_status():
 def git_pull():
     async def main():
         async with asyncio.TaskGroup() as tg:
-            # TODO:
-            # with tqdm(total=len(repo_links)) as pbar:
-            # pbar.leave(True)
-            # pbar.set_description('Updating repos...')
-            # (leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
             for repo in repos:
                 my_repo = MyRepo(f"{base}/{repo.name}")
                 tg.create_task(my_repo.update())
-                # pbar.update(1)
 
     asyncio.run(main())
 
