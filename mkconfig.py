@@ -269,7 +269,7 @@ def git_clone():
     async def main():
         async with asyncio.TaskGroup() as tg:
             for repo in repos:
-                my_repo = MyRepo(base + repo.name, ())
+                my_repo = MyRepo(base + repo.name)
                 tg.create_task(
                     my_repo.clone(args.clone_dst or base, verbose=args.verbose)
                 )
@@ -342,7 +342,7 @@ def git_status():
     async def main():
         async with asyncio.TaskGroup() as tg:
             for repo in repos:
-                my_repo = MyRepo(base + repo.name, ())
+                my_repo = MyRepo(base + repo.name)
                 tg.create_task(my_repo.status())
 
     asyncio.run(main())
@@ -358,7 +358,7 @@ def git_pull():
             # pbar.set_description('Updating repos...')
             # (leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
             for repo in repos:
-                my_repo = MyRepo(base + repo.name, ())
+                my_repo = MyRepo(base + repo.name)
                 tg.create_task(my_repo.update())
                 # pbar.update(1)
 
