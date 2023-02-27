@@ -1,6 +1,20 @@
 #! /usr/bin/env python3
 
 """Dotfiles setup
+--------------
+
+run this script with:
+python <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.py) -h
+
+TODO:
+ssh -T git@github.com to accept IP
+migrate `scripts/db-create` to python
+
+packages
+- fd-find, ln -s /bin/fdfind ~/bin/fd
+- batcat,  ln -s /bin/batcat ~/bin/bat
+- ripgrep
+- wslu,    needed to open browser pages on Windows wsl2
 """
 
 from git.repo import Repo
@@ -27,7 +41,10 @@ grp_ln = parser.add_mutually_exclusive_group()
 grp_git = parser.add_mutually_exclusive_group()
 parser.add_argument("-i", "--init", action="store_true", help="Initial setup")
 parser.add_argument(
-    "-d", "--cd-db-create", action="store_true", help="Create fuzzy cd database"
+    "-d",
+    "--cd-db-create",
+    action="store_true",
+    help="Create fuzzy cd database (needs sqlite3)",
 )
 grp_cln.add_argument("-c", "--clone", action="store_true", help="git clone")
 grp_cln.add_argument(
@@ -42,7 +59,9 @@ grp_cln.add_argument(
     "-C", dest="clone_dst", type=str, help="cd to this directory before cloning"
 )
 parser.add_argument("-g", "--git-config", action="store_true", help="git config")
-parser.add_argument("-t", "--tags", action="store_true", help="Generate tags")
+parser.add_argument(
+    "-t", "--tags", action="store_true", help="Generate ~/repos/tags (needs ctags)"
+)
 parser.add_argument("-v", "--verbose", action="store_true")
 grp_ln.add_argument("-l", "--links", action="store_true", help="Make links")
 grp_ln.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
