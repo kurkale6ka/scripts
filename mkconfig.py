@@ -21,7 +21,7 @@ from git.repo import Repo
 from git.exc import GitCommandError
 from dataclasses import dataclass
 from os import environ as env
-from sys import argv
+from sys import argv, stderr
 from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
@@ -31,15 +31,31 @@ import argparse
 from tqdm.asyncio import tqdm
 from styles.styles import Text
 
-# TODO: use env['REPOS_BASE'] instead?
-base = env["HOME"] + "/repos/github/"
+if not "REPOS_BASE" in env:
+    print(
+        Text("exporting REPOS_BASE to").red, Text("~/repos/github").fg(69), file=stderr
+    )
+    env["REPOS_BASE"] = env["HOME"] + "/repos/github"
+    Path(env["REPOS_BASE"]).mkdir(parents=True, exist_ok=True)
 
-# TODO: snippet start perf / end perf ???
+base = env["REPOS_BASE"]
+
+if not "XDG_CONFIG_HOME" in env:
+    print(Text("setting XDG Variables to their default values").red, file=stderr)
+    env["XDG_CONFIG_HOME"] = f"{env['HOME']}/.config"
+    env["XDG_DATA_HOME"] = f"{env['HOME']}/.local/share"
+    Path(env["XDG_CONFIG_HOME"]).mkdir(parents=True, exist_ok=True)
+    Path(env["XDG_DATA_HOME"]).mkdir(parents=True, exist_ok=True)
+
+# TODO: snippet start perf / end perf ??? warn ???
+# TODO: --dry-run?
 parser = argparse.ArgumentParser(prog="mkconfig", description="Dotfiles setup")
 grp_cln = parser.add_argument_group("Clone repositories")
 grp_ln = parser.add_mutually_exclusive_group()
 grp_git = parser.add_mutually_exclusive_group()
-parser.add_argument("-i", "--init", action="store_true", help="Initial setup")
+parser.add_argument(
+    "-i", "--init", action="store_true", help="Initial setup"
+)  # TODO: make mutually exclusive with the rest
 parser.add_argument(
     "-d",
     "--cd-db-create",
@@ -299,7 +315,7 @@ def git_clone():
     async def main():
         async with asyncio.TaskGroup() as tg:
             for repo in repos:
-                my_repo = MyRepo(base + repo.name)
+                my_repo = MyRepo(f"{base}/{repo.name}")
                 tg.create_task(
                     my_repo.clone(
                         args.clone_dst or base,
@@ -313,7 +329,7 @@ def git_clone():
 
 def create_links():
     for repo in repos:
-        my_repo = MyRepo(base + repo.name, repo.links)
+        my_repo = MyRepo(f"{base}/{repo.name}", repo.links)
         p = Process(target=my_repo.create_links, args=(args.verbose,))
         p.start()
         p.join()
@@ -328,7 +344,7 @@ def remove_links():
 
 
 def git_config():
-    cmd = ("bash", f"{base}config/git.bash")
+    cmd = ("bash", f"{base}/config/git.bash")
 
     if args.verbose:
         print(" ".join(cmd).replace(env["HOME"], "~"))
@@ -348,7 +364,7 @@ def ctags():
         f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after",
         f"{env['XDG_CONFIG_HOME']}/zsh/after",
     ]
-    cmd.extend(base + repo.name for repo in repos if repo.name != "vim")
+    cmd.extend(f"{base}/{repo.name}" for repo in repos if repo.name != "vim")
 
     if args.verbose:
         pprint(cmd)
@@ -363,12 +379,12 @@ def ctags():
 
 
 def cd_db_create():
-    cmd = ("bash", f"{base}scripts/db-create")
+    cmd = ("bash", f"{base}/scripts/db-create")
 
     if args.verbose:
         print(" ".join(cmd).replace(env["HOME"], "~"))
         print()
-        run(("bat", "--language=bash", f"{base}scripts/db-create"))
+        run(("bat", "--language=bash", f"{base}/scripts/db-create"))
 
     run(cmd)
 
@@ -378,7 +394,7 @@ def git_status():
     async def main():
         async with asyncio.TaskGroup() as tg:
             for repo in repos:
-                my_repo = MyRepo(base + repo.name)
+                my_repo = MyRepo(f"{base}/{repo.name}")
                 tg.create_task(my_repo.status())
 
     asyncio.run(main())
@@ -394,7 +410,7 @@ def git_pull():
             # pbar.set_description('Updating repos...')
             # (leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
             for repo in repos:
-                my_repo = MyRepo(base + repo.name)
+                my_repo = MyRepo(f"{base}/{repo.name}")
                 tg.create_task(my_repo.update())
                 # pbar.update(1)
 
