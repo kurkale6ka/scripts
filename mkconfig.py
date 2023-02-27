@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
-"""Dot files setup"""
+"""Dotfiles setup
+"""
 
 from git.repo import Repo
 from git.exc import GitCommandError
@@ -29,6 +30,14 @@ parser.add_argument(
     "-d", "--cd-db-create", action="store_true", help="Create fuzzy cd database"
 )
 grp_cln.add_argument("-c", "--clone", action="store_true", help="git clone")
+grp_cln.add_argument(
+    "-p",
+    "--clone-protocol",
+    type=str,
+    choices=["git", "https"],
+    default="git",
+    help="'git clone' protocol",
+)
 grp_cln.add_argument(
     "-C", dest="clone_dst", type=str, help="cd to this directory before cloning"
 )
@@ -106,10 +115,11 @@ class MyRepo:
         self._name = Path(self._root).name
         self._repo = Repo(self._root)  # git repo wrapper
 
-    async def clone(self, where, verbose=False):
-        # TODO: add parameter
-        # url = f"git@github.com:kurkale6ka/{self._name}.git"
-        url = f"https://github.com/kurkale6ka/{self._name}.git"
+    async def clone(self, where, protocol="git", verbose=False):
+        if protocol == "git":
+            url = f"{protocol}@github.com:kurkale6ka/{self._name}.git"
+        else:
+            url = f"{protocol}://github.com/kurkale6ka/{self._name}.git"
 
         cmd = ["git", "-C", where, "clone", url]
         if not verbose:
@@ -119,7 +129,7 @@ class MyRepo:
         code = await proc.wait()
 
         if code == 0:
-            print(f"cloned {Text(self._name).cyan}")
+            print("", f"cloned {Text(self._name).cyan}")
 
     def create_links(self, verbose=False):
         for link in self._links:
@@ -165,7 +175,7 @@ class MyRepo:
 class RepoData:
     name: str
     enabled: bool  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
-    links: tuple
+    links: tuple  # TODO: create parent folders
 
 
 repos = (
@@ -233,7 +243,7 @@ repos = (
             Link("dotfiles/.Xresources", f"{env['HOME']}", "-r"),
             Link("ctags/.ctags", f"{env['HOME']}", "-r"),
             Link("tmux/.tmux.conf", f"{env['HOME']}", "-r"),
-            Link("XDG/bat_config", f"{env['XDG_CONFIG_HOME']}/bat/config", "-r"), # TODO: create parent folder
+            Link("XDG/bat_config", f"{env['XDG_CONFIG_HOME']}/bat/config"),
         ),
     ),
     RepoData("vim-chess", enabled=False, links=()),
@@ -272,7 +282,11 @@ def git_clone():
             for repo in repos:
                 my_repo = MyRepo(base + repo.name)
                 tg.create_task(
-                    my_repo.clone(args.clone_dst or base, verbose=args.verbose)
+                    my_repo.clone(
+                        args.clone_dst or base,
+                        protocol=args.clone_protocol,
+                        verbose=args.verbose,
+                    )
                 )
 
     asyncio.run(main())
