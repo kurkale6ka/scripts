@@ -4,20 +4,19 @@
 --------------
 
 run this script with:
-python <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.py) -h
+python3 <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.py) -h
 
 TODO:
 ssh -T git@github.com to accept IP
 migrate `scripts/db-create` to python
 
-packages
-- fd-find, ln -s /bin/fdfind ~/bin/fd
-- batcat,  ln -s /bin/batcat ~/bin/bat
-- ripgrep
-- wslu,    needed to open browser pages on Windows wsl2
+INSTALL:
+- fd-find (Linux),        ln -s /bin/fdfind ~/bin/fd
+- batcat  (debian),       ln -s /bin/batcat ~/bin/bat
+- wslu    (Windows wsl2), open browser pages
 """
 
-from git.repo import Repo
+from git.repo import Repo as GitRepo
 from git.exc import GitCommandError
 from dataclasses import dataclass
 from os import environ as env
@@ -50,7 +49,6 @@ if not "XDG_CONFIG_HOME" in env:
     Path(env["XDG_CONFIG_HOME"]).mkdir(parents=True, exist_ok=True)
     Path(env["XDG_DATA_HOME"]).mkdir(parents=True, exist_ok=True)
 
-# TODO: snippet start perf / end perf ??? warn ???
 # TODO: --dry-run?
 parser = argparse.ArgumentParser(prog="mkconfig", description="Dotfiles setup")
 grp_cln = parser.add_argument_group("Clone repositories")
@@ -147,13 +145,12 @@ class Link:
         p.join()
 
 
-# TODO: rename to Repo?
-class MyRepo:
+class Repo:
     def __init__(self, root, links=()):
         self._links = links
         self._root = root
         self._name = Path(self._root).name
-        self._repo = Repo(self._root)  # git repo wrapper
+        self._repo = GitRepo(self._root)
 
     async def clone(self, where, protocol="git", hub="github", verbose=False):
         if protocol == "git":
@@ -388,13 +385,13 @@ def init():
 def git_clone():
     async def main():
         async with asyncio.TaskGroup() as tg:
-            for repo in repos:
-                my_repo = MyRepo(f"{base}/{repo.hub}/{repo.name}")
+            for r in repos:
+                repo = Repo(f"{base}/{r.hub}/{r.name}")
                 tg.create_task(
-                    my_repo.clone(
-                        args.clone_dst or f"{base}/{repo.hub}",
+                    repo.clone(
+                        args.clone_dst or f"{base}/{r.hub}",
                         protocol=args.clone_protocol,
-                        hub=repo.hub,
+                        hub=r.hub,
                         verbose=args.verbose,
                     )
                 )
@@ -403,9 +400,9 @@ def git_clone():
 
 
 def create_links():
-    for repo in repos:
-        my_repo = MyRepo(f"{base}/{repo.hub}/{repo.name}", repo.links)
-        p = Process(target=my_repo.create_links, args=(args.verbose,))
+    for r in repos:
+        repo = Repo(f"{base}/{r.hub}/{r.name}", r.links)
+        p = Process(target=repo.create_links, args=(args.verbose,))
         p.start()
         p.join()
 
@@ -454,12 +451,13 @@ def ctags():
 
 
 def cd_db_create():
-    cmd = ("bash", f"{base}/github/scripts/db-create")
+    script = f"{base}/github/scripts/db-create"
+    cmd = ("bash", script)
 
     if args.verbose:
         print(" ".join(cmd).replace(env["HOME"], "~"))
         print()
-        run(("bat", "--language=bash", f"{base}/github/scripts/db-create"))
+        run(("bat", "--language=bash", script))
 
     run(cmd)
 
@@ -468,9 +466,9 @@ def cd_db_create():
 def git_status():
     async def main():
         async with asyncio.TaskGroup() as tg:
-            for repo in repos:
-                my_repo = MyRepo(f"{base}/{repo.hub}/{repo.name}")
-                tg.create_task(my_repo.status())
+            for r in repos:
+                repo = Repo(f"{base}/{r.hub}/{r.name}")
+                tg.create_task(repo.status())
 
     asyncio.run(main())
 
@@ -479,9 +477,9 @@ def git_status():
 def git_pull():
     async def main():
         async with asyncio.TaskGroup() as tg:
-            for repo in repos:
-                my_repo = MyRepo(f"{base}/{repo.hub}/{repo.name}")
-                tg.create_task(my_repo.update())
+            for r in repos:
+                repo = Repo(f"{base}/{r.hub}/{r.name}")
+                tg.create_task(repo.update())
 
     asyncio.run(main())
 
