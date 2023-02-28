@@ -39,15 +39,13 @@ if not "REPOS_BASE" in env:
 
 base = env["REPOS_BASE"]
 
+# XDG Variables
 if not "XDG_CONFIG_HOME" in env:
     print(Text("setting XDG Variables to their default values").red, file=stderr)
     env["XDG_CONFIG_HOME"] = f"{env['HOME']}/.config"
     env["XDG_DATA_HOME"] = f"{env['HOME']}/.local/share"
     Path(env["XDG_CONFIG_HOME"]).mkdir(parents=True, exist_ok=True)
     Path(env["XDG_DATA_HOME"]).mkdir(parents=True, exist_ok=True)
-
-# TODO: also make sure other folders exist (nvim/zsh/bat/...)
-Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
 
 # TODO: snippet start perf / end perf ??? warn ???
 # TODO: --dry-run?
@@ -92,8 +90,6 @@ args = parser.parse_args()
 
 
 class Link:
-    bin = env["HOME"] + "/bin"
-
     # args is a string, e.g '-rT' => makes a relative link to a directory
     def __init__(self, src, dst, args=None):
         self._src, self._dst, self._args = src, dst, args
@@ -216,19 +212,18 @@ class MyRepo:
 @dataclass
 class RepoData:
     name: str
-    enabled: bool  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
-    links: tuple  # TODO: create parent folders
+    hub: str = "github"
+    enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
+    links: tuple = ()  # TODO: create parent folders
 
 
 repos = (
     RepoData(
         "nvim",
-        enabled=True,
         links=(Link(None, f"{env['XDG_CONFIG_HOME']}/nvim", "-T"),),
     ),
     RepoData(
         "vim",
-        enabled=True,
         links=(
             Link(None, f"{env['HOME']}/.vim", "-rT"),
             Link(".vimrc", f"{env['HOME']}", "-r"),
@@ -237,7 +232,6 @@ repos = (
     ),
     RepoData(
         "zsh",
-        enabled=True,
         links=(
             Link(".zshenv", f"{env['HOME']}", "-r"),
             Link(".zprofile", f"{env['XDG_CONFIG_HOME']}/zsh"),
@@ -247,7 +241,6 @@ repos = (
     ),
     RepoData(
         "bash",
-        enabled=True,
         links=(
             Link(".bash_profile", f"{env['HOME']}", "-r"),
             Link(".bashrc", f"{env['HOME']}", "-r"),
@@ -256,30 +249,28 @@ repos = (
     ),
     RepoData(
         "scripts",
-        enabled=True,
         links=(
             Link("helpers.py", f"{env['HOME']}/.pyrc", "-r"),
-            Link("backup.pl", f"{Link.bin}/b"),
-            Link("ex.pl", f"{Link.bin}/ex"),
-            Link("calc.pl", f"{Link.bin}/="),
-            Link("cert.pl", f"{Link.bin}/cert"),
-            Link("mkconfig.py", f"{Link.bin}/mkconfig"),
-            Link("mini.pl", f"{Link.bin}/mini"),
-            Link("pics.pl", f"{Link.bin}/pics"),
-            Link("pc.pl", f"{Link.bin}/pc"),
-            Link("rseverywhere.pl", f"{Link.bin}/rseverywhere"),
-            Link("vpn.pl", f"{Link.bin}/vpn"),
-            Link("www.py", f"{Link.bin}/www"),
-            Link("colors_term.bash", f"{Link.bin}"),
-            Link("colors_tmux.bash", f"{Link.bin}"),
+            Link("backup.pl", f"{env['HOME']}/bin/b"),
+            Link("ex.pl", f"{env['HOME']}/bin/ex"),
+            Link("calc.pl", f"{env['HOME']}/bin/="),
+            Link("cert.pl", f"{env['HOME']}/bin/cert"),
+            Link("mkconfig.py", f"{env['HOME']}/bin/mkconfig"),
+            Link("mini.pl", f"{env['HOME']}/bin/mini"),
+            Link("pics.pl", f"{env['HOME']}/bin/pics"),
+            Link("pc.pl", f"{env['HOME']}/bin/pc"),
+            Link("rseverywhere.pl", f"{env['HOME']}/bin/rseverywhere"),
+            Link("vpn.pl", f"{env['HOME']}/bin/vpn"),
+            Link("www.py", f"{env['HOME']}/bin/www"),
+            Link("colors_term.bash", f"{env['HOME']}/bin"),
+            Link("colors_tmux.bash", f"{env['HOME']}/bin"),
         ),
     ),
     RepoData(
         "config",
-        enabled=True,
         links=(
-            Link("tmux/lay.pl", f"{Link.bin}/lay"),
-            Link("tmux/Nodes.pm", f"{Link.bin}/nodes"),
+            Link("tmux/lay.pl", f"{env['HOME']}/bin/lay"),
+            Link("tmux/Nodes.pm", f"{env['HOME']}/bin/nodes"),
             Link("dotfiles/.gitignore", f"{env['HOME']}", "-r"),
             Link("dotfiles/.irbrc", f"{env['HOME']}", "-r"),
             Link("dotfiles/.Xresources", f"{env['HOME']}", "-r"),
@@ -288,9 +279,10 @@ repos = (
             Link("XDG/bat_config", f"{env['XDG_CONFIG_HOME']}/bat/config"),
         ),
     ),
-    RepoData("vim-chess", enabled=False, links=()),
-    RepoData("vim-desertEX", enabled=False, links=()),
-    RepoData("vim-pairs", enabled=False, links=()),
+    # RepoData("styles", hub="gitlab"), # TODO
+    RepoData("vim-chess", enabled=False),
+    RepoData("vim-desertEX", enabled=False),
+    RepoData("vim-pairs", enabled=False),
 )
 
 repos = (repo for repo in repos if repo.enabled)
@@ -306,6 +298,10 @@ def init():
     git_clone()  # TODO: return code before continuing
 
     print(Text("→").cyan, "Linking dot files")
+
+    Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
+    Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(exist_ok=True)
+    Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(exist_ok=True)
     create_links()
 
     print(Text("→").cyan, "Configuring git")
