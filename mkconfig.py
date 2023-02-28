@@ -30,6 +30,8 @@ import asyncio
 import argparse
 from styles.styles import Text
 
+# TODO: it should be ~/repos. Fix and use for 'base'.
+# NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
 if not "REPOS_BASE" in env:
     print(
         Text("exporting REPOS_BASE to").red, Text("~/repos/github").fg(69), file=stderr
@@ -37,7 +39,8 @@ if not "REPOS_BASE" in env:
     env["REPOS_BASE"] = env["HOME"] + "/repos/github"
     Path(env["REPOS_BASE"]).mkdir(parents=True, exist_ok=True)
 
-base = env["REPOS_BASE"]
+base = f"{env['HOME']}/repos"
+user = "kurkale6ka"
 
 # XDG Variables
 if not "XDG_CONFIG_HOME" in env:
@@ -152,11 +155,11 @@ class MyRepo:
         self._name = Path(self._root).name
         self._repo = Repo(self._root)  # git repo wrapper
 
-    async def clone(self, where, protocol="git", verbose=False):
+    async def clone(self, where, protocol="git", hub="github", verbose=False):
         if protocol == "git":
-            url = f"{protocol}@github.com:kurkale6ka/{self._name}.git"
+            url = f"{protocol}@{hub}.com:{user}/{self._name}.git"
         else:
-            url = f"{protocol}://github.com/kurkale6ka/{self._name}.git"
+            url = f"{protocol}://{hub}.com/{user}/{self._name}.git"
 
         cmd = ["git", "-C", where, "clone", url]
         if not verbose:
@@ -279,7 +282,7 @@ repos = (
             Link("XDG/bat_config", f"{env['XDG_CONFIG_HOME']}/bat/config"),
         ),
     ),
-    # RepoData("styles", hub="gitlab"), # TODO
+    RepoData("styles", hub="gitlab"),
     RepoData("vim-chess", enabled=False),
     RepoData("vim-desertEX", enabled=False),
     RepoData("vim-pairs", enabled=False),
@@ -386,11 +389,12 @@ def git_clone():
     async def main():
         async with asyncio.TaskGroup() as tg:
             for repo in repos:
-                my_repo = MyRepo(f"{base}/{repo.name}")
+                my_repo = MyRepo(f"{base}/{repo.hub}/{repo.name}")
                 tg.create_task(
                     my_repo.clone(
-                        args.clone_dst or base,
+                        args.clone_dst or f"{base}/{repo.hub}",
                         protocol=args.clone_protocol,
+                        hub=repo.hub,
                         verbose=args.verbose,
                     )
                 )
@@ -400,7 +404,7 @@ def git_clone():
 
 def create_links():
     for repo in repos:
-        my_repo = MyRepo(f"{base}/{repo.name}", repo.links)
+        my_repo = MyRepo(f"{base}/{repo.hub}/{repo.name}", repo.links)
         p = Process(target=my_repo.create_links, args=(args.verbose,))
         p.start()
         p.join()
@@ -415,7 +419,7 @@ def remove_links():
 
 
 def git_config():
-    cmd = ("bash", f"{base}/config/git.bash")
+    cmd = ("bash", f"{base}/github/config/git.bash")
 
     if args.verbose:
         print(" ".join(cmd).replace(env["HOME"], "~"))
@@ -435,7 +439,7 @@ def ctags():
         f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after",
         f"{env['XDG_CONFIG_HOME']}/zsh/after",
     ]
-    cmd.extend(f"{base}/{repo.name}" for repo in repos if repo.name != "vim")
+    cmd.extend(f"{base}/{repo.hub}/{repo.name}" for repo in repos if repo.name != "vim")
 
     if args.verbose:
         pprint(cmd)
@@ -450,12 +454,12 @@ def ctags():
 
 
 def cd_db_create():
-    cmd = ("bash", f"{base}/scripts/db-create")
+    cmd = ("bash", f"{base}/github/scripts/db-create")
 
     if args.verbose:
         print(" ".join(cmd).replace(env["HOME"], "~"))
         print()
-        run(("bat", "--language=bash", f"{base}/scripts/db-create"))
+        run(("bat", "--language=bash", f"{base}/github/scripts/db-create"))
 
     run(cmd)
 
@@ -465,7 +469,7 @@ def git_status():
     async def main():
         async with asyncio.TaskGroup() as tg:
             for repo in repos:
-                my_repo = MyRepo(f"{base}/{repo.name}")
+                my_repo = MyRepo(f"{base}/{repo.hub}/{repo.name}")
                 tg.create_task(my_repo.status())
 
     asyncio.run(main())
@@ -476,7 +480,7 @@ def git_pull():
     async def main():
         async with asyncio.TaskGroup() as tg:
             for repo in repos:
-                my_repo = MyRepo(f"{base}/{repo.name}")
+                my_repo = MyRepo(f"{base}/{repo.hub}/{repo.name}")
                 tg.create_task(my_repo.update())
 
     asyncio.run(main())
