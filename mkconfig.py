@@ -16,11 +16,25 @@ INSTALL:
 - wslu    (Windows wsl2), open browser pages
 """
 
+from dataclasses import dataclass
+from os import environ as env
+from sys import argv, stderr, platform
+from pathlib import Path
+from subprocess import run
+from multiprocessing import Process
+from pprint import pprint
+import asyncio
+import argparse
+
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError
     from styles.styles import Text
 except ModuleNotFoundError:
+    # TODO: Define a function to setup all 'venv's and install all modules
+    # import venv
+    # builder = venv.EnvBuilder(with_pip=True)
+    # context = builder.create(f"{env['HOME']}/py-envs")
     from textwrap import dedent
     exit(dedent("""
         Missing modules! Install with:
@@ -34,15 +48,6 @@ except ModuleNotFoundError:
         mkdir ~/repos/gitlab
         git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
     """).strip())
-from dataclasses import dataclass
-from os import environ as env
-from sys import argv, stderr, platform
-from pathlib import Path
-from subprocess import run
-from multiprocessing import Process
-from pprint import pprint
-import asyncio
-import argparse
 
 # TODO: it should be ~/repos. Fix and use for 'base'.
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
