@@ -16,8 +16,24 @@ INSTALL:
 - wslu    (Windows wsl2), open browser pages
 """
 
-from git.repo import Repo as GitRepo
-from git.exc import GitCommandError
+try:
+    from git.repo import Repo as GitRepo
+    from git.exc import GitCommandError
+    from styles.styles import Text
+except ModuleNotFoundError:
+    from textwrap import dedent
+    exit(dedent("""
+        Missing modules! Install with:
+
+        mkdir ~/py-envs
+        python3 -mvenv ~/py-envs/python-modules
+        source ~/py-envs/python-modules/bin/activate
+        pip install --upgrade pip
+        pip install --upgrade gitpython
+
+        mkdir ~/repos/gitlab
+        git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
+    """).strip())
 from dataclasses import dataclass
 from os import environ as env
 from sys import argv, stderr, platform
@@ -27,7 +43,6 @@ from multiprocessing import Process
 from pprint import pprint
 import asyncio
 import argparse
-from styles.styles import Text
 
 # TODO: it should be ~/repos. Fix and use for 'base'.
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
