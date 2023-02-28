@@ -182,7 +182,7 @@ class Repo:
         )
         await proc.wait()
 
-    async def status(self):
+    async def status(self, verbose=False):
         # TODO: include stash info
         await self.fetch()
         if (
@@ -190,10 +190,16 @@ class Repo:
             or self._repo.active_branch.name not in ("main", "master")
             or self._repo.git.rev_list("--count", "HEAD...HEAD@{u}") != "0"
         ):
-            print(
-                Text(self._name).cyan + ":",
-                self._repo.git(c="color.status=always").status("-sb"),
-            )
+            if verbose:
+                print(
+                    Text(self._name).cyan + ":",
+                    self._repo.git(P=True).diff("--color=always", "-w"),
+                )
+            else:
+                print(
+                    Text(self._name).cyan + ":",
+                    self._repo.git(c="color.status=always").status("-sb"),
+                )
 
     # TODO: is it safe? make safer?
     async def update(self):
@@ -214,7 +220,7 @@ class RepoData:
     name: str
     hub: str = "github"
     enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
-    links: tuple = ()  # TODO: create parent folders
+    links: tuple = ()
 
 
 repos = (
@@ -462,13 +468,12 @@ def cd_db_create():
     run(cmd)
 
 
-# TODO: add -v
 def git_status():
     async def main():
         async with asyncio.TaskGroup() as tg:
             for r in repos:
                 repo = Repo(f"{base}/{r.hub}/{r.name}")
-                tg.create_task(repo.status())
+                tg.create_task(repo.status(args.verbose))
 
     asyncio.run(main())
 
