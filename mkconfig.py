@@ -25,29 +25,58 @@ from multiprocessing import Process
 from pprint import pprint
 import asyncio
 import argparse
+from venv import EnvBuilder
 
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError
     from styles.styles import Text
 except ModuleNotFoundError:
-    # TODO: Define a function to setup all 'venv's and install all modules
-    # import venv
-    # builder = venv.EnvBuilder(with_pip=True)
-    # context = builder.create(f"{env['HOME']}/py-envs")
-    from textwrap import dedent
-    exit(dedent("""
-        Missing modules! Install with:
+    # TODO: downgrade asyncio procedures
+    # TODO: dataclass PythonVenv(name, packages, enable)
+    python_venvs = {
+        "python-modules": ("gitpython",),
+        "neovim": ("pynvim",),
+        "neovim-modules": (
+            "ansible-lint",
+            "black",
+        ),
+        "aws-modules": ("awsume",),
+        # "az-modules": ('az',),
+    }
 
-        mkdir ~/py-envs
-        python3 -mvenv ~/py-envs/python-modules
-        source ~/py-envs/python-modules/bin/activate
-        pip install --upgrade pip
-        pip install --upgrade gitpython
+    class Venv(EnvBuilder):
+        def __init__(self, packages=()):
+            super().__init__(with_pip=True, upgrade_deps=True)
+            self._packages = packages
+
+        def post_setup(self, context):
+            run((context.env_exe, "-m", "pip", "install", "--upgrade", "wheel"))
+            cmd = (
+                context.env_exe,
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                *self._packages,
+            )
+            run(cmd)
+
+    # TODO: do in parallel
+    for name, packages in python_venvs.items():
+        builder = Venv(packages=packages)
+        builder.create(f"{env['HOME']}/py-envs/{name}")
+
+    from textwrap import dedent
+
+    exit(
+        dedent(
+            """Install Text styles with:
 
         mkdir ~/repos/gitlab
-        git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
-    """).strip())
+        git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git"""
+        ).strip()
+    )
 
 # TODO: it should be ~/repos. Fix and use for 'base'.
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
