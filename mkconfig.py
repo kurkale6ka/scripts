@@ -25,7 +25,6 @@ from multiprocessing import Process
 from pprint import pprint
 import asyncio
 import argparse
-from venv import EnvBuilder
 
 try:
     from git.repo import Repo as GitRepo
@@ -306,6 +305,7 @@ repos = (repo for repo in repos if repo.enabled)
 
 
 def upgrade_venvs():
+    from venv import EnvBuilder
     from textwrap import dedent
 
     class Venv(EnvBuilder):
