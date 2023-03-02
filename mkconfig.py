@@ -27,13 +27,13 @@ import asyncio
 import argparse
 
 
-def upgrade_venvs():
+def upgrade_venvs(clear=False):
     from venv import EnvBuilder
     from textwrap import dedent
 
     class Venv(EnvBuilder):
         def __init__(self, packages=()):
-            super().__init__(with_pip=True, upgrade_deps=True)
+            super().__init__(with_pip=True, upgrade_deps=True, clear=clear)
             self._packages = packages
             # self._tasks = []
 
@@ -60,7 +60,7 @@ def upgrade_venvs():
         "python-modules": ("gitpython",),
         "neovim": ("pynvim",),
         "neovim-modules": (  # LSP linters/formatters/...
-            "ansible-lint",
+            # "ansible-lint", # is this provided by the LSP now?
             "black",
         ),
         # awsume comes with boto3, aws cli INSTALL is separate, in /usr/local/
@@ -76,13 +76,15 @@ def upgrade_venvs():
 
     Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
     exit(
+        # TODO: use local python version/lib
         dedent(
             """
-            # Install the styles module with:
+            Post-Install: get the styles module
+            -----------------------------------
             git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
-            export PYTHONPATH=~/repos/gitlab
+            export PYTHONPATH=~/repos/gitlab:~/py-envs/python-modules/lib/python3.XX/site-packages
             """
-        ).strip()
+        ).rstrip()
     )
 
 
@@ -91,7 +93,7 @@ try:
     from git.exc import GitCommandError
     from styles.styles import Text
 except ModuleNotFoundError:
-    upgrade_venvs()
+    upgrade_venvs(clear=True)
 
 # TODO: it should be ~/repos. Fix and use for 'base'.
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
