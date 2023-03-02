@@ -29,7 +29,6 @@ import argparse
 
 def upgrade_venvs(clear=False):
     from venv import EnvBuilder
-    from textwrap import dedent
 
     class Venv(EnvBuilder):
         def __init__(self, packages=()):
@@ -74,26 +73,40 @@ def upgrade_venvs(clear=False):
         builder.create(f"{env['HOME']}/py-envs/{name}")
         # asyncio.run(builder.install_packages())
 
-    Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
-    exit(
-        # TODO: use local python version/lib
-        dedent(
-            """
-            Post-Install: get the styles module
-            -----------------------------------
-            git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
-            export PYTHONPATH=~/repos/gitlab:~/py-envs/python-modules/lib/python3.XX/site-packages
-            """
-        ).rstrip()
-    )
-
 
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError
     from styles.styles import Text
-except ModuleNotFoundError:
-    upgrade_venvs(clear=True)
+except ModuleNotFoundError as err:
+    print(err, file=stderr)
+
+    from textwrap import dedent
+
+    if "git" in str(err):
+        upgrade_venvs(clear=True)
+    if "styles" in str(err):
+        Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
+        # TODO: use local python version/lib
+        print(
+            dedent(
+                """
+                Install the `styles` module with:
+                git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
+                """
+            ).rstrip(),
+            file=stderr,
+        )
+
+    exit(
+        # TODO: use local python version/lib
+        dedent(
+            """
+            export PYTHONPATH=~/repos/gitlab:~/py-envs/python-modules/lib/python3.XX/site-packages
+            and re-run!
+            """
+        ).rstrip()
+    )
 
 # TODO: it should be ~/repos. Fix and use for 'base'.
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
