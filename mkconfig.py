@@ -76,7 +76,7 @@ def upgrade_venvs(clear=False):
 
 try:
     from git.repo import Repo as GitRepo
-    from git.exc import GitCommandError
+    from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
     from styles.styles import Text
 except ModuleNotFoundError as err:
     print(err, file=stderr)
@@ -231,11 +231,15 @@ class Link:
 
 
 class Repo:
-    def __init__(self, root, links=()):
+    def __init__(self, root, links=(), action=None):
         self._links = links
         self._root = root
         self._name = Path(self._root).name
-        self._repo = GitRepo(self._root)
+        try:
+            self._repo = GitRepo(self._root)
+        except (NoSuchPathError, InvalidGitRepositoryError):
+            if action != "clone":
+                raise
 
     async def clone(self, where, protocol="git", hub="github", verbose=False):
         if protocol == "git":
@@ -306,6 +310,9 @@ class RepoData:
     hub: str = "github"
     enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
     links: tuple = ()
+
+    def __post_init__(self):
+        Path(f"{base}/{self.hub}").mkdir(parents=True, exist_ok=True)
 
 
 repos = (
@@ -477,7 +484,7 @@ async def git_clone():
     tasks = []
 
     for r in repos:
-        repo = Repo(f"{base}/{r.hub}/{r.name}")
+        repo = Repo(f"{base}/{r.hub}/{r.name}", action="clone")
         tasks.append(
             repo.clone(
                 args.clone_dst or f"{base}/{r.hub}",
