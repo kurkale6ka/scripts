@@ -26,12 +26,72 @@ from pprint import pprint
 import asyncio
 import argparse
 
+
+def upgrade_venvs():
+    from venv import EnvBuilder
+    from textwrap import dedent
+
+    class Venv(EnvBuilder):
+        def __init__(self, packages=()):
+            super().__init__(with_pip=True, upgrade_deps=True)
+            self._packages = packages
+            # self._tasks = []
+
+        # async def install_packages(self):
+        #     # TODO: gather results to improve display
+        #     for task in asyncio.as_completed(self._tasks):
+        #         await task
+
+        def post_setup(self, context):
+            run((context.env_exe, "-m", "pip", "install", "--upgrade", "wheel"))
+            cmd = (
+                context.env_exe,
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                *self._packages,
+            )
+            # self._tasks.append(asyncio.create_subprocess_exec(*cmd))
+            run(cmd)
+
+    # TODO: dataclass PythonVenv(name, packages, enable)
+    python_venvs = {
+        "python-modules": ("gitpython",),
+        "neovim": ("pynvim",),
+        "neovim-modules": (  # LSP linters/formatters/...
+            "ansible-lint",
+            "black",
+        ),
+        # awsume comes with boto3, aws cli INSTALL is separate, in /usr/local/
+        "aws-modules": ("awsume",),
+        # "az-modules": ('az',),
+    }
+
+    print("Installing pip modules...")
+    for name, packages in python_venvs.items():
+        builder = Venv(packages=packages)
+        builder.create(f"{env['HOME']}/py-envs/{name}")
+        # asyncio.run(builder.install_packages())
+
+    Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
+    exit(
+        dedent(
+            """
+            # Install the styles module with:
+            git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
+            export PYTHONPATH=~/repos/gitlab
+            """
+        ).strip()
+    )
+
+
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError
     from styles.styles import Text
 except ModuleNotFoundError:
-    exit("Missing modules. Please run:\nmkconfig -U")
+    upgrade_venvs()
 
 # TODO: it should be ~/repos. Fix and use for 'base'.
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
@@ -62,7 +122,7 @@ parser.add_argument(
     "-U",
     "--ugrade-venv-packages",
     action="store_true",
-    help="Install or upgrade venv and their packages",
+    help="Upgrade python `venv`s and their packages",
 )
 parser.add_argument(
     "-i", "--init", action="store_true", help="Initial setup"
@@ -302,65 +362,6 @@ repos = (
 )
 
 repos = (repo for repo in repos if repo.enabled)
-
-
-def upgrade_venvs():
-    from venv import EnvBuilder
-    from textwrap import dedent
-
-    class Venv(EnvBuilder):
-        def __init__(self, packages=()):
-            super().__init__(with_pip=True, upgrade_deps=True)
-            self._packages = packages
-            # self._tasks = []
-
-        # async def install_packages(self):
-        #     # TODO: gather results to improve display
-        #     for task in asyncio.as_completed(self._tasks):
-        #         await task
-
-        def post_setup(self, context):
-            run((context.env_exe, "-m", "pip", "install", "--upgrade", "wheel"))
-            cmd = (
-                context.env_exe,
-                "-m",
-                "pip",
-                "install",
-                "--upgrade",
-                *self._packages,
-            )
-            # self._tasks.append(asyncio.create_subprocess_exec(*cmd))
-            run(cmd)
-
-    # TODO: dataclass PythonVenv(name, packages, enable)
-    python_venvs = {
-        "python-modules": ("gitpython",),
-        "neovim": ("pynvim",),
-        "neovim-modules": (  # LSP linters/formatters/...
-            "ansible-lint",
-            "black",
-        ),
-        # awsume comes with boto3, aws cli INSTALL is separate, in /usr/local/
-        "aws-modules": ("awsume",),
-        # "az-modules": ('az',),
-    }
-
-    print("Installing pip modules...")
-    for name, packages in python_venvs.items():
-        builder = Venv(packages=packages)
-        builder.create(f"{env['HOME']}/py-envs/{name}")
-        # asyncio.run(builder.install_packages())
-
-    Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
-    exit(
-        dedent(
-            """
-            # Install the styles module with:
-            git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
-            export PYTHONPATH=~/repos/gitlab
-            """
-        ).strip()
-    )
 
 
 # TODO: show progress bar with tqdm?
