@@ -9,6 +9,8 @@ python3 <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mk
 TODO:
 ssh -T git@github.com to accept IP
 migrate `scripts/db-create` to python
+use annotations?
+catch interrupt signal?
 
 INSTALL:
 - fd-find (Linux),        ln -s /bin/fdfind ~/bin/fd
@@ -87,7 +89,6 @@ except ModuleNotFoundError as err:
         upgrade_venvs(clear=True)
     if "styles" in str(err):
         Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
-        # TODO: use local python version/lib
         print(
             dedent(
                 """
@@ -99,7 +100,7 @@ except ModuleNotFoundError as err:
         )
 
     exit(
-        # TODO: use local python version/lib
+        # TODO: find out local python version/lib (python3.XX)
         dedent(
             """
             export PYTHONPATH=~/repos/gitlab:~/py-envs/python-modules/lib/python3.XX/site-packages
@@ -390,7 +391,7 @@ def init():
         Text("-").cyan,
         f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).fg(69)}...",
     )
-    asyncio.run(git_clone())  # TODO: return code before continuing
+    asyncio.run(git_clone())  # TODO: wrap in a try except in case it fails
 
     print(Text("-").cyan, "Linking dot files")
 
@@ -574,7 +575,7 @@ async def git_status():
         await task
 
 
-# TODO: add -v
+# TODO: add -v/-q as needed
 async def git_pull():
     tasks = []
 
