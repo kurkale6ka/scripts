@@ -29,7 +29,7 @@ import asyncio
 import argparse
 
 
-def upgrade_venvs(clear=False):
+def upgrade_venvs(msg="Installing pip modules...", clear=False):
     from venv import EnvBuilder
 
     class Venv(EnvBuilder):
@@ -69,7 +69,7 @@ def upgrade_venvs(clear=False):
         # "az-modules": ('az',),
     }
 
-    print("Installing pip modules...")
+    print(msg)
     for name, packages in python_venvs.items():
         builder = Venv(packages=packages)
         builder.create(f"{env['HOME']}/py-envs/{name}")
@@ -588,6 +588,9 @@ async def git_pull():
 
 
 if __name__ == "__main__":
+    if args.ugrade_venv_packages:
+        upgrade_venvs(msg="Upgrading pip modules...")
+
     if args.init:
         init()
 
