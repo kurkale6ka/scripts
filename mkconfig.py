@@ -64,7 +64,7 @@ def upgrade_venvs(msg="Installing pip modules...", clear=False):
 
     # TODO: dataclass PythonVenv(name, packages, enable)
     python_venvs = {
-        "python-modules": ("gitpython",),
+        "python-modules": ("gitpython", "tqdm"),
         "neovim": ("pynvim",),
         "neovim-modules": (  # LSP linters/formatters/...
             # "ansible-lint", # is this provided by the LSP now?
