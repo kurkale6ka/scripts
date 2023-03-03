@@ -528,14 +528,19 @@ def ctags():
         "ctags",
         "-R",
         f"-f {env['HOME']}/repos/tags",
-        "--langmap=zsh:+.",  # files without extension. TODO: fix! not fully working, e.g. net/dig: variable 'out' not found. (zsh/autoload/*) vs . doesn't help
+        # "--langmap=zsh:+.",  # files without extension. TODO: fix! not fully working, e.g. net/dig: variable 'out' not found. (zsh/autoload/*) vs . doesn't help
         "--exclude=.*~",  # *~ excluded by default: ctags --list-excludes
         "--exclude=keymap",
         "--exclude=lazy-lock.json",  # lazy nvim
-        f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after",
-        f"{env['XDG_CONFIG_HOME']}/zsh/after",
     ]
+
     cmd.extend(f"{base}/{repo.hub}/{repo.name}" for repo in repos if repo.name != "vim")
+
+    Path(f"{env['XDG_CONFIG_HOME']}/zsh/after").mkdir(parents=True, exist_ok=True)
+    cmd.append(f"{env['XDG_CONFIG_HOME']}/zsh/after")
+
+    if Path(f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after").is_file():
+        cmd.append(f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after")
 
     if args.verbose:
         pprint(cmd)
