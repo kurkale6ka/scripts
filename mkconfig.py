@@ -20,13 +20,19 @@ INSTALL:
 
 from dataclasses import dataclass
 from os import environ as env
-from sys import argv, stderr, platform
+from sys import argv, stderr, platform, path as pythonpath
 from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
 from pprint import pprint
 import asyncio
 import argparse
+
+# Add gitpython's venv to sys.path
+version = Path(env["HOME"] + "/py-envs/python-modules/lib").iterdir()
+pythonpath.append(
+    env["HOME"] + "/py-envs/python-modules/lib/" + next(version).name + "/site-packages"
+)
 
 
 def upgrade_venvs(msg="Installing pip modules...", clear=False):
@@ -69,7 +75,7 @@ def upgrade_venvs(msg="Installing pip modules...", clear=False):
         # "az-modules": ('az',),
     }
 
-    print(msg)
+    print(f"{msg}\n")
     for name, packages in python_venvs.items():
         builder = Venv(packages=packages)
         builder.create(f"{env['HOME']}/py-envs/{name}")
@@ -100,10 +106,9 @@ except ModuleNotFoundError as err:
         )
 
     exit(
-        # TODO: find out local python version/lib (python3.XX)
         dedent(
             """
-            export PYTHONPATH=~/repos/gitlab:~/py-envs/python-modules/lib/python3.XX/site-packages
+            export PYTHONPATH=~/repos/gitlab
             and re-run!
             """
         ).rstrip()
