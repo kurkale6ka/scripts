@@ -9,6 +9,8 @@ python3 <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mk
 TODO:
 ssh -T git@github.com to accept IP
 migrate `scripts/db-create` to python
+use annotations?
+catch interrupt signal?
 
 INSTALL:
 - fd-find (Linux),        ln -s /bin/fdfind ~/bin/fd
@@ -16,8 +18,6 @@ INSTALL:
 - wslu    (Windows wsl2), open browser pages
 """
 
-from git.repo import Repo as GitRepo
-from git.exc import GitCommandError
 from dataclasses import dataclass
 from os import environ as env
 from sys import argv, stderr, platform
@@ -27,18 +27,95 @@ from multiprocessing import Process
 from pprint import pprint
 import asyncio
 import argparse
-from styles.styles import Text
 
-# TODO: it should be ~/repos. Fix and use for 'base'.
+
+def upgrade_venvs(msg="Installing pip modules...", clear=False):
+    from venv import EnvBuilder
+
+    class Venv(EnvBuilder):
+        def __init__(self, packages=()):
+            super().__init__(with_pip=True, upgrade_deps=True, clear=clear)
+            self._packages = packages
+            # self._tasks = []
+
+        # async def install_packages(self):
+        #     # TODO: gather results to improve display
+        #     for task in asyncio.as_completed(self._tasks):
+        #         await task
+
+        def post_setup(self, context):
+            run((context.env_exe, "-m", "pip", "install", "--upgrade", "wheel"))
+            cmd = (
+                context.env_exe,
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                *self._packages,
+            )
+            # self._tasks.append(asyncio.create_subprocess_exec(*cmd))
+            run(cmd)
+
+    # TODO: dataclass PythonVenv(name, packages, enable)
+    python_venvs = {
+        "python-modules": ("gitpython",),
+        "neovim": ("pynvim",),
+        "neovim-modules": (  # LSP linters/formatters/...
+            # "ansible-lint", # is this provided by the LSP now?
+            "black",
+        ),
+        # awsume comes with boto3, aws cli INSTALL is separate, in /usr/local/
+        "aws-modules": ("awsume",),
+        # "az-modules": ('az',),
+    }
+
+    print(msg)
+    for name, packages in python_venvs.items():
+        builder = Venv(packages=packages)
+        builder.create(f"{env['HOME']}/py-envs/{name}")
+        # asyncio.run(builder.install_packages())
+
+
+try:
+    from git.repo import Repo as GitRepo
+    from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
+    from styles.styles import Text
+except ModuleNotFoundError as err:
+    print(err, file=stderr)
+
+    from textwrap import dedent
+
+    if "git" in str(err):
+        upgrade_venvs(clear=True)
+    if "styles" in str(err):
+        Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
+        print(
+            dedent(
+                """
+                Install the `styles` module with:
+                git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
+                """
+            ).rstrip(),
+            file=stderr,
+        )
+
+    exit(
+        # TODO: find out local python version/lib (python3.XX)
+        dedent(
+            """
+            export PYTHONPATH=~/repos/gitlab:~/py-envs/python-modules/lib/python3.XX/site-packages
+            and re-run!
+            """
+        ).rstrip()
+    )
+
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
 if not "REPOS_BASE" in env:
-    print(
-        Text("exporting REPOS_BASE to").red, Text("~/repos/github").fg(69), file=stderr
-    )
-    env["REPOS_BASE"] = env["HOME"] + "/repos/github"
-    Path(env["REPOS_BASE"]).mkdir(parents=True, exist_ok=True)
+    print(Text("exporting REPOS_BASE to").red, Text("~/repos").fg(69), file=stderr)
+    env["REPOS_BASE"] = env["HOME"] + "/repos"
+    Path(env["REPOS_BASE"]).mkdir(exist_ok=True)
 
-base = f"{env['HOME']}/repos"
+base = env["REPOS_BASE"]
 user = "kurkale6ka"
 
 # XDG Variables
@@ -54,6 +131,12 @@ parser = argparse.ArgumentParser(prog="mkconfig", description="Dotfiles setup")
 grp_cln = parser.add_argument_group("Clone repositories")
 grp_ln = parser.add_mutually_exclusive_group()
 grp_git = parser.add_mutually_exclusive_group()
+parser.add_argument(
+    "-U",
+    "--ugrade-venv-packages",
+    action="store_true",
+    help="Upgrade python `venv`s and their packages",
+)
 parser.add_argument(
     "-i", "--init", action="store_true", help="Initial setup"
 )  # TODO: make mutually exclusive with the rest
@@ -146,11 +229,15 @@ class Link:
 
 
 class Repo:
-    def __init__(self, root, links=()):
+    def __init__(self, root, links=(), action=None):
         self._links = links
         self._root = root
         self._name = Path(self._root).name
-        self._repo = GitRepo(self._root)
+        try:
+            self._repo = GitRepo(self._root)
+        except (NoSuchPathError, InvalidGitRepositoryError):
+            if action != "clone":
+                raise
 
     async def clone(self, where, protocol="git", hub="github", verbose=False):
         if protocol == "git":
@@ -166,7 +253,7 @@ class Repo:
         code = await proc.wait()
 
         if code == 0:
-            print(Text("").cyan, f"cloned {self._name}")
+            print(Text("*").cyan, f"cloned {self._name}")
 
     def create_links(self, verbose=False):
         for link in self._links:
@@ -221,6 +308,9 @@ class RepoData:
     hub: str = "github"
     enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
     links: tuple = ()
+
+    def __post_init__(self):
+        Path(f"{base}/{self.hub}").mkdir(parents=True, exist_ok=True)
 
 
 repos = (
@@ -298,30 +388,30 @@ repos = (repo for repo in repos if repo.enabled)
 # for task in tqdm.as_completed(tasks, leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
 def init():
     print(
-        Text("→").cyan,
+        Text("-").cyan,
         f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).fg(69)}...",
     )
-    git_clone()  # TODO: return code before continuing
+    asyncio.run(git_clone())  # TODO: wrap in a try except in case it fails
 
-    print(Text("→").cyan, "Linking dot files")
+    print(Text("-").cyan, "Linking dot files")
 
     Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
     Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(exist_ok=True)
     Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(exist_ok=True)
     create_links()
 
-    print(Text("→").cyan, "Configuring git")
+    print(Text("-").cyan, "Configuring git")
     git_config()
 
-    print(Text("→").cyan, "Generating tags")
+    print(Text("-").cyan, "Generating tags")
     ctags()
 
-    print(Text("→").cyan, "Creating fuzzy cd database")
+    print(Text("-").cyan, "Creating fuzzy cd database")
     cd_db_create()
 
     # macOS
     if platform == "darwin":
-        print(Text("→").cyan, "Installing Homebrew formulae...")
+        print(Text("-").cyan, "Installing Homebrew formulae...")
         formulae = (
             "cpanminus",
             "bash",
@@ -388,21 +478,22 @@ def init():
         env["PATH"] = ":".join(path)
 
 
-def git_clone():
-    async def main():
-        async with asyncio.TaskGroup() as tg:
-            for r in repos:
-                repo = Repo(f"{base}/{r.hub}/{r.name}")
-                tg.create_task(
-                    repo.clone(
-                        args.clone_dst or f"{base}/{r.hub}",
-                        protocol=args.clone_protocol,
-                        hub=r.hub,
-                        verbose=args.verbose,
-                    )
-                )
+async def git_clone():
+    tasks = []
 
-    asyncio.run(main())
+    for r in repos:
+        repo = Repo(f"{base}/{r.hub}/{r.name}", action="clone")
+        tasks.append(
+            repo.clone(
+                args.clone_dst or f"{base}/{r.hub}",
+                protocol=args.clone_protocol,
+                hub=r.hub,
+                verbose=args.verbose,
+            )
+        )
+
+    for task in asyncio.as_completed(tasks):
+        await task
 
 
 def create_links():
@@ -435,14 +526,19 @@ def ctags():
         "ctags",
         "-R",
         f"-f {env['HOME']}/repos/tags",
-        "--langmap=zsh:+.",  # files without extension. TODO: fix! not fully working, e.g. net/dig: variable 'out' not found. (zsh/autoload/*) vs . doesn't help
+        # "--langmap=zsh:+.",  # files without extension. TODO: fix! not fully working, e.g. net/dig: variable 'out' not found. (zsh/autoload/*) vs . doesn't help
         "--exclude=.*~",  # *~ excluded by default: ctags --list-excludes
         "--exclude=keymap",
         "--exclude=lazy-lock.json",  # lazy nvim
-        f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after",
-        f"{env['XDG_CONFIG_HOME']}/zsh/after",
     ]
+
     cmd.extend(f"{base}/{repo.hub}/{repo.name}" for repo in repos if repo.name != "vim")
+
+    Path(f"{env['XDG_CONFIG_HOME']}/zsh/after").mkdir(parents=True, exist_ok=True)
+    cmd.append(f"{env['XDG_CONFIG_HOME']}/zsh/after")
+
+    if Path(f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after").is_file():
+        cmd.append(f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after")
 
     if args.verbose:
         pprint(cmd)
@@ -468,33 +564,38 @@ def cd_db_create():
     run(cmd)
 
 
-def git_status():
-    async def main():
-        async with asyncio.TaskGroup() as tg:
-            for r in repos:
-                repo = Repo(f"{base}/{r.hub}/{r.name}")
-                tg.create_task(repo.status(args.verbose))
+async def git_status():
+    tasks = []
 
-    asyncio.run(main())
+    for r in repos:
+        repo = Repo(f"{base}/{r.hub}/{r.name}")
+        tasks.append(repo.status(args.verbose))
+
+    for task in asyncio.as_completed(tasks):
+        await task
 
 
-# TODO: add -v
-def git_pull():
-    async def main():
-        async with asyncio.TaskGroup() as tg:
-            for r in repos:
-                repo = Repo(f"{base}/{r.hub}/{r.name}")
-                tg.create_task(repo.update())
+# TODO: add -v/-q as needed
+async def git_pull():
+    tasks = []
 
-    asyncio.run(main())
+    for r in repos:
+        repo = Repo(f"{base}/{r.hub}/{r.name}")
+        tasks.append(repo.update())
+
+    for task in asyncio.as_completed(tasks):
+        await task
 
 
 if __name__ == "__main__":
+    if args.ugrade_venv_packages:
+        upgrade_venvs(msg="Upgrading pip modules...")
+
     if args.init:
         init()
 
     if args.clone:
-        git_clone()
+        asyncio.run(git_clone())
 
     if args.links:
         create_links()
@@ -512,7 +613,7 @@ if __name__ == "__main__":
         cd_db_create()
 
     if args.status:
-        git_status()
+        asyncio.run(git_status())
 
     if len(argv) == 1 or args.update:  # no args or --update
-        git_pull()
+        asyncio.run(git_pull())
