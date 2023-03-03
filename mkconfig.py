@@ -108,16 +108,13 @@ except ModuleNotFoundError as err:
         ).rstrip()
     )
 
-# TODO: it should be ~/repos. Fix and use for 'base'.
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
 if not "REPOS_BASE" in env:
-    print(
-        Text("exporting REPOS_BASE to").red, Text("~/repos/github").fg(69), file=stderr
-    )
-    env["REPOS_BASE"] = env["HOME"] + "/repos/github"
-    Path(env["REPOS_BASE"]).mkdir(parents=True, exist_ok=True)
+    print(Text("exporting REPOS_BASE to").red, Text("~/repos").fg(69), file=stderr)
+    env["REPOS_BASE"] = env["HOME"] + "/repos"
+    Path(env["REPOS_BASE"]).mkdir(exist_ok=True)
 
-base = f"{env['HOME']}/repos"
+base = env["REPOS_BASE"]
 user = "kurkale6ka"
 
 # XDG Variables
@@ -255,7 +252,7 @@ class Repo:
         code = await proc.wait()
 
         if code == 0:
-            print(Text("").cyan, f"cloned {self._name}")
+            print(Text("*").cyan, f"cloned {self._name}")
 
     def create_links(self, verbose=False):
         for link in self._links:
@@ -390,30 +387,30 @@ repos = (repo for repo in repos if repo.enabled)
 # for task in tqdm.as_completed(tasks, leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
 def init():
     print(
-        Text("→").cyan,
+        Text("-").cyan,
         f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).fg(69)}...",
     )
     asyncio.run(git_clone())  # TODO: return code before continuing
 
-    print(Text("→").cyan, "Linking dot files")
+    print(Text("-").cyan, "Linking dot files")
 
     Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
-    Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(parents=True, exist_ok=True)
-    Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(parents=True, exist_ok=True)
+    Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(exist_ok=True)
+    Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(exist_ok=True)
     create_links()
 
-    print(Text("→").cyan, "Configuring git")
+    print(Text("-").cyan, "Configuring git")
     git_config()
 
-    print(Text("→").cyan, "Generating tags")
+    print(Text("-").cyan, "Generating tags")
     ctags()
 
-    print(Text("→").cyan, "Creating fuzzy cd database")
+    print(Text("-").cyan, "Creating fuzzy cd database")
     cd_db_create()
 
     # macOS
     if platform == "darwin":
-        print(Text("→").cyan, "Installing Homebrew formulae...")
+        print(Text("-").cyan, "Installing Homebrew formulae...")
         formulae = (
             "cpanminus",
             "bash",
