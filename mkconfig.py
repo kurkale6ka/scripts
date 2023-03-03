@@ -398,8 +398,8 @@ def init():
     print(Text("→").cyan, "Linking dot files")
 
     Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
-    Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(exist_ok=True)
-    Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(exist_ok=True)
+    Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(parents=True, exist_ok=True)
+    Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(parents=True, exist_ok=True)
     create_links()
 
     print(Text("→").cyan, "Configuring git")
