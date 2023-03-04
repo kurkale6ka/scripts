@@ -409,6 +409,9 @@ def init():
 
     Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
     Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(exist_ok=True)
+    Path(f"{env['XDG_DATA_HOME']}/zsh").mkdir(
+        exist_ok=True
+    )  # for zsh history. TODO: group mkdirs
     Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(exist_ok=True)
     create_links()
 
