@@ -24,15 +24,25 @@ from sys import argv, stderr, platform, path as pythonpath
 from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
+from signal import signal, SIGINT
 from pprint import pprint
 import asyncio
 import argparse
 
-# Add gitpython's venv to sys.path
-version = Path(env["HOME"] + "/py-envs/python-modules/lib").iterdir()
-pythonpath.append(
-    env["HOME"] + "/py-envs/python-modules/lib/" + next(version).name + "/site-packages"
-)
+if Path(f"{env['HOME']}/py-envs/python-modules/lib").is_dir():
+    # Add gitpython's venv to sys.path
+    version = Path(env["HOME"] + "/py-envs/python-modules/lib").iterdir()
+    pythonpath.append(
+        f"{env['HOME']}/py-envs/python-modules/lib/{next(version).name}/site-packages"
+    )
+
+
+def interrupt_handler(sig, frame):
+    print("\nBye")
+    exit()
+
+
+signal(SIGINT, interrupt_handler)
 
 
 def upgrade_venvs(msg="Installing pip modules...", clear=False):
@@ -92,7 +102,11 @@ except ModuleNotFoundError as err:
     from textwrap import dedent
 
     if "git" in str(err):
-        upgrade_venvs(clear=True)
+        answer = "n"
+        if Path(f"{env['HOME']}/py-envs").is_dir():
+            answer = input("Do you want to reinstall pip modules? (y/n) ")
+        if answer == "y":
+            upgrade_venvs(clear=True)
     if "styles" in str(err):
         Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
         print(
