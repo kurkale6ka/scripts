@@ -10,7 +10,6 @@ TODO:
 ssh -T git@github.com to accept IP
 migrate `scripts/db-create` to python
 use annotations?
-catch interrupt signal?
 
 INSTALL:
 - fd-find (Linux),        ln -s /bin/fdfind ~/bin/fd
@@ -20,7 +19,7 @@ INSTALL:
 
 from dataclasses import dataclass
 from os import environ as env
-from sys import argv, stderr, platform, version_info, path as pythonpath
+from sys import argv, stderr, platform, version_info
 from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
@@ -29,15 +28,8 @@ from pprint import pprint
 import asyncio
 import argparse
 
-if Path(f"{env['HOME']}/py-envs/python-modules/lib").is_dir():
-    # Add gitpython's venv to sys.path
-    version = Path(env["HOME"] + "/py-envs/python-modules/lib").iterdir()
-    pythonpath.append(
-        f"{env['HOME']}/py-envs/python-modules/lib/{next(version).name}/site-packages"
-    )
 
-
-def interrupt_handler(sig, frame):
+def interrupt_handler(sig, frame):  # TODO: disable pyright warning
     print("\nBye")
     exit()
 
@@ -80,8 +72,9 @@ def upgrade_venvs(msg="Installing pip modules...", clear=False):
             # "ansible-lint", # is this provided by the LSP now?
             "black",
         ),
-        # awsume comes with boto3, aws cli INSTALL is separate, in /usr/local/
-        "aws-modules": ("awsume",),
+        "aws-modules": (
+            "awsume",  # comes with boto3, aws cli INSTALL is separate, in /usr/local/
+        ),
         # "az-modules": ('az',),
     }
 
@@ -625,7 +618,7 @@ async def git_pull():
             await task
 
 
-if __name__ == "__main__":
+def main():
     if args.ugrade_venv_packages:
         upgrade_venvs(msg="Upgrading pip modules...")
 
@@ -655,3 +648,7 @@ if __name__ == "__main__":
 
     if len(argv) == 1 or args.update:  # no args or --update
         asyncio.run(git_pull())
+
+
+if __name__ == "__main__":
+    main()

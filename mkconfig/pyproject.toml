@@ -1,0 +1,12 @@
+# Reinstall after changing this file:
+# pip install -e .
+[project]
+name = "mkconfig"
+version = "1.0.0"
+
+[project.scripts]
+# 3 parts: [package.]module:function
+mkconfig = "mkconfig.py:main"
+
+[tool.pyright]
+venv = "venv"
