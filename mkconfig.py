@@ -20,7 +20,7 @@ INSTALL:
 
 from dataclasses import dataclass
 from os import environ as env
-from sys import argv, stderr, platform, path as pythonpath
+from sys import argv, stderr, platform, version_info, path as pythonpath
 from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
@@ -498,21 +498,32 @@ def init():
 
 
 async def git_clone():
-    tasks = []
-
-    for r in repos:
-        repo = Repo(f"{base}/{r.hub}/{r.name}", action="clone")
-        tasks.append(
-            repo.clone(
-                args.clone_dst or f"{base}/{r.hub}",
-                protocol=args.clone_protocol,
-                hub=r.hub,
-                verbose=args.verbose,
+    if version_info[0] == 3 and version_info[1] >= 11:
+        async with asyncio.TaskGroup() as tg:
+            for r in repos:
+                repo = Repo(f"{base}/{r.hub}/{r.name}", action="clone")
+                tg.create_task(
+                    repo.clone(
+                        args.clone_dst or f"{base}/{r.hub}",
+                        protocol=args.clone_protocol,
+                        hub=r.hub,
+                        verbose=args.verbose,
+                    )
+                )
+    else:
+        tasks = []
+        for r in repos:
+            repo = Repo(f"{base}/{r.hub}/{r.name}", action="clone")
+            tasks.append(
+                repo.clone(
+                    args.clone_dst or f"{base}/{r.hub}",
+                    protocol=args.clone_protocol,
+                    hub=r.hub,
+                    verbose=args.verbose,
+                )
             )
-        )
-
-    for task in asyncio.as_completed(tasks):
-        await task
+        for task in asyncio.as_completed(tasks):
+            await task
 
 
 def create_links():
@@ -584,26 +595,34 @@ def cd_db_create():
 
 
 async def git_status():
-    tasks = []
-
-    for r in repos:
-        repo = Repo(f"{base}/{r.hub}/{r.name}")
-        tasks.append(repo.status(args.verbose))
-
-    for task in asyncio.as_completed(tasks):
-        await task
+    if version_info[0] == 3 and version_info[1] >= 11:
+        async with asyncio.TaskGroup() as tg:
+            for r in repos:
+                repo = Repo(f"{base}/{r.hub}/{r.name}")
+                tg.create_task(repo.status(args.verbose))
+    else:
+        tasks = []
+        for r in repos:
+            repo = Repo(f"{base}/{r.hub}/{r.name}")
+            tasks.append(repo.status(args.verbose))
+        for task in asyncio.as_completed(tasks):
+            await task
 
 
 # TODO: add -v/-q as needed
 async def git_pull():
-    tasks = []
-
-    for r in repos:
-        repo = Repo(f"{base}/{r.hub}/{r.name}")
-        tasks.append(repo.update())
-
-    for task in asyncio.as_completed(tasks):
-        await task
+    if version_info[0] == 3 and version_info[1] >= 11:
+        async with asyncio.TaskGroup() as tg:
+            for r in repos:
+                repo = Repo(f"{base}/{r.hub}/{r.name}")
+                tg.create_task(repo.update())
+    else:
+        tasks = []
+        for r in repos:
+            repo = Repo(f"{base}/{r.hub}/{r.name}")
+            tasks.append(repo.update())
+        for task in asyncio.as_completed(tasks):
+            await task
 
 
 if __name__ == "__main__":
