@@ -31,7 +31,7 @@ import argparse
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
-    from styles import Text
+    from styles import Text # pyright: ignore reportMissingImports
 except ModuleNotFoundError as err:
     print(err, file=stderr)
     if "git" in str(err):
@@ -46,7 +46,7 @@ except ModuleNotFoundError as err:
     exit(1)
 
 
-def interrupt_handler(sig, frame):  # TODO: disable pyright warning
+def interrupt_handler(sig, frame):  # pyright: ignore reportUnusedVariable
     print("\nBye")
     exit()
 
