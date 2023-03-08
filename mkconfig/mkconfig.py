@@ -28,6 +28,23 @@ from pprint import pprint
 import asyncio
 import argparse
 
+try:
+    from git.repo import Repo as GitRepo
+    from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
+    from styles import Text
+except ModuleNotFoundError as err:
+    print(err, file=stderr)
+    if "git" in str(err):
+        print(
+            'Install "mkconfig" with: `pip install -e mkconfig` in a venv!', file=stderr
+        )
+    if "styles" in str(err):
+        print(
+            'Install my personal "styles" module following the instructions from the README file!',
+            file=stderr,
+        )
+    exit(1)
+
 
 def interrupt_handler(sig, frame):  # TODO: disable pyright warning
     print("\nBye")
@@ -35,76 +52,6 @@ def interrupt_handler(sig, frame):  # TODO: disable pyright warning
 
 
 signal(SIGINT, interrupt_handler)
-
-
-def upgrade_venvs(msg="Installing pip modules...", clear=False):
-    from venv import EnvBuilder
-
-    class Venv(EnvBuilder):
-        def __init__(self, packages=()):
-            super().__init__(with_pip=True, upgrade_deps=True, clear=clear)
-            self._packages = packages
-            # self._tasks = []
-
-        # async def install_packages(self):
-        #     # TODO: gather results to improve display
-        #     for task in asyncio.as_completed(self._tasks):
-        #         await task
-
-        def post_setup(self, context):
-            run((context.env_exe, "-m", "pip", "install", "--upgrade", "wheel"))
-            cmd = (
-                context.env_exe,
-                "-m",
-                "pip",
-                "install",
-                "--upgrade",
-                *self._packages,
-            )
-            # self._tasks.append(asyncio.create_subprocess_exec(*cmd))
-            run(cmd)
-
-    # TODO: dataclass PythonVenv(name, packages, enable)
-    python_venvs = {
-        "neovim": (  # LSP linters/formatters/...
-            # "ansible-lint", # is this provided by the LSP now?
-            "pynvim",
-            "black",
-        ),
-    }
-
-    print(f"{msg}\n")
-    for name, packages in python_venvs.items():
-        builder = Venv(packages=packages)
-        builder.create(f"{env['HOME']}/py-envs/{name}")
-        # asyncio.run(builder.install_packages())
-
-
-try:
-    from git.repo import Repo as GitRepo
-    from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
-    from styles import Text
-except ModuleNotFoundError as err:
-    print(err, file=stderr)
-
-    from textwrap import dedent
-
-    if "git" in str(err):
-        print('Install "mkconfig" with: `pip install -e mkconfig`', file=stderr)
-    if "styles" in str(err):
-        Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
-        print(
-            dedent(
-                """
-                Install the "styles" module with:
-                git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
-                pip install -e styles
-                """
-            ).rstrip(),
-            file=stderr,
-        )
-
-    exit(1)
 
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
 if not "REPOS_BASE" in env:
@@ -380,6 +327,49 @@ repos = (
 )
 
 repos = (repo for repo in repos if repo.enabled)
+
+
+def upgrade_venvs(msg="Installing pip modules...", clear=False):
+    from venv import EnvBuilder
+
+    class Venv(EnvBuilder):
+        def __init__(self, packages=()):
+            super().__init__(with_pip=True, upgrade_deps=True, clear=clear)
+            self._packages = packages
+            # self._tasks = []
+
+        # async def install_packages(self):
+        #     # TODO: gather results to improve display
+        #     for task in asyncio.as_completed(self._tasks):
+        #         await task
+
+        def post_setup(self, context):
+            run((context.env_exe, "-m", "pip", "install", "--upgrade", "wheel"))
+            cmd = (
+                context.env_exe,
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                *self._packages,
+            )
+            # self._tasks.append(asyncio.create_subprocess_exec(*cmd))
+            run(cmd)
+
+    # TODO: dataclass PythonVenv(name, packages, enable)
+    python_venvs = {
+        "neovim": (  # LSP linters/formatters/...
+            # "ansible-lint", # is this provided by the LSP now?
+            "pynvim",
+            "black",
+        ),
+    }
+
+    print(f"{msg}\n")
+    for name, packages in python_venvs.items():
+        builder = Venv(packages=packages)
+        builder.create(f"{env['HOME']}/py-envs/{name}")
+        # asyncio.run(builder.install_packages())
 
 
 # TODO: show progress bar with tqdm?
