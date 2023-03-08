@@ -66,16 +66,11 @@ def upgrade_venvs(msg="Installing pip modules...", clear=False):
 
     # TODO: dataclass PythonVenv(name, packages, enable)
     python_venvs = {
-        "python-modules": ("gitpython", "tqdm"),
-        "neovim": ("pynvim",),
-        "neovim-modules": (  # LSP linters/formatters/...
+        "neovim": (  # LSP linters/formatters/...
             # "ansible-lint", # is this provided by the LSP now?
+            "pynvim",
             "black",
         ),
-        "aws-modules": (
-            "awsume",  # comes with boto3, aws cli INSTALL is separate, in /usr/local/
-        ),
-        # "az-modules": ('az',),
     }
 
     print(f"{msg}\n")
@@ -88,38 +83,28 @@ def upgrade_venvs(msg="Installing pip modules...", clear=False):
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
-    from styles.styles import Text
+    from styles import Text
 except ModuleNotFoundError as err:
     print(err, file=stderr)
 
     from textwrap import dedent
 
     if "git" in str(err):
-        answer = "n"
-        if Path(f"{env['HOME']}/py-envs").is_dir():
-            answer = input("Do you want to reinstall pip modules? (y/n) ")
-        if answer == "y":
-            upgrade_venvs(clear=True)
+        print('Install "mkconfig" with: `pip install -e mkconfig`', file=stderr)
     if "styles" in str(err):
         Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
         print(
             dedent(
                 """
-                Install the `styles` module with:
+                Install the "styles" module with:
                 git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
+                pip install -e styles
                 """
             ).rstrip(),
             file=stderr,
         )
 
-    exit(
-        dedent(
-            """
-            export PYTHONPATH=~/repos/gitlab
-            and re-run!
-            """
-        ).rstrip()
-    )
+    exit(1)
 
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
 if not "REPOS_BASE" in env:
@@ -143,6 +128,7 @@ parser = argparse.ArgumentParser(prog="mkconfig", description="Dotfiles setup")
 grp_cln = parser.add_argument_group("Clone repositories")
 grp_ln = parser.add_mutually_exclusive_group()
 grp_git = parser.add_mutually_exclusive_group()
+# TODO: change to --install-nvim-pymodules ?
 parser.add_argument(
     "-U",
     "--ugrade-venv-packages",
@@ -363,7 +349,7 @@ repos = (
             Link("ex.pl", f"{env['HOME']}/bin/ex"),
             Link("calc.pl", f"{env['HOME']}/bin/="),
             Link("cert.pl", f"{env['HOME']}/bin/cert"),
-            Link("mkconfig.py", f"{env['HOME']}/bin/mkconfig"),
+            Link("mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"),
             Link("mini.pl", f"{env['HOME']}/bin/mini"),
             Link("pics.pl", f"{env['HOME']}/bin/pics"),
             Link("pc.pl", f"{env['HOME']}/bin/pc"),
