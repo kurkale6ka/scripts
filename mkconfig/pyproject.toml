@@ -1,12 +1,21 @@
-# Reinstall after changing this file:
-# pip install -e .
+# Reinstall after changing this file!
+#   source .venv/bin/activate
+#   pip install -e .
 [project]
-name = "mkconfig"
-version = "1.0.0"
+name = 'mkconfig'
+version = '1.0.0'
+dependencies = [
+    'gitpython',
+    # 'styles'
+]
+authors = [
+    {name = 'Dimitar Dimitrov', email = 'kurkale6ka@gmail.com'},
+]
 
 [project.scripts]
 # 3 parts: [package.]module:function
-mkconfig = "mkconfig.py:main"
+mkconfig = 'mkconfig.py:main'
 
 [tool.pyright]
-venv = "venv"
+venv = '.venv'
+venvPath = '.'
