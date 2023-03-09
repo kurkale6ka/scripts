@@ -31,7 +31,7 @@ import argparse
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
-    from styles import Text # pyright: ignore reportMissingImports
+    from styles import Text  # pyright: ignore reportMissingImports
 except ModuleNotFoundError as err:
     print(err, file=stderr)
     if "git" in str(err):
@@ -75,12 +75,11 @@ parser = argparse.ArgumentParser(prog="mkconfig", description="Dotfiles setup")
 grp_cln = parser.add_argument_group("Clone repositories")
 grp_ln = parser.add_mutually_exclusive_group()
 grp_git = parser.add_mutually_exclusive_group()
-# TODO: change to --install-nvim-pymodules ?
 parser.add_argument(
-    "-U",
-    "--ugrade-venv-packages",
+    "-N",
+    "--install-nvim-python-client",
     action="store_true",
-    help="Upgrade python `venv`s and their packages",
+    help="Install/Upgrade Neovim's Python client, plus other `venv`s in `~/py-envs` and their packages",
 )
 parser.add_argument(
     "-i", "--init", action="store_true", help="Initial setup"
@@ -288,7 +287,7 @@ repos = (
             Link(".bashrc", f"{env['HOME']}", "-r"),
             Link(".bash_logout", f"{env['HOME']}", "-r"),
         ),
-        make_links=False
+        make_links=False,
     ),
     RepoData(
         "scripts",
@@ -331,7 +330,7 @@ repos = (
 repos = (repo for repo in repos if repo.enabled)
 
 
-def upgrade_venvs(msg="Installing pip modules...", clear=False):
+def upgrade_venvs(msg="Installing pip modules (pynvim, ...)", clear=False):
     from venv import EnvBuilder
 
     class Venv(EnvBuilder):
@@ -360,11 +359,7 @@ def upgrade_venvs(msg="Installing pip modules...", clear=False):
 
     # TODO: dataclass PythonVenv(name, packages, enable)
     python_venvs = {
-        "neovim": (  # LSP linters/formatters/...
-            # "ansible-lint", # is this provided by the LSP now?
-            "pynvim",
-            "black",
-        ),
+        "neovim": ("pynvim",),
     }
 
     print(f"{msg}\n")
@@ -599,8 +594,8 @@ async def git_pull():
 
 
 def main():
-    if args.ugrade_venv_packages:
-        upgrade_venvs(msg="Upgrading pip modules...")
+    if args.install_nvim_python_client:
+        upgrade_venvs(msg="Upgrading pip modules (pynvim, ...)")
 
     if args.init:
         init()
