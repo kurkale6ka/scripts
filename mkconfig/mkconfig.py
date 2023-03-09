@@ -251,8 +251,9 @@ class Repo:
 class RepoData:
     name: str
     hub: str = "github"
-    enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
     links: tuple = ()
+    enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
+    make_links: bool = True
 
     def __post_init__(self):
         Path(f"{base}/{self.hub}").mkdir(parents=True, exist_ok=True)
@@ -287,6 +288,7 @@ repos = (
             Link(".bashrc", f"{env['HOME']}", "-r"),
             Link(".bash_logout", f"{env['HOME']}", "-r"),
         ),
+        make_links=False
     ),
     RepoData(
         "scripts",
@@ -497,18 +499,20 @@ async def git_clone():
 
 def create_links():
     for r in repos:
-        repo = Repo(f"{base}/{r.hub}/{r.name}", r.links)
-        p = Process(target=repo.create_links, args=(args.verbose,))
-        p.start()
-        p.join()
+        if r.make_links:
+            repo = Repo(f"{base}/{r.hub}/{r.name}", r.links)
+            p = Process(target=repo.create_links, args=(args.verbose,))
+            p.start()
+            p.join()
 
 
 def remove_links():
-    for repo in repos:
-        for link in repo.links:
-            p = Process(target=link.remove, args=(args.verbose,))
-            p.start()
-            p.join()
+    for r in repos:
+        if r.make_links:
+            for link in r.links:
+                p = Process(target=link.remove, args=(args.verbose,))
+                p.start()
+                p.join()
 
 
 def git_config():
