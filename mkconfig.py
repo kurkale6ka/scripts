@@ -394,6 +394,7 @@ repos = (
             Link("XDG/bat_config", f"{env['XDG_CONFIG_HOME']}/bat/config"),
         ),
     ),
+    RepoData("help"),
     RepoData("styles", hub="gitlab"),
     RepoData("vim-chess", enabled=False),
     RepoData("vim-desertEX", enabled=False),
@@ -406,6 +407,12 @@ repos = (repo for repo in repos if repo.enabled)
 # TODO: show progress bar with tqdm?
 # for task in tqdm.as_completed(tasks, leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
 def init():
+    if platform == "darwin":
+        # needed when 'ln' is actually 'gln'
+        path = env["PATH"].split(":")
+        path.insert(0, "/usr/local/opt/coreutils/libexec/gnubin")
+        env["PATH"] = ":".join(path)
+
     print(
         Text("-").cyan,
         f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).fg(69)}...",
@@ -416,6 +423,9 @@ def init():
 
     Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
     Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(exist_ok=True)
+    Path(f"{env['XDG_DATA_HOME']}/zsh").mkdir(
+        exist_ok=True
+    )  # for zsh history. TODO: group mkdirs
     Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(exist_ok=True)
     create_links()
 
@@ -490,11 +500,6 @@ def init():
 
         cmd = ["env", auto_update, "brew", "install", "beeftornado/rmtree/brew-rmtree"]
         run(cmd)
-
-        # needed when 'ln' is actually 'gln'
-        path = env["PATH"].split(":")
-        path.insert(0, "/usr/local/opt/coreutils/libexec/gnubin")
-        env["PATH"] = ":".join(path)
 
 
 async def git_clone():

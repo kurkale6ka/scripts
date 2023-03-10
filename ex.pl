@@ -147,7 +147,7 @@ sub Open
    }
 
    # personal help files
-   if (not defined $raw and -f "$ENV{REPOS_BASE}/help/$file")
+   if (not defined $raw and -f "$ENV{REPOS_BASE}/github/help/$file")
    {
       if ($ext =~ /\.md$/i)
       {

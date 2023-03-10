@@ -10,7 +10,7 @@ use v5.12;
 use warnings;
 use Getopt::Long 'GetOptions';
 
-chdir $ENV{REPOS_BASE} or die "$!\n";
+chdir "$ENV{REPOS_BASE}/github" or die "$!\n";
 
 # Help
 my $help = << '';
