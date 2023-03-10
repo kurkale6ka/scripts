@@ -10,7 +10,6 @@ TODO:
 ssh -T git@github.com to accept IP
 migrate `scripts/db-create` to python
 use annotations?
-catch interrupt signal?
 
 INSTALL:
 - fd-find (Linux),        ln -s /bin/fdfind ~/bin/fd
@@ -20,7 +19,7 @@ INSTALL:
 
 from dataclasses import dataclass
 from os import environ as env
-from sys import argv, stderr, platform, version_info, path as pythonpath
+from sys import argv, stderr, platform, version_info
 from pathlib import Path
 from subprocess import run
 from multiprocessing import Process
@@ -29,108 +28,34 @@ from pprint import pprint
 import asyncio
 import argparse
 
-if Path(f"{env['HOME']}/py-envs/python-modules/lib").is_dir():
-    # Add gitpython's venv to sys.path
-    version = Path(env["HOME"] + "/py-envs/python-modules/lib").iterdir()
-    pythonpath.append(
-        f"{env['HOME']}/py-envs/python-modules/lib/{next(version).name}/site-packages"
-    )
+try:
+    from git.repo import Repo as GitRepo
+    from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
+    from styles import Text  # pyright: ignore reportMissingImports
+except ModuleNotFoundError as err:
+    print(err, file=stderr)
+    if "git" in str(err):
+        print(
+            'Install "mkconfig" with: `pip install -e mkconfig` in a venv!', file=stderr
+        )
+    if "styles" in str(err):
+        print(
+            'Install my personal "styles" module following the instructions from the README file!',
+            file=stderr,
+        )
+    exit(1)
 
 
-def interrupt_handler(sig, frame):
+def interrupt_handler(sig, frame):  # pyright: ignore reportUnusedVariable
     print("\nBye")
     exit()
 
 
 signal(SIGINT, interrupt_handler)
 
-
-def upgrade_venvs(msg="Installing pip modules...", clear=False):
-    from venv import EnvBuilder
-
-    class Venv(EnvBuilder):
-        def __init__(self, packages=()):
-            super().__init__(with_pip=True, upgrade_deps=True, clear=clear)
-            self._packages = packages
-            # self._tasks = []
-
-        # async def install_packages(self):
-        #     # TODO: gather results to improve display
-        #     for task in asyncio.as_completed(self._tasks):
-        #         await task
-
-        def post_setup(self, context):
-            run((context.env_exe, "-m", "pip", "install", "--upgrade", "wheel"))
-            cmd = (
-                context.env_exe,
-                "-m",
-                "pip",
-                "install",
-                "--upgrade",
-                *self._packages,
-            )
-            # self._tasks.append(asyncio.create_subprocess_exec(*cmd))
-            run(cmd)
-
-    # TODO: dataclass PythonVenv(name, packages, enable)
-    python_venvs = {
-        "python-modules": ("gitpython", "tqdm"),
-        "neovim": ("pynvim",),
-        "neovim-modules": (  # LSP linters/formatters/...
-            # "ansible-lint", # is this provided by the LSP now?
-            "black",
-        ),
-        # awsume comes with boto3, aws cli INSTALL is separate, in /usr/local/
-        "aws-modules": ("awsume",),
-        # "az-modules": ('az',),
-    }
-
-    print(f"{msg}\n")
-    for name, packages in python_venvs.items():
-        builder = Venv(packages=packages)
-        builder.create(f"{env['HOME']}/py-envs/{name}")
-        # asyncio.run(builder.install_packages())
-
-
-try:
-    from git.repo import Repo as GitRepo
-    from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
-    from styles.styles import Text
-except ModuleNotFoundError as err:
-    print(err, file=stderr)
-
-    from textwrap import dedent
-
-    if "git" in str(err):
-        answer = "n"
-        if Path(f"{env['HOME']}/py-envs").is_dir():
-            answer = input("Do you want to reinstall pip modules? (y/n) ")
-        if answer == "y":
-            upgrade_venvs(clear=True)
-    if "styles" in str(err):
-        Path(f"{env['HOME']}/repos").mkdir(parents=True, exist_ok=True)
-        print(
-            dedent(
-                """
-                Install the `styles` module with:
-                git -C ~/repos/gitlab clone git@gitlab.com:kurkale6ka/styles.git
-                """
-            ).rstrip(),
-            file=stderr,
-        )
-
-    exit(
-        dedent(
-            """
-            export PYTHONPATH=~/repos/gitlab
-            and re-run!
-            """
-        ).rstrip()
-    )
-
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
 if not "REPOS_BASE" in env:
-    print(Text("exporting REPOS_BASE to").red, Text("~/repos").fg(69), file=stderr)
+    print(Text("exporting REPOS_BASE to").red, Text("~/repos").dir, file=stderr)
     env["REPOS_BASE"] = env["HOME"] + "/repos"
     Path(env["REPOS_BASE"]).mkdir(exist_ok=True)
 
@@ -151,10 +76,10 @@ grp_cln = parser.add_argument_group("Clone repositories")
 grp_ln = parser.add_mutually_exclusive_group()
 grp_git = parser.add_mutually_exclusive_group()
 parser.add_argument(
-    "-U",
-    "--ugrade-venv-packages",
+    "-N",
+    "--install-nvim-python-client",
     action="store_true",
-    help="Upgrade python `venv`s and their packages",
+    help="Install/Upgrade Neovim's Python client, plus other `venv`s in `~/py-envs` and their packages",
 )
 parser.add_argument(
     "-i", "--init", action="store_true", help="Initial setup"
@@ -325,8 +250,9 @@ class Repo:
 class RepoData:
     name: str
     hub: str = "github"
-    enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
     links: tuple = ()
+    enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
+    make_links: bool = True
 
     def __post_init__(self):
         Path(f"{base}/{self.hub}").mkdir(parents=True, exist_ok=True)
@@ -361,6 +287,7 @@ repos = (
             Link(".bashrc", f"{env['HOME']}", "-r"),
             Link(".bash_logout", f"{env['HOME']}", "-r"),
         ),
+        make_links=False,
     ),
     RepoData(
         "scripts",
@@ -370,7 +297,7 @@ repos = (
             Link("ex.pl", f"{env['HOME']}/bin/ex"),
             Link("calc.pl", f"{env['HOME']}/bin/="),
             Link("cert.pl", f"{env['HOME']}/bin/cert"),
-            Link("mkconfig.py", f"{env['HOME']}/bin/mkconfig"),
+            Link("mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"),
             Link("mini.pl", f"{env['HOME']}/bin/mini"),
             Link("pics.pl", f"{env['HOME']}/bin/pics"),
             Link("pc.pl", f"{env['HOME']}/bin/pc"),
@@ -404,6 +331,45 @@ repos = (
 repos = (repo for repo in repos if repo.enabled)
 
 
+def upgrade_venvs(msg="Installing pip modules (pynvim, ...)", clear=False):
+    from venv import EnvBuilder
+
+    class Venv(EnvBuilder):
+        def __init__(self, packages=()):
+            super().__init__(with_pip=True, upgrade_deps=True, clear=clear)
+            self._packages = packages
+            # self._tasks = []
+
+        # async def install_packages(self):
+        #     # TODO: gather results to improve display
+        #     for task in asyncio.as_completed(self._tasks):
+        #         await task
+
+        def post_setup(self, context):
+            run((context.env_exe, "-m", "pip", "install", "--upgrade", "wheel"))
+            cmd = (
+                context.env_exe,
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                *self._packages,
+            )
+            # self._tasks.append(asyncio.create_subprocess_exec(*cmd))
+            run(cmd)
+
+    # TODO: dataclass PythonVenv(name, packages, enable)
+    python_venvs = {
+        "neovim": ("pynvim",),
+    }
+
+    print(f"{msg}\n")
+    for name, packages in python_venvs.items():
+        builder = Venv(packages=packages)
+        builder.create(f"{env['HOME']}/py-envs/{name}")
+        # asyncio.run(builder.install_packages())
+
+
 # TODO: show progress bar with tqdm?
 # for task in tqdm.as_completed(tasks, leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
 def init():
@@ -415,7 +381,7 @@ def init():
 
     print(
         Text("-").cyan,
-        f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).fg(69)}...",
+        f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).dir}...",
     )
     asyncio.run(git_clone())  # TODO: wrap in a try except in case it fails
 
@@ -533,18 +499,20 @@ async def git_clone():
 
 def create_links():
     for r in repos:
-        repo = Repo(f"{base}/{r.hub}/{r.name}", r.links)
-        p = Process(target=repo.create_links, args=(args.verbose,))
-        p.start()
-        p.join()
+        if r.make_links:
+            repo = Repo(f"{base}/{r.hub}/{r.name}", r.links)
+            p = Process(target=repo.create_links, args=(args.verbose,))
+            p.start()
+            p.join()
 
 
 def remove_links():
-    for repo in repos:
-        for link in repo.links:
-            p = Process(target=link.remove, args=(args.verbose,))
-            p.start()
-            p.join()
+    for r in repos:
+        if r.make_links:
+            for link in r.links:
+                p = Process(target=link.remove, args=(args.verbose,))
+                p.start()
+                p.join()
 
 
 def git_config():
@@ -630,9 +598,9 @@ async def git_pull():
             await task
 
 
-if __name__ == "__main__":
-    if args.ugrade_venv_packages:
-        upgrade_venvs(msg="Upgrading pip modules...")
+def main():
+    if args.install_nvim_python_client:
+        upgrade_venvs(msg="Upgrading pip modules (pynvim, ...)")
 
     if args.init:
         init()
@@ -660,3 +628,7 @@ if __name__ == "__main__":
 
     if len(argv) == 1 or args.update:  # no args or --update
         asyncio.run(git_pull())
+
+
+if __name__ == "__main__":
+    main()
