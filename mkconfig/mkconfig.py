@@ -10,8 +10,8 @@ TODO:
 ssh -T git@github.com to accept IP
 migrate `scripts/db-create` to python
 use annotations?
-mkconfig -L issue on macOS
-./mkconfig.py -l issue, run all commands in .venv before creating the mkconfig exe from pyproject.toml?
+mkconfig -L issue on macOS, also print(".venv/bin/mkconfig -l") as a reminder...
+./mkconfig.py -l issue, run .venv/bin/mkconfig -l instead
 
 INSTALL:
 - fd-find (Linux),        ln -s /bin/fdfind ~/bin/fd
