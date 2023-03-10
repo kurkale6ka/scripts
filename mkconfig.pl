@@ -56,7 +56,7 @@ vim-swap
 
 my $help_extra = << "-------------";
 ${CYAN}vim-plug${R}
-curl -fLo $ENV{REPOS_BASE}/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+curl -fLo $ENV{REPOS_BASE}/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 REPOS_BASE=$ENV{REPOS_BASE} vim -c PlugInstall
 
 ${CYAN}additional packages${R}
