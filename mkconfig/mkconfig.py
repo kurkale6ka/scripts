@@ -55,7 +55,7 @@ signal(SIGINT, interrupt_handler)
 
 # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
 if not "REPOS_BASE" in env:
-    print(Text("exporting REPOS_BASE to").red, Text("~/repos").fg(69), file=stderr)
+    print(Text("exporting REPOS_BASE to").red, Text("~/repos").dir, file=stderr)
     env["REPOS_BASE"] = env["HOME"] + "/repos"
     Path(env["REPOS_BASE"]).mkdir(exist_ok=True)
 
@@ -374,7 +374,7 @@ def upgrade_venvs(msg="Installing pip modules (pynvim, ...)", clear=False):
 def init():
     print(
         Text("-").cyan,
-        f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).fg(69)}...",
+        f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).dir}...",
     )
     asyncio.run(git_clone())  # TODO: wrap in a try except in case it fails
 
