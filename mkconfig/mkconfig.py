@@ -10,8 +10,7 @@ TODO:
 ssh -T git@github.com to accept IP
 migrate `scripts/db-create` to python
 use annotations?
-mkconfig -L issue on macOS, also print(".venv/bin/mkconfig -l") as a reminder...
-./mkconfig.py -l issue, run .venv/bin/mkconfig -l instead
+mkconfig -L issue on macOS?
 
 INSTALL:
 - fd-find (Linux),        ln -s /bin/fdfind ~/bin/fd
@@ -299,7 +298,7 @@ repos = (
             Link("ex.pl", f"{env['HOME']}/bin/ex"),
             Link("calc.pl", f"{env['HOME']}/bin/="),
             Link("cert.pl", f"{env['HOME']}/bin/cert"),
-            Link("mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"),
+            Link("mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"), # TODO: delete last Path(argv[0])
             Link("mini.pl", f"{env['HOME']}/bin/mini"),
             Link("pics.pl", f"{env['HOME']}/bin/pics"),
             Link("pc.pl", f"{env['HOME']}/bin/pc"),
@@ -515,6 +514,9 @@ def remove_links():
                 p = Process(target=link.remove, args=(args.verbose,))
                 p.start()
                 p.join()
+    print(
+        f"\nRestore links with:\n{Path(argv[0]).resolve()} -l".replace(env["HOME"], "~")
+    )
 
 
 def git_config():
