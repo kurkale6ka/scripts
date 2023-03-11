@@ -4,7 +4,7 @@
 --------------
 
 run this script with:
-python3 <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig.py) -h
+python3 <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig/mkconfig.py) -h
 
 TODO:
 ssh -T git@github.com to accept IP
@@ -32,18 +32,21 @@ import argparse
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
-    from styles import Text  # pyright: ignore reportMissingImports
-except ModuleNotFoundError as err:
+    from styles import Text  # pyright: ignore reportMissingImports, TODO: fix clash with builtin
+except (ModuleNotFoundError, ImportError) as err:
     print(err, file=stderr)
     if "git" in str(err):
         print(
-            'Install "mkconfig" with: `pip install -e mkconfig` in a venv!', file=stderr
-        )
-    if "styles" in str(err):
-        print(
-            'Install my personal "styles" module following the instructions from the README file!',
+            'Install "mkconfig":',
+            # python3 -mvenv .venv
+            # source .venv/bin/activate
+            # pip install -e mkconfig
+            # now you can use `mkconfig`
             file=stderr,
         )
+    if "styles" in str(err):
+        print(file=stderr)
+        run(("cat", "README.rst"))
     exit(1)
 
 
@@ -298,7 +301,9 @@ repos = (
             Link("ex.pl", f"{env['HOME']}/bin/ex"),
             Link("calc.pl", f"{env['HOME']}/bin/="),
             Link("cert.pl", f"{env['HOME']}/bin/cert"),
-            Link("mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"), # TODO: delete last Path(argv[0])
+            Link(
+                "mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"
+            ),  # TODO: delete last Path(argv[0])
             Link("mini.pl", f"{env['HOME']}/bin/mini"),
             Link("pics.pl", f"{env['HOME']}/bin/pics"),
             Link("pc.pl", f"{env['HOME']}/bin/pc"),

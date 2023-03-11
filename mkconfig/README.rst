@@ -1,4 +1,4 @@
-Styles module install
+Styles module INSTALL
 =====================
 
 My personal ``styles`` module is needed. Install in editable mode (``pip install -h``):
