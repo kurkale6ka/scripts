@@ -513,15 +513,18 @@ def create_links():
 
 
 def remove_links():
+    script_path = Path(argv[0]).resolve(strict=True)
+
     for r in repos:
         if r.make_links:
             for link in r.links:
                 p = Process(target=link.remove, args=(args.verbose,))
                 p.start()
                 p.join()
-    print(
-        f"\nRestore links with:\n{Path(argv[0]).resolve()} -l".replace(env["HOME"], "~")
-    )
+
+    if args.verbose:
+        print()
+    print(f"Restore links with:\n{script_path} -l".replace(env["HOME"], "~"))
 
 
 def git_config():
