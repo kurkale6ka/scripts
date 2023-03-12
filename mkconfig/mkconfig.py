@@ -63,6 +63,7 @@ except (ModuleNotFoundError, ImportError) as err:
             cd ~/repos/gitlab
             git clone git@gitlab.com:kurkale6ka/styles.git
             source ~/repos/github/scripts/mkconfig/.venv/bin/activate
+            pip install -U pip
             pip install -e styles
             """
         ).strip()
