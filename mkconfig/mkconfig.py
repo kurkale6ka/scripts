@@ -6,16 +6,17 @@
 run this script with:
 python3 <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig/mkconfig.py) -h
 
-TODO:
-ssh -T git@github.com to accept IP
-migrate `scripts/db-create` to python
-use annotations?
-mkconfig -L issue on macOS?
-
 INSTALL:
 - fd-find (Linux),        ln -s /bin/fdfind ~/bin/fd
 - batcat  (debian),       ln -s /bin/batcat ~/bin/bat
 - wslu    (Windows wsl2), open browser pages
+
+TODO:
+ssh -T git@github.com to accept IP
+migrate `scripts/db-create` to python
+use annotations (aka type hints)?
+mkconfig -L issue on macOS: delete last with Path(argv[0])?
+Remove hard-coded reference of ~/repos in help messages + README file
 """
 
 from dataclasses import dataclass
@@ -34,19 +35,38 @@ try:
     from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
     from styles.iro import Text  # pyright: ignore reportMissingImports
 except (ModuleNotFoundError, ImportError) as err:
+    from textwrap import dedent
+
     print(err, file=stderr)
+
     if "git" in str(err):
-        print(
-            'Install "mkconfig":',
-            # python3 -mvenv .venv
-            # source .venv/bin/activate
-            # pip install -e mkconfig
-            # now you can use `mkconfig`
-            file=stderr,
-        )
+        dedent(
+            """
+            Please Install `mkconfig`:
+
+            cd ~/repos/github/scripts/mkconfig
+            python3 -mvenv .venv
+            source .venv/bin/activate
+            pip install -U pip
+            pip install -e mkconfig
+
+            now you can use `mkconfig`
+            """
+        ).strip()
+
     if "styles" in str(err):
-        print(file=stderr)
-        run(("cat", "README.rst"))
+        dedent(
+            """
+            Please Install `styles`:
+
+            mkdir -p ~/repos/gitlab
+            cd ~/repos/gitlab
+            git clone git@gitlab.com:kurkale6ka/styles.git
+            source ~/repos/github/scripts/mkconfig/.venv/bin/activate
+            pip install -e styles
+            """
+        ).strip()
+
     exit(1)
 
 
@@ -301,9 +321,7 @@ repos = (
             Link("ex.pl", f"{env['HOME']}/bin/ex"),
             Link("calc.pl", f"{env['HOME']}/bin/="),
             Link("cert.pl", f"{env['HOME']}/bin/cert"),
-            Link(
-                "mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"
-            ),  # TODO: delete last Path(argv[0])
+            Link("mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"),
             Link("mini.pl", f"{env['HOME']}/bin/mini"),
             Link("pics.pl", f"{env['HOME']}/bin/pics"),
             Link("pc.pl", f"{env['HOME']}/bin/pc"),
