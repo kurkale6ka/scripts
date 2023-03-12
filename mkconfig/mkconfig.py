@@ -32,7 +32,7 @@ import argparse
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
-    from styles import Text  # pyright: ignore reportMissingImports, TODO: fix clash with builtin
+    from styles.iro import Text  # pyright: ignore reportMissingImports
 except (ModuleNotFoundError, ImportError) as err:
     print(err, file=stderr)
     if "git" in str(err):
