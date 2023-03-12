@@ -6,7 +6,7 @@
 name = "mkconfig"
 version = "1.0.0"
 description = "Dotfiles setup"
-readme = "README.rst"
+readme = "README.md"
 dependencies = [
     "gitpython",
     # "styles", # this installs a package from PyPI, afaic I can't specify local dependencies.
