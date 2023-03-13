@@ -33,7 +33,7 @@ import argparse
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
-    from styles.iro import Text  # pyright: ignore reportMissingImports
+    from decorate import Text  # pyright: ignore reportMissingImports
 except (ModuleNotFoundError, ImportError) as err:
     from textwrap import dedent
 
@@ -54,10 +54,10 @@ except (ModuleNotFoundError, ImportError) as err:
             """
         ).strip()
 
-    if "styles" in str(err):
+    if "decorate" in str(err):
         dedent(
             """
-            Please Install `styles`:
+            Please Install `decorate`:
 
             mkdir -p ~/repos/gitlab
             cd ~/repos/gitlab
@@ -495,7 +495,7 @@ def init():
 
 async def git_clone():
     if version_info[0] == 3 and version_info[1] >= 11:
-        async with asyncio.TaskGroup() as tg:
+        async with asyncio.TaskGroup() as tg:  # pyright: ignore reportGeneralTypeIssues
             for r in repos:
                 repo = Repo(f"{base}/{r.hub}/{r.name}", action="clone")
                 tg.create_task(
@@ -600,7 +600,7 @@ def cd_db_create():
 
 async def git_status():
     if version_info[0] == 3 and version_info[1] >= 11:
-        async with asyncio.TaskGroup() as tg:
+        async with asyncio.TaskGroup() as tg:  # pyright: ignore reportGeneralTypeIssues
             for r in repos:
                 repo = Repo(f"{base}/{r.hub}/{r.name}")
                 tg.create_task(repo.status(args.verbose))
@@ -616,7 +616,7 @@ async def git_status():
 # TODO: add -v/-q as needed
 async def git_pull():
     if version_info[0] == 3 and version_info[1] >= 11:
-        async with asyncio.TaskGroup() as tg:
+        async with asyncio.TaskGroup() as tg:  # pyright: ignore reportGeneralTypeIssues
             for r in repos:
                 repo = Repo(f"{base}/{r.hub}/{r.name}")
                 tg.create_task(repo.update())

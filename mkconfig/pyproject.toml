@@ -4,12 +4,12 @@
 #   TODO: pip install --upgrade pip, how to achieve this?
 [project]
 name = "mkconfig"
-version = "1.0.0"
+version = "1.1.0"
 description = "Dotfiles setup"
 readme = "README.md"
 dependencies = [
     "gitpython",
-    # "styles", # this installs a package from PyPI, afaic I can't specify local dependencies.
+    # "decorate", # this would install a package from PyPI, afaic I can't specify local dependencies.
 ]
 authors = [
     {name = "Dimitar Dimitrov", email = "kurkale6ka@gmail.com"},

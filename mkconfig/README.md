@@ -11,7 +11,7 @@ pip install -U pip
 pip install -e .
 ```
 
-## styles module
+## decorate module (Text with styles: color, bold, ...)
 
 Editable mode install
 ```bash
