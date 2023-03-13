@@ -1,6 +1,7 @@
 # INSTALL
 
 ## mkconfig module
+[Dotfiles setup](https://github.com/kurkale6ka/scripts/tree/master/mkconfig)
 
 Editable mode install
 ```bash
@@ -11,7 +12,8 @@ pip install -U pip
 pip install -e .
 ```
 
-## decorate module (Text with styles: color, bold, ...)
+## decorate module
+[Text with styles: color, bold, ...](https://gitlab.com/kurkale6ka/styles)
 
 Editable mode install
 ```bash
