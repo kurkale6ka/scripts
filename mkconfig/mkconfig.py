@@ -15,7 +15,7 @@ INSTALL:
 # TODO:
 # ssh -T git@github.com to accept IP
 # migrate `scripts/db-create` to python
-# use annotations (aka type hints)?
+# add more type hints
 # mkconfig -L issue on macOS: delete last with Path(argv[0])?
 # Remove hard-coded reference of ~/repos in help messages + README file
 
@@ -198,17 +198,7 @@ class Link:
 
 
 class Repo:
-    """A github/gitlab repository
-
-    Methods
-    -------
-    clone(self, where, protocol="git", hub="github", verbose=False)
-        git clone a repo
-    create_links
-    fetch
-    status
-    update
-    """
+    """A github/gitlab repository"""
 
     def __init__(self, root, links=(), action=None):
         self._links = links
