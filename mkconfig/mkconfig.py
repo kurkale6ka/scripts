@@ -10,14 +10,14 @@ INSTALL:
 - fd-find (Linux),        ln -s /bin/fdfind ~/bin/fd
 - batcat  (debian),       ln -s /bin/batcat ~/bin/bat
 - wslu    (Windows wsl2), open browser pages
-
-TODO:
-ssh -T git@github.com to accept IP
-migrate `scripts/db-create` to python
-use annotations (aka type hints)?
-mkconfig -L issue on macOS: delete last with Path(argv[0])?
-Remove hard-coded reference of ~/repos in help messages + README file
 """
+
+# TODO:
+# ssh -T git@github.com to accept IP
+# migrate `scripts/db-create` to python
+# add more type hints
+# mkconfig -L issue on macOS: delete last with Path(argv[0])?
+# Remove hard-coded reference of ~/repos in help messages + README file
 
 from dataclasses import dataclass
 from os import environ as env
@@ -198,6 +198,8 @@ class Link:
 
 
 class Repo:
+    """A github/gitlab repository"""
+
     def __init__(self, root, links=(), action=None):
         self._links = links
         self._root = root
