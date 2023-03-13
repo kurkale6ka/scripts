@@ -15,7 +15,7 @@ INSTALL:
 # TODO:
 # ssh -T git@github.com to accept IP
 # migrate `scripts/db-create` to python
-# use annotations (aka type hints)?
+# add more type hints
 # mkconfig -L issue on macOS: delete last with Path(argv[0])?
 # Remove hard-coded reference of ~/repos in help messages + README file
 
@@ -29,6 +29,7 @@ from signal import signal, SIGINT
 from pprint import pprint
 import asyncio
 import argparse
+from typing import Literal
 
 try:
     from git.repo import Repo as GitRepo
@@ -84,8 +85,12 @@ if not "REPOS_BASE" in env:
     env["REPOS_BASE"] = env["HOME"] + "/repos"
     Path(env["REPOS_BASE"]).mkdir(exist_ok=True)
 
+# Variables and type aliases
 base = env["REPOS_BASE"]
 user = "kurkale6ka"
+protocol_type = Literal["git", "https"]  # for git clone
+hub_type = Literal["github", "gitlab"]
+
 
 # XDG Variables
 if not "XDG_CONFIG_HOME" in env:
@@ -198,17 +203,7 @@ class Link:
 
 
 class Repo:
-    """A github/gitlab repository
-
-    Methods
-    -------
-    clone(self, where, protocol="git", hub="github", verbose=False)
-        git clone a repo
-    create_links
-    fetch
-    status
-    update
-    """
+    """A github/gitlab repository"""
 
     def __init__(self, root, links=(), action=None):
         self._links = links
@@ -220,7 +215,13 @@ class Repo:
             if action != "clone":
                 raise
 
-    async def clone(self, where, protocol="git", hub="github", verbose=False):
+    async def clone(
+        self,
+        where,
+        protocol: protocol_type = "git",
+        hub: hub_type = "github",
+        verbose: bool = False,
+    ):
         if protocol == "git":
             url = f"{protocol}@{hub}.com:{user}/{self._name}.git"
         else:
@@ -286,7 +287,7 @@ class Repo:
 @dataclass
 class RepoData:
     name: str
-    hub: str = "github"
+    hub: hub_type = "github"
     links: tuple = ()
     enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
     make_links: bool = True
