@@ -6,16 +6,17 @@
 run this script with:
 python3 <(curl -s https://raw.githubusercontent.com/kurkale6ka/scripts/master/mkconfig/mkconfig.py) -h
 
-TODO:
-ssh -T git@github.com to accept IP
-migrate `scripts/db-create` to python
-use annotations?
-mkconfig -L issue on macOS?
-
 INSTALL:
 - fd-find (Linux),        ln -s /bin/fdfind ~/bin/fd
 - batcat  (debian),       ln -s /bin/batcat ~/bin/bat
 - wslu    (Windows wsl2), open browser pages
+
+TODO:
+ssh -T git@github.com to accept IP
+migrate `scripts/db-create` to python
+use annotations (aka type hints)?
+mkconfig -L issue on macOS: delete last with Path(argv[0])?
+Remove hard-coded reference of ~/repos in help messages + README file
 """
 
 from dataclasses import dataclass
@@ -32,21 +33,41 @@ import argparse
 try:
     from git.repo import Repo as GitRepo
     from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
-    from styles import Text  # pyright: ignore reportMissingImports, TODO: fix clash with builtin
+    from decorate import Text  # pyright: ignore reportMissingImports
 except (ModuleNotFoundError, ImportError) as err:
+    from textwrap import dedent
+
     print(err, file=stderr)
+
     if "git" in str(err):
-        print(
-            'Install "mkconfig":',
-            # python3 -mvenv .venv
-            # source .venv/bin/activate
-            # pip install -e mkconfig
-            # now you can use `mkconfig`
-            file=stderr,
-        )
-    if "styles" in str(err):
-        print(file=stderr)
-        run(("cat", "README.rst"))
+        dedent(
+            """
+            Please Install `mkconfig`:
+
+            cd ~/repos/github/scripts/mkconfig
+            python3 -mvenv .venv
+            source .venv/bin/activate
+            pip install -U pip
+            pip install -e mkconfig
+
+            now you can use `mkconfig`
+            """
+        ).strip()
+
+    if "decorate" in str(err):
+        dedent(
+            """
+            Please Install `decorate`:
+
+            mkdir -p ~/repos/gitlab
+            cd ~/repos/gitlab
+            git clone git@gitlab.com:kurkale6ka/styles.git
+            source ~/repos/github/scripts/mkconfig/.venv/bin/activate
+            pip install -U pip
+            pip install -e styles
+            """
+        ).strip()
+
     exit(1)
 
 
@@ -301,9 +322,7 @@ repos = (
             Link("ex.pl", f"{env['HOME']}/bin/ex"),
             Link("calc.pl", f"{env['HOME']}/bin/="),
             Link("cert.pl", f"{env['HOME']}/bin/cert"),
-            Link(
-                "mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"
-            ),  # TODO: delete last Path(argv[0])
+            Link("mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"),
             Link("mini.pl", f"{env['HOME']}/bin/mini"),
             Link("pics.pl", f"{env['HOME']}/bin/pics"),
             Link("pc.pl", f"{env['HOME']}/bin/pc"),
@@ -476,7 +495,7 @@ def init():
 
 async def git_clone():
     if version_info[0] == 3 and version_info[1] >= 11:
-        async with asyncio.TaskGroup() as tg:
+        async with asyncio.TaskGroup() as tg:  # pyright: ignore reportGeneralTypeIssues
             for r in repos:
                 repo = Repo(f"{base}/{r.hub}/{r.name}", action="clone")
                 tg.create_task(
@@ -513,15 +532,18 @@ def create_links():
 
 
 def remove_links():
+    script_path = Path(argv[0]).resolve(strict=True)
+
     for r in repos:
         if r.make_links:
             for link in r.links:
                 p = Process(target=link.remove, args=(args.verbose,))
                 p.start()
                 p.join()
-    print(
-        f"\nRestore links with:\n{Path(argv[0]).resolve()} -l".replace(env["HOME"], "~")
-    )
+
+    if args.verbose:
+        print()
+    print(f"Restore links with:\n{script_path} -l".replace(env["HOME"], "~"))
 
 
 def git_config():
@@ -578,7 +600,7 @@ def cd_db_create():
 
 async def git_status():
     if version_info[0] == 3 and version_info[1] >= 11:
-        async with asyncio.TaskGroup() as tg:
+        async with asyncio.TaskGroup() as tg:  # pyright: ignore reportGeneralTypeIssues
             for r in repos:
                 repo = Repo(f"{base}/{r.hub}/{r.name}")
                 tg.create_task(repo.status(args.verbose))
@@ -594,7 +616,7 @@ async def git_status():
 # TODO: add -v/-q as needed
 async def git_pull():
     if version_info[0] == 3 and version_info[1] >= 11:
-        async with asyncio.TaskGroup() as tg:
+        async with asyncio.TaskGroup() as tg:  # pyright: ignore reportGeneralTypeIssues
             for r in repos:
                 repo = Repo(f"{base}/{r.hub}/{r.name}")
                 tg.create_task(repo.update())
