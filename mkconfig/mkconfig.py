@@ -567,7 +567,11 @@ def ctags():
         "-R",
         f"-f {env['HOME']}/repos/tags",
         # "--langmap=zsh:+.",  # files without extension. TODO: fix! not fully working, e.g. net/dig: variable 'out' not found. (zsh/autoload/*) vs . doesn't help
-        "--exclude=.*~",  # *~ excluded by default: ctags --list-excludes
+        "--exclude=.*~",  # *~ is excluded by default, cf. ctags --list-excludes
+        "--exclude=.venv",
+        "--exclude=*.adoc",
+        "--exclude=*.md",
+        "--exclude=*.rst",
         "--exclude=keymap",
         "--exclude=lazy-lock.json",  # lazy nvim
     ]
