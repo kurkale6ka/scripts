@@ -27,6 +27,7 @@ from subprocess import run
 from multiprocessing import Process
 from signal import signal, SIGINT
 from pprint import pprint
+from textwrap import dedent
 import asyncio
 import argparse
 
@@ -35,8 +36,6 @@ try:
     from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
     from decorate import Text  # pyright: ignore reportMissingImports
 except (ModuleNotFoundError, ImportError) as err:
-    from textwrap import dedent
-
     print(err, file=stderr)
 
     if "git" in str(err):
@@ -97,9 +96,6 @@ if not "XDG_CONFIG_HOME" in env:
 
 # TODO: --dry-run?
 parser = argparse.ArgumentParser(prog="mkconfig", description="Dotfiles setup")
-grp_cln = parser.add_argument_group("Clone repositories")
-grp_ln = parser.add_mutually_exclusive_group()
-grp_git = parser.add_mutually_exclusive_group()
 parser.add_argument(
     "-N",
     "--install-nvim-python-client",
@@ -115,6 +111,21 @@ parser.add_argument(
     action="store_true",
     help="Create fuzzy cd database (needs sqlite3)",
 )
+parser.add_argument("-g", "--git-config", action="store_true", help="git config")
+parser.add_argument(
+    "-t",
+    "--tags",
+    action="store_true",
+    help="Generate ~/repos/tags (needs universal ctags)",
+)
+parser.add_argument("-v", "--verbose", action="store_true")
+grp_ln = parser.add_mutually_exclusive_group()
+grp_ln.add_argument("-l", "--links", action="store_true", help="Make links")
+grp_ln.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
+grp_git = parser.add_mutually_exclusive_group()
+grp_git.add_argument("-s", "--status", action="store_true", help="git status")
+grp_git.add_argument("-u", "--update", action="store_true", help="Update repositories")
+grp_cln = parser.add_argument_group("Clone repositories")
 grp_cln.add_argument("-c", "--clone", action="store_true", help="git clone")
 grp_cln.add_argument(
     "-p",
@@ -127,18 +138,11 @@ grp_cln.add_argument(
 grp_cln.add_argument(
     "-C", dest="clone_dst", type=str, help="cd to this directory before cloning"
 )
-parser.add_argument("-g", "--git-config", action="store_true", help="git config")
-parser.add_argument(
-    "-t",
-    "--tags",
-    action="store_true",
-    help="Generate ~/repos/tags (needs universal ctags)",
+grp_extra = parser.add_argument_group("Extra")
+grp_extra.add_argument(
+    "--vim-plug-help", action="store_true", help="https://github.com/junegunn/vim-plug"
 )
-parser.add_argument("-v", "--verbose", action="store_true")
-grp_ln.add_argument("-l", "--links", action="store_true", help="Make links")
-grp_ln.add_argument("-L", "--delete-links", action="store_true", help="Remove links")
-grp_git.add_argument("-s", "--status", action="store_true", help="git status")
-grp_git.add_argument("-u", "--update", action="store_true", help="Update repositories")
+grp_extra.add_argument("--perl-cpan-help", action="store_true", help="CPAN modules")
 args = parser.parse_args()
 
 
@@ -661,6 +665,26 @@ def main():
 
     if len(argv) == 1 or args.update:  # no args or --update
         asyncio.run(git_pull())
+
+    if args.vim_plug_help:
+        print(
+            dedent(
+                """
+                curl -fLo /home/mitko/repos/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+                REPOS_BASE=/home/mitko/repos vim -c PlugInstall
+                """
+            ).strip()
+        )
+
+    if args.perl_cpan_help:
+        print(
+            dedent(
+                """
+                cpanm -l ~/perl5 local::lib # see .zshrc for explanations, needs cpanminus
+                cpanm Term::ReadLine::Gnu
+                """
+            ).strip()
+        )
 
 
 if __name__ == "__main__":
