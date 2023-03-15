@@ -4,25 +4,25 @@
 """
 
 import argparse
-from subprocess import Popen, PIPE
+from subprocess import run, Popen, PIPE
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-d", "--directory", type=str, nargs="?", help="change base directory"
 )
 parser.add_argument(
-    "-g", "--grep", type=str, help="search for pattern in files content"
+    "-g", "--grep", type=str, help="list files with matches"
 )
 parser.add_argument(
-    "pattern", type=str, nargs="?", help="search for pattern in files names"
+    "query", type=str, nargs="?", help="fzf query"
 )
 args = parser.parse_args()
 
 fzf = ["fzf", "-0", "-1", "--cycle", "--print-query", "--expect=alt-v"]
 fd = ["fd", "--strip-cwd-prefix", "-tf", "-up", "-E.git", "-E'*~'"]
 
-if args.pattern:
-    fzf.extend(("-q", args.pattern))
+if args.query:
+    fzf.extend(("-q", args.query))
 
 if args.directory:
     fd.extend(("--base-directory", args.directory))
@@ -43,4 +43,4 @@ if args.grep:
 # --print-query, --expect, item
 results = out.split()
 
-print(results[-1])
+run(('bat', results[-1]))
