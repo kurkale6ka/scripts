@@ -11,6 +11,12 @@ from os import environ as env, execlp, PathLike
 from subprocess import Popen, PIPE
 import webbrowser as browser
 
+# TODO:
+# --hidden
+# --exact?
+# --grep --only
+# recursive grep...
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-s", "--source-dir", type=str, nargs="?", help="change base directory"
@@ -71,6 +77,7 @@ class Filter(Command):
             Filter.fzf.extend(("-q", self._query))
         if pattern:
             # TODO: show whole file with lines highlighted?
+            # TODO: add preview in all cases
             cmd.extend(("--preview", f"rg -FS --color=always '{pattern}' {{}}"))
 
     @property
