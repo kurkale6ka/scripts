@@ -6,14 +6,22 @@
 import argparse
 from dataclasses import dataclass
 import os
+from pathlib import Path
 from os import environ as env, execlp, PathLike
 from subprocess import Popen, PIPE
+import webbrowser as browser
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-s", "--source-dir", type=str, nargs="?", help="change base directory"
 )
 parser.add_argument("-g", "--grep", type=str, help="list files with matches")
+parser.add_argument(
+    "-b",
+    "--view-in-browser",
+    action="store_true",
+    help="view in browser",
+)
 parser.add_argument(
     "-v",
     "--view-in-editor",
@@ -156,6 +164,15 @@ class Documents:
                 exit(1)
 
     def _open(self, data):
+        if self._viewer == "browser":
+            if Path(f"{env['REPOS_BASE']}/github/help/{data.document}").is_file():
+                extension = Path(data.document).suffix
+                if extension in (".adoc", ".md", ".rst"):
+                    browser.open(
+                        f"https://github.com/kurkale6ka/help/blob/master/{data.document}"
+                    )
+                    exit()
+
         if self._viewer == "editor" or data.pressed_keys:
             editor = env.get("EDITOR", "vi")
             view_cmd = [editor, editor, data.document]
@@ -193,6 +210,9 @@ if __name__ == "__main__":
 
     if args.source_dir:
         doc_params["src"] = args.source_dir
+
+    if args.view_in_browser:
+        doc_params["viewer"] = "browser"
 
     if args.view_in_editor:
         doc_params["viewer"] = "editor"
