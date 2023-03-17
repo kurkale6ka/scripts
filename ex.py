@@ -28,7 +28,7 @@ parser.add_argument(
     action="store_true",
     help="view in $EDITOR, use alt-v from within fzf",
 )
-parser.add_argument("--verbose", action="store_true", help="show more detail")
+parser.add_argument("--verbose", action="store_true", help="show more detail") # TODO: keep? not together with editor? ...
 parser.add_argument("query", type=str, nargs="?", help="fzf query")
 args = parser.parse_args()
 
@@ -64,20 +64,18 @@ class Filter(Command):
     fzf = ["fzf", "-0", "-1", "--cycle", "--print-query", "--expect=alt-v"]
 
     def __init__(self, cmd=fzf, verbose=False, query=None, pattern=None):
-        if pattern:
-            # TODO: show whole file with lines highlighted?
-            cmd.extend(("--preview", f"rg -FS --color=always '{pattern}' {{}}"))
         super().__init__(cmd)
         self._verbose = verbose
         self._query = query
+        if self._query:
+            Filter.fzf.extend(("-q", self._query))
+        if pattern:
+            # TODO: show whole file with lines highlighted?
+            cmd.extend(("--preview", f"rg -FS --color=always '{pattern}' {{}}"))
 
     @property
     def query(self):
         return self._query
-
-    @query.setter
-    def query(self, value: str):
-        Filter.fzf.extend(("-q", value))
 
     @property
     def verbose(self):
@@ -99,10 +97,6 @@ class Search(Command):
     @property
     def pattern(self):
         return self._pattern
-
-    @pattern.setter
-    def pattern(self, value: str):
-        self._pattern = value
 
     @property
     def is_grep(self) -> bool:
@@ -164,14 +158,22 @@ class Documents:
                 exit(1)
 
     def _open(self, data):
-        if self._viewer == "browser":
-            if Path(f"{env['REPOS_BASE']}/github/help/{data.document}").is_file():
-                extension = Path(data.document).suffix
+        view_cmd = ["cat", "cat", data.document]
+
+        extension = Path(data.document).suffix
+
+        # Personal help files
+        if Path(f"{env['REPOS_BASE']}/github/help/{data.document}").is_file():
+            if self._viewer == "browser":
                 if extension in (".adoc", ".md", ".rst"):
                     browser.open(
                         f"https://github.com/kurkale6ka/help/blob/master/{data.document}"
                     )
                     exit()
+
+            # TODO: open as text
+            if Path(data.document).name == "printf.pl":
+                execlp("perl", "perl", data.document)
 
         if self._viewer == "editor" or data.pressed_keys:
             editor = env.get("EDITOR", "vi")
@@ -188,20 +190,23 @@ class Documents:
                     "noh|norm zz<cr>",
                     data.document,
                 ]
+        elif "bat" in self._viewer and extension not in (".txt", ".text"):
+            if not data.filter_verbose:
+                view_cmd = [
+                    self._viewer,
+                    self._viewer,
+                    data.document,
+                ]
+            else:
+                view_cmd = [
+                    self._viewer,
+                    self._viewer,
+                    "--style",
+                    "header",
+                    data.document,
+                ]
 
-        elif "bat" in self._viewer and data.filter_verbose:
-            view_cmd = [self._viewer, self._viewer, "--style", "header", data.document]
-        else:
-            view_cmd = [self._viewer, self._viewer, data.document]
-
-        # Try the default viewer 1st: bat
-        try:
-            execlp(*view_cmd)
-        except FileNotFoundError:
-            if "bat" in self._viewer:
-                view_cmd[0:2] = ["cat", "cat"]
-                execlp(*view_cmd)
-            raise
+        execlp(*view_cmd)
 
 
 if __name__ == "__main__":
