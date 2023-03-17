@@ -4,6 +4,7 @@
 """
 
 import argparse
+from dataclasses import dataclass
 import os
 from os import environ as env, execlp, PathLike
 from subprocess import Popen, PIPE
@@ -96,58 +97,100 @@ class Search(Command):
         return True if self._pattern else False
 
 
+@dataclass
+class FilterResults:
+    search_cmd: Search
+    filter_query: str | None = None
+    pressed_keys: str | None = None
+    document: str | None | PathLike = None
+
+    def __post_init__(self):
+        if self.filter_query == "":
+            self.filter_query = None
+        if self.pressed_keys == "":
+            self.pressed_keys = None
+        if self.document == "":
+            self.document = None
+
+
 class Documents:
-    def __init__(self, src: str | PathLike = ".", viewer="cat"):
+    def __init__(self, src: str | PathLike = ".", viewer="bat"):
         self._src = src
         self._viewer = viewer
 
-    # TODO: pass kwargs options
     def search(self, command: Search, filter: Filter):
         with cd(self._src):
             p1 = Popen(command.cmd, stdout=PIPE, text=True)
             p2 = Popen(filter.cmd, stdin=p1.stdout, stdout=PIPE, text=True)
             p1.stdout.close()  # pyright: ignore reportOptionalMemberAccess
-            self._results = p2.communicate()[0].rstrip()  # get stdout
+            results = p2.communicate()[0].rstrip()  # get stdout
 
-            if self._results:
-                self._open(command)
+            # fzf returns this string:
+            #     --print-query\n
+            #     --expect\n
+            #     document
+            results = results.split("\n")
+            data = FilterResults(command, *results)
+
+            if data.document:
+                self._open(data)
+            elif data.filter_query:
+                # trim any fzf extended search mode characters
+                data.filter_query = data.filter_query.lstrip("^'")
+                data.filter_query = data.filter_query.rstrip("$")
+                data.filter_query = data.filter_query.replace("\\", "")
+
+                if not command.is_grep:
+                    print("trying grep..")  # TODO: if verbose
+                    self.search(
+                        Search(pattern=data.filter_query),
+                        Filter(pattern=data.filter_query),
+                    )
             else:
                 exit(1)
 
-    def _open(self, cmd):
-        results = self._results.split(  # fzf -> [--print-query, --expect, document]
-            "\n"
-        )
-        query, pressed_keys, document = results
+    def _open(self, data):
+        view_cmd = [self._viewer, self._viewer, data.document]
 
-        if self._viewer == "editor" or pressed_keys:
+        if self._viewer == "editor" or data.pressed_keys:
             self._viewer = env.get("EDITOR", "vi")
 
-        view_cmd = [self._viewer, self._viewer, document]
-        if cmd.is_grep and "vi" in self._viewer:
-            view_cmd.extend(("-c", f"0/{cmd.pattern}", "-c", "noh|norm zz<cr>"))
+        # open with nvim (send to running instance)?
+        if data.search_cmd.is_grep and "vi" in self._viewer:
+            view_cmd.extend(
+                ("-c", f"0/{data.search_cmd.pattern}", "-c", "noh|norm zz<cr>")
+            )
 
-        execlp(*view_cmd)
+        # Try the default viewer 1st: bat
+        try:
+            execlp(*view_cmd)
+        except FileNotFoundError as err:
+            if "bat" in str(err):
+                view_cmd[0] = "cat"  # TODO: replace a slice
+                view_cmd[1] = "cat"
+                execlp(*view_cmd)
+            raise
 
 
 if __name__ == "__main__":
-    viewer = "bat"
-    source_dir = "."
+    # Documents(src, viewer)
+    parameters = dict(src=".")
+
+    if args.source_dir:
+        parameters["src"] = args.source_dir
+
+    if args.view_in_editor:
+        parameters["viewer"] = "editor"
+
     command = Search()
     filter = Filter()
+
+    if args.grep:
+        command = Search(pattern=args.grep)
+        filter = Filter(pattern=args.grep)
 
     if args.query:
         filter.query = args.query
 
-    if args.view_in_editor:
-        viewer = "editor"
-
-    if args.source_dir:
-        source_dir = args.source_dir
-
-    if args.grep:
-        filter = Filter(pattern=args.grep)
-        command = Search(pattern=args.grep)
-
-    docs = Documents(src=source_dir, viewer=viewer)
+    docs = Documents(**parameters)
     docs.search(command, filter)
