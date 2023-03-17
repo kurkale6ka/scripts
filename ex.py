@@ -20,6 +20,7 @@ parser.add_argument(
     action="store_true",
     help="view in $EDITOR, use alt-v from within fzf",
 )
+parser.add_argument("--verbose", action="store_true", help="show more detail")
 parser.add_argument("query", type=str, nargs="?", help="fzf query")
 args = parser.parse_args()
 
@@ -54,14 +55,13 @@ class Command:
 class Filter(Command):
     fzf = ["fzf", "-0", "-1", "--cycle", "--print-query", "--expect=alt-v"]
 
-    def __init__(self, cmd=fzf, query=None, pattern=None):
+    def __init__(self, cmd=fzf, verbose=False, query=None, pattern=None):
         if pattern:
             # TODO: show whole file with lines highlighted?
             cmd.extend(("--preview", f"rg -FS --color=always '{pattern}' {{}}"))
         super().__init__(cmd)
-
+        self._verbose = verbose
         self._query = query
-        self._pattern = pattern  # FIX: is it needed?
 
     @property
     def query(self):
@@ -70,6 +70,10 @@ class Filter(Command):
     @query.setter
     def query(self, value: str):
         Filter.fzf.extend(("-q", value))
+
+    @property
+    def verbose(self):
+        return self._verbose
 
 
 class Search(Command):
@@ -100,6 +104,7 @@ class Search(Command):
 @dataclass
 class FilterResults:
     search_cmd: Search
+    filter_verbose: bool = False
     filter_query: str | None = None
     pressed_keys: str | None = None
     document: str | None | PathLike = None
@@ -130,7 +135,7 @@ class Documents:
             #     --expect\n
             #     document
             results = results.split("\n")
-            data = FilterResults(command, *results)
+            data = FilterResults(command, filter.verbose, *results)
 
             if data.document:
                 self._open(data)
@@ -141,7 +146,8 @@ class Documents:
                 data.filter_query = data.filter_query.replace("\\", "")
 
                 if not command.is_grep:
-                    print("trying grep..")  # TODO: if verbose
+                    if filter.verbose:
+                        print("trying grep..")
                     self.search(
                         Search(pattern=data.filter_query),
                         Filter(pattern=data.filter_query),
@@ -150,47 +156,59 @@ class Documents:
                 exit(1)
 
     def _open(self, data):
-        view_cmd = [self._viewer, self._viewer, data.document]
-
         if self._viewer == "editor" or data.pressed_keys:
-            self._viewer = env.get("EDITOR", "vi")
+            editor = env.get("EDITOR", "vi")
+            view_cmd = [editor, editor, data.document]
 
-        # open with nvim (send to running instance)?
-        if data.search_cmd.is_grep and "vi" in self._viewer:
-            view_cmd.extend(
-                ("-c", f"0/{data.search_cmd.pattern}", "-c", "noh|norm zz<cr>")
-            )
+            # open with nvim (send to running instance)?
+            if data.search_cmd.is_grep and "vim" in editor:
+                view_cmd = [
+                    editor,
+                    editor,
+                    "-c",
+                    f"0/{data.search_cmd.pattern}",
+                    "-c",
+                    "noh|norm zz<cr>",
+                    data.document,
+                ]
+
+        elif "bat" in self._viewer and data.filter_verbose:
+            view_cmd = [self._viewer, self._viewer, "--style", "header", data.document]
+        else:
+            view_cmd = [self._viewer, self._viewer, data.document]
 
         # Try the default viewer 1st: bat
         try:
             execlp(*view_cmd)
-        except FileNotFoundError as err:
-            if "bat" in str(err):
-                view_cmd[0] = "cat"  # TODO: replace a slice
-                view_cmd[1] = "cat"
+        except FileNotFoundError:
+            if "bat" in self._viewer:
+                view_cmd[0:2] = ["cat", "cat"]
                 execlp(*view_cmd)
             raise
 
 
 if __name__ == "__main__":
     # Documents(src, viewer)
-    parameters = dict(src=".")
+    doc_params = {"src": "."}
 
     if args.source_dir:
-        parameters["src"] = args.source_dir
+        doc_params["src"] = args.source_dir
 
     if args.view_in_editor:
-        parameters["viewer"] = "editor"
+        doc_params["viewer"] = "editor"
 
-    command = Search()
-    filter = Filter()
+    search_params = {}
+    filter_params = {}
 
     if args.grep:
-        command = Search(pattern=args.grep)
-        filter = Filter(pattern=args.grep)
+        search_params["pattern"] = args.grep
+        filter_params["pattern"] = args.grep
+
+    if args.verbose:
+        filter_params["verbose"] = args.verbose
 
     if args.query:
-        filter.query = args.query
+        filter_params["query"] = args.query
 
-    docs = Documents(**parameters)
-    docs.search(command, filter)
+    docs = Documents(**doc_params)
+    docs.search(Search(**search_params), Filter(**filter_params))
