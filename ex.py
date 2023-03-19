@@ -12,7 +12,6 @@ from subprocess import Popen, PIPE
 import webbrowser as browser
 
 # TODO:
-# --hidden
 # --exact?
 # --grep --only
 # recursive grep...
@@ -69,8 +68,9 @@ class Command:
 
 
 class Search(Command):
-    fd = ["fd", "--strip-cwd-prefix", "-tf", "-up", "-E.git", "-E'*~'"]
-    rg = ["rg", "-S", "--hidden", "-l"]
+    # TODO: both should find the same amount files. We want to git ignore some files (~/.config/git/ignore is used by default but ONLY in git repos. e.g. not in HOME. Use --ignore-file?
+    fd = ["fd", "--strip-cwd-prefix", "-tf", "-Hp"]
+    rg = ["rg", "-S", "--hidden", "-l"]  # TODO: --binary? test with .pdfs
 
     def __init__(self, pattern=None):
         if not pattern:
