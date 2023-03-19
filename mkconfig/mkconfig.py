@@ -333,7 +333,7 @@ repos = (
             Link("pics.pl", f"{env['HOME']}/bin/pics"),
             Link("pc.pl", f"{env['HOME']}/bin/pc"),
             Link("rseverywhere.pl", f"{env['HOME']}/bin/rseverywhere"),
-            Link("vpn.pl", f"{env['HOME']}/bin/vpn"),
+            Link("vpn.py", f"{env['HOME']}/bin/vpn"),
             Link("www.py", f"{env['HOME']}/bin/www"),
             Link("colors_term.bash", f"{env['HOME']}/bin"),
             Link("colors_tmux.bash", f"{env['HOME']}/bin"),
