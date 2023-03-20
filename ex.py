@@ -5,11 +5,11 @@
 
 import argparse
 from dataclasses import dataclass
-import os
 from pathlib import Path
-from os import environ as env, execlp, PathLike
+from os import environ as env, execlp, chdir, PathLike
 from subprocess import Popen, PIPE
 import webbrowser as browser
+from shutil import which
 
 # TODO:
 # --exact?
@@ -18,14 +18,11 @@ import webbrowser as browser
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-s", "--source-dir", type=str, nargs="?", help="change base directory"
+    "-s", "--source-dir", type=str, default=".", nargs="?", help="change base directory"
 )
 parser.add_argument("-g", "--grep", type=str, help="list files with matches")
 parser.add_argument(
-    "-b",
-    "--view-in-browser",
-    action="store_true",
-    help="view in browser",
+    "-b", "--view-in-browser", action="store_true", help="view in browser"
 )
 parser.add_argument(
     "-v",
@@ -34,8 +31,11 @@ parser.add_argument(
     help="view in $EDITOR, use alt-v from within fzf",
 )
 parser.add_argument(
-    "--verbose", action="store_true", help="show more detail"
-)  # TODO: keep? --show-name? not together with editor? ...
+    "--header",
+    action=argparse.BooleanOptionalAction,
+    default=True,
+    help="show file path",
+)
 parser.add_argument("query", type=str, nargs="?", help="fzf query")
 args = parser.parse_args()
 
@@ -44,14 +44,14 @@ class cd:
     """Context manager for changing the current working directory"""
 
     def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
+        self.newPath = Path(newPath).expanduser()
 
     def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
+        self.savedPath = Path.cwd()
+        chdir(self.newPath)
 
     def __exit__(self, etype, value, traceback):  # pyright: ignore reportUnusedVariable
-        os.chdir(self.savedPath)
+        chdir(self.savedPath)
 
 
 class Command:
@@ -68,9 +68,23 @@ class Command:
 
 
 class Search(Command):
-    # TODO: both should find the same amount files. We want to git ignore some files (~/.config/git/ignore is used by default but ONLY in git repos. e.g. not in HOME. Use --ignore-file?
-    fd = ["fd", "--strip-cwd-prefix", "-tf", "-Hp"]
-    rg = ["rg", "-S", "--hidden", "-l"]  # TODO: --binary? test with .pdfs
+    # TODO: both should find the same amount files, but this is not the case when tested in ~
+    fd = [
+        "fd",
+        "--strip-cwd-prefix",
+        "-tf",
+        "-Hp",
+        "--ignore-file",
+        f"{env['XDG_CONFIG_HOME']}/git/ignore",
+    ]
+    rg = [  # TODO: --binary? test with .pdfs
+        "rg",
+        "-S",
+        "--hidden",
+        "--ignore-file",
+        f"{env['XDG_CONFIG_HOME']}/git/ignore",
+        "-l",
+    ]
 
     def __init__(self, pattern=None):
         if not pattern:
@@ -92,9 +106,8 @@ class Search(Command):
 class Filter(Command):
     fzf = ["fzf", "-0", "-1", "--cycle", "--print-query", "--expect=alt-v"]
 
-    def __init__(self, cmd=fzf, verbose=False, query=None, pattern=None):
+    def __init__(self, cmd=fzf, query=None, pattern=None):
         super().__init__(cmd)
-        self._verbose = verbose
         self._query = query
         if self._query:
             Filter.fzf.extend(("-q", self._query))
@@ -107,15 +120,10 @@ class Filter(Command):
     def query(self):
         return self._query
 
-    @property
-    def verbose(self):
-        return self._verbose
-
 
 @dataclass
 class FilterResults:
     search_cmd: Search
-    filter_verbose: bool = False
     filter_query: str | None = None
     pressed_keys: str | None = None
     document: str | None | PathLike = None
@@ -129,8 +137,37 @@ class FilterResults:
             self.document = None
 
 
+class Viewer(Command):
+    def __init__(self, prog: str = "cat", header: bool = True):
+        self._prog = prog
+        self._header = header
+
+    # TODO: be able to viewer = 'editor' which would assign to prog
+    @property
+    def prog(self):
+        return self._prog
+
+    @prog.setter
+    def prog(self, value: str):
+        self._prog = value
+
+    @property
+    def header(self):
+        return self._header
+
+    @header.setter
+    def header(self, value: bool):
+        self._header = value
+
+    def show(self):
+        execlp(*self._cmd)
+
+    def __eq__(self, other: str) -> bool:
+        return self._prog == other
+
+
 class Documents:
-    def __init__(self, src: str | PathLike = ".", viewer="bat"):
+    def __init__(self, src: str | PathLike = ".", viewer=Viewer()):
         self._src = src
         self._viewer = viewer
 
@@ -146,7 +183,7 @@ class Documents:
             #     --expect\n
             #     document
             results = results.split("\n")
-            data = FilterResults(command, filter.verbose, *results)
+            data = FilterResults(command, *results)
 
             if data.document:
                 self._open(data)
@@ -157,8 +194,6 @@ class Documents:
                 data.filter_query = data.filter_query.replace("\\", "")
 
                 if not command.is_grep:
-                    if filter.verbose:
-                        print("trying grep..")
                     self.search(
                         Search(pattern=data.filter_query),
                         Filter(pattern=data.filter_query),
@@ -167,15 +202,13 @@ class Documents:
                 exit(1)
 
     def _open(self, data):
-        view_cmd = ["cat", "cat", data.document]
-
         if self._viewer == "editor" or data.pressed_keys:
             editor = env.get("EDITOR", "vi")
-            view_cmd = [editor, editor, data.document]
+            self._viewer.cmd = [editor, editor, data.document]
 
             # open with nvim (send to running instance)?
             if data.search_cmd.is_grep and "vim" in editor:
-                view_cmd = [
+                self._viewer.cmd = [
                     editor,
                     editor,
                     "-c",
@@ -184,7 +217,7 @@ class Documents:
                     "noh|norm zz<cr>",
                     data.document,
                 ]
-            execlp(*view_cmd)
+            self._viewer.show()
 
         extension = Path(data.document).suffix
 
@@ -201,37 +234,26 @@ class Documents:
             if Path(data.document).name == "printf.pl":
                 execlp("perl", "perl", data.document)
 
-        if "bat" in self._viewer and extension not in (".txt", ".text"):
-            if not data.filter_verbose:
-                view_cmd = [
-                    self._viewer,
-                    self._viewer,
-                    data.document,
-                ]
-            else:
-                view_cmd = [
-                    self._viewer,
-                    self._viewer,
-                    "--style",
-                    "header",
-                    data.document,
-                ]
+        if self._viewer == "cat":
+            if self._viewer.header:
+                print("File:", Path(data.document).resolve())
 
-        execlp(*view_cmd)
+            if which("bat") is not None and extension not in (".txt", ".text"):
+                self._viewer.cmd = ["bat", "bat", data.document]
+            else:
+                self._viewer.cmd = ["cat", "cat", data.document]
+
+        self._viewer.show()
 
 
 if __name__ == "__main__":
-    # Documents(src, viewer)
-    doc_params = {"src": "."}
-
-    if args.source_dir:
-        doc_params["src"] = args.source_dir
+    viewer = Viewer(header=args.header)
 
     if args.view_in_browser:
-        doc_params["viewer"] = "browser"
+        viewer.prog = "browser"
 
     if args.view_in_editor:
-        doc_params["viewer"] = "editor"
+        viewer.prog = "editor"
 
     search_params = {}
     filter_params = {}
@@ -240,11 +262,8 @@ if __name__ == "__main__":
         search_params["pattern"] = args.grep
         filter_params["pattern"] = args.grep
 
-    if args.verbose:
-        filter_params["verbose"] = args.verbose
-
     if args.query:
         filter_params["query"] = args.query
 
-    docs = Documents(**doc_params)
+    docs = Documents(src=args.source_dir, viewer=viewer)
     docs.search(Search(**search_params), Filter(**filter_params))
