@@ -118,8 +118,9 @@ class Filter(Command):
             Filter.fzf.extend(("-q", self._query))
         if pattern:
             # TODO: show whole file with lines highlighted?
-            # TODO: add preview in all cases
             Filter.fzf.extend(("--preview", f"rg -FS --color=always '{pattern}' {{}}"))
+        else:
+            Filter.fzf.extend(("--preview", f"bat --color always {{}}"))
         super().__init__(cmd=Filter.fzf)
 
     @property
