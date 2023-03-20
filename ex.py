@@ -18,17 +18,12 @@ from shutil import which
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-s", "--source-dir", type=str, default=".", nargs="?", help="change base directory"
-)
-parser.add_argument("-g", "--grep", type=str, help="list files with matches")
-parser.add_argument(
-    "-b", "--view-in-browser", action="store_true", help="view in browser"
-)
-parser.add_argument(
-    "-v",
-    "--view-in-editor",
-    action="store_true",
-    help="view in $EDITOR, use alt-v from within fzf",
+    "-s",
+    "--source-dir",
+    type=str,
+    default=".",
+    nargs="?",
+    help="define source directory",
 )
 parser.add_argument(
     "--header",
@@ -36,6 +31,17 @@ parser.add_argument(
     default=True,
     help="show file path",
 )
+grp_view = parser.add_mutually_exclusive_group()
+grp_view.add_argument(
+    "-b", "--view-in-browser", action="store_true", help="view in browser"
+)
+grp_view.add_argument(
+    "-v",
+    "--view-in-editor",
+    action="store_true",
+    help="view in $EDITOR, use alt-v from within fzf",
+)
+parser.add_argument("-g", "--grep", type=str, help="list files with matches")
 parser.add_argument("query", type=str, nargs="?", help="fzf query")
 args = parser.parse_args()
 
@@ -74,7 +80,7 @@ class Search(Command):
         "--strip-cwd-prefix",
         "-tf",
         "-Hp",
-        "--ignore-file",
+        "--ignore-file",  # needed since I want ignored files to be also ignored in non .git folders
         f"{env['XDG_CONFIG_HOME']}/git/ignore",
     ]
     rg = [  # TODO: --binary? test with .pdfs
@@ -87,12 +93,12 @@ class Search(Command):
     ]
 
     def __init__(self, pattern=None):
-        if not pattern:
-            super().__init__(Search.fd)
-        else:
-            Search.rg.append(pattern)
-            super().__init__(Search.rg)
         self._pattern = pattern
+        if self._pattern:
+            Search.rg.append(self._pattern)
+            super().__init__(cmd=Search.rg)
+        else:
+            super().__init__(cmd=Search.fd)
 
     @property
     def pattern(self):
@@ -106,15 +112,15 @@ class Search(Command):
 class Filter(Command):
     fzf = ["fzf", "-0", "-1", "--cycle", "--print-query", "--expect=alt-v"]
 
-    def __init__(self, cmd=fzf, query=None, pattern=None):
-        super().__init__(cmd)
+    def __init__(self, query=None, pattern=None):
         self._query = query
         if self._query:
             Filter.fzf.extend(("-q", self._query))
         if pattern:
             # TODO: show whole file with lines highlighted?
             # TODO: add preview in all cases
-            cmd.extend(("--preview", f"rg -FS --color=always '{pattern}' {{}}"))
+            Filter.fzf.extend(("--preview", f"rg -FS --color=always '{pattern}' {{}}"))
+        super().__init__(cmd=Filter.fzf)
 
     @property
     def query(self):
