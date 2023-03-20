@@ -46,6 +46,7 @@ parser.add_argument("query", type=str, nargs="?", help="fzf query")
 args = parser.parse_args()
 
 
+# TODO: @contextmanager
 class cd:
     """Context manager for changing the current working directory"""
 
@@ -149,7 +150,7 @@ class Viewer(Command):
         self._prog = prog
         self._header = header
 
-    # TODO: be able to viewer = 'editor' which would assign to prog
+    # TODO: be able to: viewer = 'editor' which would assign to prog
     @property
     def prog(self):
         return self._prog
@@ -230,14 +231,12 @@ class Documents:
 
         # Personal help files
         if Path(f"{env['REPOS_BASE']}/github/help/{data.document}").is_file():
-            if self._viewer == "browser":
-                if extension in (".adoc", ".md", ".rst"):
-                    browser.open(
-                        f"https://github.com/kurkale6ka/help/blob/master/{data.document}"
-                    )
-                    exit()
+            if self._viewer == "browser" and extension in (".adoc", ".md", ".rst"):
+                browser.open(
+                    f"https://github.com/kurkale6ka/help/blob/master/{data.document}"
+                )
+                exit()
 
-            # TODO: open as text
             if Path(data.document).name == "printf.pl":
                 execlp("perl", "perl", data.document)
 
