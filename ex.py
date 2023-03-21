@@ -12,7 +12,6 @@ import webbrowser as browser
 from shutil import which
 
 # TODO:
-# --exact?
 # --grep --only
 # recursive grep...
 
@@ -48,7 +47,11 @@ grp_view.add_argument(
     help="view in $EDITOR, use alt-v from within fzf",
 )
 parser.add_argument("-g", "--grep", type=str, help="list files with matches")
-parser.add_argument("query", type=str, nargs="?", help="fzf query")
+grp_filter = parser.add_argument_group("FZF arguments")
+# this option isn't needed for rg. rg ssh will find exact matches even though ssh is a 'regex'
+# same for fd in a future version (add --fd-pattern for VERY big folders?). For now it lists all files
+grp_filter.add_argument("-e", "--exact", action="store_true", help="Enable exact-match")
+grp_filter.add_argument("query", type=str, nargs="?", help="fzf query")
 args = parser.parse_args()
 
 
@@ -121,7 +124,9 @@ class Search(Command):
 class Filter(Command):
     fzf = ["fzf", "-0", "-1", "--cycle", "--print-query", "--expect=alt-v"]
 
-    def __init__(self, query=None, pattern=None):
+    def __init__(self, exact=False, query=None, pattern=None):
+        if exact:
+            Filter.fzf.append("--exact")
         self._query = query
         if self._query:
             Filter.fzf.extend(("-q", self._query))
@@ -275,6 +280,9 @@ if __name__ == "__main__":
     if args.grep:
         search_params["pattern"] = args.grep
         filter_params["pattern"] = args.grep
+
+    if args.exact:
+        filter_params["exact"] = args.exact
 
     if args.query:
         filter_params["query"] = args.query
