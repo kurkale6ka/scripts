@@ -2,7 +2,14 @@
 
 """Fuzzy File Explorer
 
-Needs fd and rg
+1. Find files in a directory with:
+   fd and/or rg
+
+2. Filter filenames with:
+   FZF
+
+3. Open with:
+   EDITOR, browser, bat, cat
 """
 
 import argparse
@@ -21,10 +28,9 @@ from shutil import which
 #     - loop till we validate a result or ESC
 # => I am not going to bother since I've never needed it in practice
 #
-# Add documentation
 # Package: main() ...
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description="Fuzzy File Explorer")
 parser.add_argument(
     "-s",
     "--source-dir",
@@ -68,7 +74,7 @@ grp_filter.add_argument("query", type=str, nargs="?", help="fzf query")
 args = parser.parse_args()
 
 
-# TODO: @contextmanager
+# TODO: @contextmanager? This seems actually clearer
 class cd:
     """Context manager for changing the current working directory"""
 
@@ -84,6 +90,8 @@ class cd:
 
 
 class Command:
+    """A system command defined as a list"""
+
     def __init__(self, cmd: list[str] = []):
         self._cmd = cmd
 
@@ -97,6 +105,8 @@ class Command:
 
 
 class Search(Command):
+    """A system search command. find, grep -l, ..."""
+
     # TODO: both should find the same amount files, but this is not the case when tested in ~
     fd = [
         "fd",
@@ -136,6 +146,8 @@ class Search(Command):
 
 
 class Filter(Command):
+    """A fuzzy content filter: FZF"""
+
     fzf = ["fzf", "-0", "-1", "--cycle", "--print-query", "--expect=alt-v"]
 
     def __init__(self, exact=False, query=None, pattern=None):
@@ -176,6 +188,8 @@ class FilterResults:
 
 
 class Viewer(Command):
+    """A system viewing command. Vim, cat, ..."""
+
     def __init__(self, prog: str = "cat", header: bool = True):
         self._prog = prog
         self._header = header
@@ -205,6 +219,8 @@ class Viewer(Command):
 
 
 class Documents:
+    """An archive of documents (a folder)"""
+
     def __init__(self, src: str | PathLike = ".", viewer=Viewer()):
         self._src = src
         self._viewer = viewer
@@ -240,6 +256,8 @@ class Documents:
                 exit(1)
 
     def _open(self, data):
+        """Open the document we found"""
+
         if self._viewer == "editor" or data.pressed_keys:
             editor = env.get("EDITOR", "vi")
             self._viewer.cmd = [editor, editor, data.document]
@@ -261,22 +279,33 @@ class Documents:
 
         # Personal help files
         if Path(f"{env['REPOS_BASE']}/github/help/{data.document}").is_file():
-            if self._viewer == "browser" and extension in (".adoc", ".md", ".rst"):
-                browser.open(
-                    f"https://github.com/kurkale6ka/help/blob/master/{data.document}"
-                )
-                exit()
+            if self._viewer == "browser":
+                extensions = (".adoc", ".md", ".rst")
+
+                if extension in extensions:
+                    browser.open(
+                        f"https://github.com/kurkale6ka/help/blob/master/{data.document}"
+                    )
+                    exit()
+                else:
+                    exit(
+                        f"Unsupported extension. Supported extensions are: {', '.join(extensions)}"
+                    )
 
             if Path(data.document).name == "printf.pl":
-                execlp("perl", "perl", data.document)
+                self._viewer.cmd = ["perl", "perl", data.document]
+                self._viewer.show()
 
         # TODO: enable? I haven't found a good binary file test
         # if binary:
         #     self._viewer.cmd = ["open", "open", data.document]
         #     self._viewer.show()
 
+        # Header: print the filename
         if self._viewer.header:
-            print("File:", Path(data.document).resolve())
+            filename = str(Path(data.document).resolve()).replace(env["HOME"], "~")
+            print(filename)
+            print("-" * len(filename))
 
         if self._viewer == "grep":
             self._viewer.cmd = [
