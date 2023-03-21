@@ -31,6 +31,12 @@ parser.add_argument(
     default=True,
     help="show file path",
 )
+parser.add_argument(
+    "--hidden",
+    action=argparse.BooleanOptionalAction,
+    default=True,
+    help="show dotfiles",
+)
 grp_view = parser.add_mutually_exclusive_group()
 grp_view.add_argument(
     "-b", "--view-in-browser", action="store_true", help="view in browser"
@@ -80,20 +86,22 @@ class Search(Command):
         "fd",
         "--strip-cwd-prefix",
         "-tf",
-        "-Hp",
+        "-p",
         "--ignore-file",  # needed since I want ignored files to be also ignored in non .git folders
         f"{env['XDG_CONFIG_HOME']}/git/ignore",
     ]
     rg = [  # TODO: --binary? test with .pdfs
         "rg",
         "-S",
-        "--hidden",
+        "-l",
         "--ignore-file",
         f"{env['XDG_CONFIG_HOME']}/git/ignore",
-        "-l",
     ]
 
-    def __init__(self, pattern=None):
+    def __init__(self, hidden=True, pattern=None):
+        if hidden:
+            Search.fd.append("--hidden")
+            Search.rg.append("--hidden")
         self._pattern = pattern
         if self._pattern:
             Search.rg.append(self._pattern)
@@ -261,8 +269,8 @@ if __name__ == "__main__":
     if args.view_in_editor:
         viewer.prog = "editor"
 
-    search_params = {}
-    filter_params = {}
+    search_params = dict(hidden=args.hidden)
+    filter_params = dict()
 
     if args.grep:
         search_params["pattern"] = args.grep
