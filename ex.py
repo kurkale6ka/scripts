@@ -54,7 +54,7 @@ grp_view.add_argument(
 grp_grep = parser.add_argument_group("Grep options")
 grp_grep.add_argument("-g", "--grep", type=str, help="list files with matches")
 grp_grep.add_argument(
-    "-o", "--view-grep-results", action="store_true", help="show grepped lines only"
+    "-o", "--view-grep-results", action="store_true", help="output grepped lines only"
 )
 grp_filter = parser.add_argument_group("FZF options")
 # this option isn't needed for rg. rg ssh will find exact matches even though ssh is a 'regex'
