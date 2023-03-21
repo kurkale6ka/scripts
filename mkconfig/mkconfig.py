@@ -325,7 +325,7 @@ repos = (
         links=(
             Link("helpers.py", f"{env['HOME']}/.pyrc", "-r"),
             Link("backup.pl", f"{env['HOME']}/bin/b"),
-            Link("ex.pl", f"{env['HOME']}/bin/ex"),
+            Link("ex.py", f"{env['HOME']}/bin/ex"),
             Link("calc.pl", f"{env['HOME']}/bin/="),
             Link("cert.pl", f"{env['HOME']}/bin/cert"),
             Link("mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"),
@@ -333,7 +333,7 @@ repos = (
             Link("pics.pl", f"{env['HOME']}/bin/pics"),
             Link("pc.pl", f"{env['HOME']}/bin/pc"),
             Link("rseverywhere.pl", f"{env['HOME']}/bin/rseverywhere"),
-            Link("vpn.pl", f"{env['HOME']}/bin/vpn"),
+            Link("vpn.py", f"{env['HOME']}/bin/vpn"),
             Link("www.py", f"{env['HOME']}/bin/www"),
             Link("colors_term.bash", f"{env['HOME']}/bin"),
             Link("colors_tmux.bash", f"{env['HOME']}/bin"),
@@ -344,7 +344,7 @@ repos = (
         links=(
             Link("tmux/lay.pl", f"{env['HOME']}/bin/lay"),
             Link("tmux/Nodes.pm", f"{env['HOME']}/bin/nodes"),
-            Link("dotfiles/.gitignore", f"{env['HOME']}", "-r"),
+            Link("dotfiles/.gitignore", f"{env['XDG_CONFIG_HOME']}/git/ignore"),
             Link("dotfiles/.irbrc", f"{env['HOME']}", "-r"),
             Link("dotfiles/.Xresources", f"{env['HOME']}", "-r"),
             Link("ctags/.ctags", f"{env['HOME']}", "-r"),
@@ -414,16 +414,9 @@ def init():
         Text("-").cyan,
         f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).dir}...",
     )
-    asyncio.run(git_clone())  # TODO: wrap in a try except in case it fails
+    asyncio.run(git_clone())  # TODO: wrap in a try except in case it fails + FIX repos var being empty
 
     print(Text("-").cyan, "Linking dot files")
-
-    Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
-    Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(exist_ok=True)
-    Path(f"{env['XDG_DATA_HOME']}/zsh").mkdir(
-        exist_ok=True
-    )  # for zsh history. TODO: group mkdirs
-    Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(exist_ok=True)
     create_links()
 
     print(Text("-").cyan, "Configuring git")
@@ -529,6 +522,15 @@ async def git_clone():
 
 
 def create_links():
+    # TODO: move together with RepoData
+    Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
+    Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(exist_ok=True)
+    Path(f"{env['XDG_DATA_HOME']}/zsh").mkdir(
+        exist_ok=True
+    )  # for zsh history. TODO: group mkdirs
+    Path(f"{env['XDG_CONFIG_HOME']}/git").mkdir(exist_ok=True)
+    Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(exist_ok=True)
+
     for r in repos:
         if r.make_links:
             repo = Repo(f"{base}/{r.hub}/{r.name}", r.links)

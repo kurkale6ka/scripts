@@ -70,7 +70,7 @@ sub fzf
          $pattern = $query;
       }
 
-      my $find = "rg -FS $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file ~/.gitignore -l '$pattern'";
+      my $find = "rg -FS $hidden -g'!.git' -g'!.svn' -g'!.hg' --ignore-file $ENV{XDG_CONFIG_HOME}/git/ignore -l '$pattern'";
       my $preview = "rg -FS --color=always '$pattern' {}";
 
       $preview =~ s/[\\"`\$]/\\$&/g; # quote sh ""s special characters: \ " ` $
@@ -79,7 +79,7 @@ sub fzf
    }
    else
    {
-      my $find = "fd -tf $hidden --strip-cwd-prefix -E.git -E.svn -E.hg --ignore-file ~/.gitignore";
+      my $find = "fd -tf $hidden --strip-cwd-prefix -E.git -E.svn -E.hg --ignore-file $ENV{XDG_CONFIG_HOME}/git/ignore";
       my $preview = "if file --mime {} | grep -q binary; then echo 'No preview available' 1>&2; else cat {}; fi";
 
       # search help files matching topic
