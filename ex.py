@@ -20,16 +20,6 @@ from subprocess import Popen, PIPE
 import webbrowser as browser
 from shutil import which
 
-# TODO:
-# recursive lookup? example:
-#     - ex -g ssh
-#     - delete 'ssh' query, try another one => will most likely fail since only filtering the 'ssh' subset
-#     - try on all files: find (+ grep if no matching filenames)
-#     - loop till we validate a result or ESC
-# => I am not going to bother since I've never needed it in practice
-#
-# Package: main() ...
-
 parser = argparse.ArgumentParser(description="Fuzzy File Explorer")
 parser.add_argument(
     "-s",
@@ -163,7 +153,12 @@ class Filter(Command):
             if which("bat") is not None:
                 Filter.fzf.extend(("--preview", "bat --color always {}"))
             else:
-                Filter.fzf.extend(("--preview", "cat {}"))
+                Filter.fzf.extend(
+                    (
+                        "--preview",
+                        "if file --mime {} | grep -q binary; then echo 'No preview available' 1>&2; else cat {}; fi",
+                    )
+                )
         super().__init__(cmd=Filter.fzf)
 
     @property
@@ -253,7 +248,7 @@ class Documents:
                         Filter(pattern=data.filter_query),
                     )
             else:
-                exit(1)
+                exit(1)  # canceled with Esc or ^C
 
     def _open(self, data):
         """Open the document we found"""
@@ -352,3 +347,18 @@ if __name__ == "__main__":
 
     docs = Documents(src=args.source_dir, viewer=viewer)
     docs.search(Search(**search_params), Filter(**filter_params))
+
+# TODOs:
+# recursive lookup? example:
+#     - ex -g ssh
+#     - delete 'ssh' query, try another one => will most likely fail since only filtering the 'ssh' subset
+#     - try on all files: find (+ grep if no matching filenames)
+#     - loop till we validate a result or ESC
+# => I am not going to bother since I've never needed it in practice
+#
+# pyproject.toml Package: main() ...
+#
+# Multiple args? Not sure about that.
+# - split @ARGV with -e?
+# - rg -Sl patt1 | ... | xargs rg -S pattn
+# - also for fd ... $1
