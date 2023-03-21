@@ -12,8 +12,12 @@ import webbrowser as browser
 from shutil import which
 
 # TODO:
-# --grep --only
-# recursive grep...
+# recursive lookup? example:
+#     - ex -g ssh
+#     - delete 'ssh' query, try another one => will most likely fail since only filtering the 'ssh' subset
+#     - try on all files: find (+ grep if no matching filenames)
+#     - loop till we validate a result or ESC
+# => I am not going to bother since I've never needed it in practice
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -46,8 +50,12 @@ grp_view.add_argument(
     action="store_true",
     help="view in $EDITOR, use alt-v from within fzf",
 )
-parser.add_argument("-g", "--grep", type=str, help="list files with matches")
-grp_filter = parser.add_argument_group("FZF arguments")
+grp_grep = parser.add_argument_group("Grep options")
+grp_grep.add_argument("-g", "--grep", type=str, help="list files with matches")
+grp_grep.add_argument(
+    "-o", "--view-grep-results", action="store_true", help="show grepped lines only"
+)
+grp_filter = parser.add_argument_group("FZF options")
 # this option isn't needed for rg. rg ssh will find exact matches even though ssh is a 'regex'
 # same for fd in a future version (add --fd-pattern for VERY big folders?). For now it lists all files
 grp_filter.add_argument("-e", "--exact", action="store_true", help="Enable exact-match")
@@ -131,8 +139,8 @@ class Filter(Command):
         if self._query:
             Filter.fzf.extend(("-q", self._query))
         if pattern:
-            # TODO: show whole file with lines highlighted?
-            Filter.fzf.extend(("--preview", f"rg -FS --color=always '{pattern}' {{}}"))
+            # TODO: show whole file with lines highlighted? --passthru
+            Filter.fzf.extend(("--preview", f"rg -S --color=always '{pattern}' {{}}"))
         else:
             Filter.fzf.extend(("--preview", f"bat --color always {{}}"))
         super().__init__(cmd=Filter.fzf)
@@ -253,10 +261,19 @@ class Documents:
             if Path(data.document).name == "printf.pl":
                 execlp("perl", "perl", data.document)
 
-        if self._viewer == "cat":
-            if self._viewer.header:
-                print("File:", Path(data.document).resolve())
+        if self._viewer.header:
+            print("File:", Path(data.document).resolve())
 
+        if self._viewer == "grep":
+            self._viewer.cmd = [
+                "rg",
+                "rg",
+                "-S",
+                data.search_cmd.pattern,
+                data.document,
+            ]
+
+        if self._viewer == "cat":
             if which("bat") is not None and extension not in (".txt", ".text"):
                 self._viewer.cmd = ["bat", "bat", data.document]
             else:
@@ -273,6 +290,9 @@ if __name__ == "__main__":
 
     if args.view_in_editor:
         viewer.prog = "editor"
+
+    if args.view_grep_results:
+        viewer.prog = "grep"
 
     search_params = dict(hidden=args.hidden)
     filter_params = dict()
