@@ -91,7 +91,7 @@ if not "XDG_CONFIG_HOME" in env:
     print(Text("setting XDG Variables to their default values").red, file=stderr)
     env["XDG_CONFIG_HOME"] = f"{env['HOME']}/.config"
     env["XDG_DATA_HOME"] = f"{env['HOME']}/.local/share"
-    Path(env["XDG_CONFIG_HOME"]).mkdir(parents=True, exist_ok=True)
+    Path(env["XDG_CONFIG_HOME"]).mkdir(exist_ok=True)
     Path(env["XDG_DATA_HOME"]).mkdir(parents=True, exist_ok=True)
 
 # TODO: --dry-run?
@@ -149,7 +149,9 @@ args = parser.parse_args()
 class Link:
     # args is a string, e.g '-rT' => makes a relative link to a directory
     def __init__(self, src, dst, args=None):
-        self._src, self._dst, self._args = src, dst, args
+        self._src = src
+        self._dst = dst
+        self._args = args
 
     # source getter/setter
     @property
@@ -281,12 +283,16 @@ class Repo:
 class RepoData:
     name: str
     hub: str = "github"
-    links: tuple = ()
     enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
+    links: tuple = ()
+    mkdirs: tuple = ()  # create dst dirs as needed by: ln -s src dst
     make_links: bool = True
 
+    # mkdirs
     def __post_init__(self):
         Path(f"{base}/{self.hub}").mkdir(parents=True, exist_ok=True)
+        for dir in self.mkdirs:
+            Path(dir).mkdir(exist_ok=True)
 
 
 repos = (
@@ -304,6 +310,10 @@ repos = (
     ),
     RepoData(
         "zsh",
+        mkdirs=(
+            f"{env['XDG_CONFIG_HOME']}/zsh",
+            f"{env['XDG_DATA_HOME']}/zsh",  # for zsh history file
+        ),
         links=(
             Link(".zshenv", f"{env['HOME']}", "-r"),
             Link(".zprofile", f"{env['XDG_CONFIG_HOME']}/zsh"),
@@ -322,6 +332,7 @@ repos = (
     ),
     RepoData(
         "scripts",
+        mkdirs=(f"{env['HOME']}/bin",),
         links=(
             Link("helpers.py", f"{env['HOME']}/.pyrc", "-r"),
             Link("backup.pl", f"{env['HOME']}/bin/b"),
@@ -341,6 +352,11 @@ repos = (
     ),
     RepoData(
         "config",
+        mkdirs=(
+            f"{env['HOME']}/bin",
+            f"{env['XDG_CONFIG_HOME']}/git",
+            f"{env['XDG_CONFIG_HOME']}/bat",
+        ),
         links=(
             Link("tmux/lay.pl", f"{env['HOME']}/bin/lay"),
             Link("tmux/Nodes.pm", f"{env['HOME']}/bin/nodes"),
@@ -414,7 +430,8 @@ def init():
         Text("-").cyan,
         f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).dir}...",
     )
-    asyncio.run(git_clone())  # TODO: wrap in a try except in case it fails + FIX repos var being empty
+    # TODO: wrap in a try except in case it fails + FIX repos var being empty
+    asyncio.run(git_clone())
 
     print(Text("-").cyan, "Linking dot files")
     create_links()
@@ -522,15 +539,6 @@ async def git_clone():
 
 
 def create_links():
-    # TODO: move together with RepoData
-    Path(f"{env['HOME']}/bin").mkdir(exist_ok=True)
-    Path(f"{env['XDG_CONFIG_HOME']}/zsh").mkdir(exist_ok=True)
-    Path(f"{env['XDG_DATA_HOME']}/zsh").mkdir(
-        exist_ok=True
-    )  # for zsh history. TODO: group mkdirs
-    Path(f"{env['XDG_CONFIG_HOME']}/git").mkdir(exist_ok=True)
-    Path(f"{env['XDG_CONFIG_HOME']}/bat").mkdir(exist_ok=True)
-
     for r in repos:
         if r.make_links:
             repo = Repo(f"{base}/{r.hub}/{r.name}", r.links)
@@ -617,6 +625,7 @@ async def git_status():
                 repo = Repo(f"{base}/{r.hub}/{r.name}")
                 tg.create_task(repo.status(args.verbose))
     else:
+        # TODO: perf test to ensure it's actually happening in parallel
         tasks = []
         for r in repos:
             repo = Repo(f"{base}/{r.hub}/{r.name}")
