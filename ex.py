@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
 """Fuzzy File Explorer
+
+Needs fd and rg
 """
 
 import argparse
@@ -18,6 +20,9 @@ from shutil import which
 #     - try on all files: find (+ grep if no matching filenames)
 #     - loop till we validate a result or ESC
 # => I am not going to bother since I've never needed it in practice
+#
+# Add documentation
+# Package: main() ...
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -101,9 +106,10 @@ class Search(Command):
         "--ignore-file",  # needed since I want ignored files to be also ignored in non .git folders
         f"{env['XDG_CONFIG_HOME']}/git/ignore",
     ]
-    rg = [  # TODO: --binary? test with .pdfs
+    rg = [
         "rg",
         "-S",
+        # "--binary",  # TODO: enable? I've almost never needed it
         "-l",
         "--ignore-file",
         f"{env['XDG_CONFIG_HOME']}/git/ignore",
@@ -139,10 +145,13 @@ class Filter(Command):
         if self._query:
             Filter.fzf.extend(("-q", self._query))
         if pattern:
-            # TODO: show whole file with lines highlighted? --passthru
+            # TODO: show whole file with lines highlighted: --passthru? doesn't look too good
             Filter.fzf.extend(("--preview", f"rg -S --color=always '{pattern}' {{}}"))
         else:
-            Filter.fzf.extend(("--preview", f"bat --color always {{}}"))
+            if which("bat") is not None:
+                Filter.fzf.extend(("--preview", "bat --color always {}"))
+            else:
+                Filter.fzf.extend(("--preview", "cat {}"))
         super().__init__(cmd=Filter.fzf)
 
     @property
@@ -260,6 +269,11 @@ class Documents:
 
             if Path(data.document).name == "printf.pl":
                 execlp("perl", "perl", data.document)
+
+        # TODO: enable? I haven't found a good binary file test
+        # if binary:
+        #     self._viewer.cmd = ["open", "open", data.document]
+        #     self._viewer.show()
 
         if self._viewer.header:
             print("File:", Path(data.document).resolve())
