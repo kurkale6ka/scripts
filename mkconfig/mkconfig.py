@@ -375,7 +375,10 @@ repos = (
     RepoData("vim-pairs", enabled=False),
 )
 
-repos = (repo for repo in repos if repo.enabled)
+# Don't use a tuple here!
+# We loop over this variable in many functions, which means we can't have it
+# exhausted after a single pass through
+repos = [repo for repo in repos if repo.enabled]
 
 
 def upgrade_venvs(msg="Installing pip modules (pynvim, ...)", clear=False):
@@ -430,7 +433,6 @@ def init():
         Text("-").cyan,
         f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).dir}...",
     )
-    # TODO: wrap in a try except in case it fails + FIX repos var being empty
     asyncio.run(git_clone())
 
     print(Text("-").cyan, "Linking dot files")
