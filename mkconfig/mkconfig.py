@@ -285,13 +285,13 @@ class RepoData:
     hub: str = "github"
     enabled: bool = True  # TODO: ~/.config/myrepos -- enable/disable in a .rc file
     links: tuple = ()
-    mkdirs: tuple = ()  # create dst dirs as needed by: ln -s src dst
+    dirs: tuple = ()  # create repository dirs as needed. e.g. ln -s src [dst], ...
     make_links: bool = True
 
-    # mkdirs
+    # dirs
     def __post_init__(self):
         Path(f"{base}/{self.hub}").mkdir(parents=True, exist_ok=True)
-        for dir in self.mkdirs:
+        for dir in self.dirs:
             Path(dir).mkdir(exist_ok=True)
 
 
@@ -310,7 +310,7 @@ repos = (
     ),
     RepoData(
         "zsh",
-        mkdirs=(
+        dirs=(
             f"{env['XDG_CONFIG_HOME']}/zsh",
             f"{env['XDG_DATA_HOME']}/zsh",  # for zsh history file
         ),
@@ -332,7 +332,7 @@ repos = (
     ),
     RepoData(
         "scripts",
-        mkdirs=(f"{env['HOME']}/bin",),
+        dirs=(f"{env['HOME']}/bin",),
         links=(
             Link("helpers.py", f"{env['HOME']}/.pyrc", "-r"),
             Link("backup.pl", f"{env['HOME']}/bin/b"),
@@ -352,7 +352,7 @@ repos = (
     ),
     RepoData(
         "config",
-        mkdirs=(
+        dirs=(
             f"{env['HOME']}/bin",
             f"{env['XDG_CONFIG_HOME']}/git",
             f"{env['XDG_CONFIG_HOME']}/bat",
