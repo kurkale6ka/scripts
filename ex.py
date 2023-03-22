@@ -93,6 +93,9 @@ class Command:
     def cmd(self, value: list[str]):
         self._cmd = value
 
+    def run(self):
+        execlp(*self._cmd)
+
 
 class Search(Command):
     """A system search command. find, grep -l, ..."""
@@ -206,9 +209,6 @@ class Viewer(Command):
     def header(self, value: bool):
         self._header = value
 
-    def show(self):
-        execlp(*self._cmd)
-
     def __eq__(self, other: str) -> bool:
         return self._prog == other
 
@@ -268,7 +268,7 @@ class Documents:
                     "noh|norm zz<cr>",
                     data.document,
                 ]
-            self._viewer.show()
+            self._viewer.run()
 
         extension = Path(data.document).suffix
 
@@ -289,12 +289,12 @@ class Documents:
 
             if Path(data.document).name == "printf.pl":
                 self._viewer.cmd = ["perl", "perl", data.document]
-                self._viewer.show()
+                self._viewer.run()
 
         # TODO: enable? I haven't found a good binary file test
         # if binary:
         #     self._viewer.cmd = ["open", "open", data.document]
-        #     self._viewer.show()
+        #     self._viewer.run()
 
         # Header: print the filename
         if self._viewer.header:
@@ -317,7 +317,7 @@ class Documents:
             else:
                 self._viewer.cmd = ["cat", "cat", data.document]
 
-        self._viewer.show()
+        self._viewer.run()
 
 
 if __name__ == "__main__":
