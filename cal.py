@@ -1,23 +1,24 @@
 #! /usr/bin/env python3
 
-desc = """Wrapper around the cal (gcal, ncal, cal) UNIX commands
+"""Wrapper around the cal (gcal, ncal, cal) UNIX commands
 aiming to standardise output and available options
 
-    output:
+output:
     * always start weeks on Monday
     * always display days horizontally
 
-    options: always provide -3/-y
+options:
+    always provide -3/-y
 """
 
 from os import execlp
 from shutil import which
-import argparse
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
-parser = argparse.ArgumentParser(
+parser = ArgumentParser(
     prog="cal",
-    description=desc,
-    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=__doc__,
+    formatter_class=RawDescriptionHelpFormatter,
     add_help=False,
 )
 
@@ -37,12 +38,12 @@ parser.add_argument(
 own_args, args = parser.parse_known_args()
 
 
-# check if command is in PATH
-def cmd(exe):
+def command(exe: str) -> bool:
+    """Check if command is in PATH"""
     return which(exe) is not None
 
 
-if cmd("gcal"):
+if command("gcal"):
     # -s, --starting-day 1 (Monday)
     cal = ["gcal", "-s1"]
 
@@ -53,7 +54,7 @@ if cmd("gcal"):
         # -b, --blocks: displays 4 blocks with 3 months at a time (4x3 = 12)
         cal.append("-b4")
 
-elif cmd("ncal"):
+elif command("ncal"):
     # -M Monday, -b oldstyle format: horizontal
     cal = ["ncal", "-Mb"]
 
@@ -63,7 +64,7 @@ elif cmd("ncal"):
     elif own_args.year:
         cal.append("-y")
 
-elif cmd("cal"):
+elif command("cal"):
     # UNIX/FreeBSD version of cal:
     # cal -m could fail as support for -m3y was unknown last time I checked
 
@@ -84,10 +85,12 @@ if __name__ == "__main__":
     if own_args.help:
         # this help
         parser.print_help()
-        print("\n", "-" * 54, "\n", sep="")
+        print()
+        print("-" * 67)
+        print()
 
         # resident "cal"'s help
         execlp(cal[0], cal[0], "--help")
 
-    # launch "cal"
+    # Show calendar
     execlp(cal[0], *cal)
