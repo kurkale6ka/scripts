@@ -20,7 +20,7 @@ INSTALL:
 # Remove hard-coded reference of ~/repos in help messages + README file
 
 from dataclasses import dataclass
-from os import environ as env
+from os import environ as env, PathLike
 from sys import argv, stderr, platform, version_info
 from pathlib import Path
 from subprocess import run
@@ -422,7 +422,7 @@ def upgrade_venvs(msg="Installing pip modules (pynvim, ...)", clear=False):
 
 # TODO: show progress bar with tqdm?
 # for task in tqdm.as_completed(tasks, leave=False, ascii=' =', colour='green', ncols=139, desc='Updating repos...'):
-def init():
+def init(args):
     if platform == "darwin":
         # needed when 'ln' is actually 'gln'
         path = env["PATH"].split(":")
@@ -433,19 +433,19 @@ def init():
         Text("-").cyan,
         f"Cloning repositories in {Text(base.replace(env['HOME'], '~')).dir}...",
     )
-    asyncio.run(git_clone())
+    asyncio.run(git_clone(args.clone_dst, args.clone_protocol, args.verbose))
 
     print(Text("-").cyan, "Linking dot files")
-    create_links()
+    create_links(args.verbose)
 
     print(Text("-").cyan, "Configuring git")
-    git_config()
+    git_config(args.verbose)
 
     print(Text("-").cyan, "Generating tags")
-    ctags()
+    ctags(args.verbose)
 
     print(Text("-").cyan, "Creating fuzzy cd database")
-    cd_db_create()
+    cd_db_create(args.verbose)
 
     # macOS
     if platform == "darwin":
@@ -511,17 +511,17 @@ def init():
         run(cmd)
 
 
-async def git_clone():
+async def git_clone(dst: str | PathLike, protocol: str, verbose: bool = False) -> None:
     if version_info[0] == 3 and version_info[1] >= 11:
         async with asyncio.TaskGroup() as tg:  # pyright: ignore reportGeneralTypeIssues
             for r in repos:
                 repo = Repo(f"{base}/{r.hub}/{r.name}", action="clone")
                 tg.create_task(
                     repo.clone(
-                        args.clone_dst or f"{base}/{r.hub}",
-                        protocol=args.clone_protocol,
+                        dst or f"{base}/{r.hub}",
+                        protocol=protocol,
                         hub=r.hub,
-                        verbose=args.verbose,
+                        verbose=verbose,
                     )
                 )
     else:
@@ -530,50 +530,50 @@ async def git_clone():
             repo = Repo(f"{base}/{r.hub}/{r.name}", action="clone")
             tasks.append(
                 repo.clone(
-                    args.clone_dst or f"{base}/{r.hub}",
-                    protocol=args.clone_protocol,
+                    dst or f"{base}/{r.hub}",
+                    protocol=protocol,
                     hub=r.hub,
-                    verbose=args.verbose,
+                    verbose=verbose,
                 )
             )
         for task in asyncio.as_completed(tasks):
             await task
 
 
-def create_links():
+def create_links(verbose: bool = False) -> None:
     for r in repos:
         if r.make_links:
             repo = Repo(f"{base}/{r.hub}/{r.name}", r.links)
-            p = Process(target=repo.create_links, args=(args.verbose,))
+            p = Process(target=repo.create_links, args=(verbose,))
             p.start()
             p.join()
 
 
-def remove_links():
+def remove_links(verbose: bool = False) -> None:
     script_path = Path(argv[0]).resolve(strict=True)
 
     for r in repos:
         if r.make_links:
             for link in r.links:
-                p = Process(target=link.remove, args=(args.verbose,))
+                p = Process(target=link.remove, args=(verbose,))
                 p.start()
                 p.join()
 
-    if args.verbose:
+    if verbose:
         print()
     print(f"Restore links with:\n{script_path} -l".replace(env["HOME"], "~"))
 
 
-def git_config():
+def git_config(verbose: bool = False) -> None:
     cmd = ("bash", f"{base}/github/config/git.bash")
 
-    if args.verbose:
+    if verbose:
         print(" ".join(cmd).replace(env["HOME"], "~"))
 
     run(cmd)
 
 
-def ctags():
+def ctags(verbose: bool = False) -> None:
     cmd = [
         "ctags",
         "-R",
@@ -596,7 +596,7 @@ def ctags():
     if Path(f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after").is_file():
         cmd.append(f"{env['XDG_CONFIG_HOME']}/zsh/.zshrc_after")
 
-    if args.verbose:
+    if verbose:
         pprint(cmd)
         print()
         print(
@@ -608,11 +608,11 @@ def ctags():
     run(cmd)
 
 
-def cd_db_create():
+def cd_db_create(verbose: bool = False) -> None:
     script = f"{base}/github/scripts/db-create"
     cmd = ("bash", script)
 
-    if args.verbose:
+    if verbose:
         print(" ".join(cmd).replace(env["HOME"], "~"))
         print()
         run(("bat", "--language=bash", script))
@@ -620,24 +620,24 @@ def cd_db_create():
     run(cmd)
 
 
-async def git_status():
+async def git_status(verbose: bool = False) -> None:
     if version_info[0] == 3 and version_info[1] >= 11:
         async with asyncio.TaskGroup() as tg:  # pyright: ignore reportGeneralTypeIssues
             for r in repos:
                 repo = Repo(f"{base}/{r.hub}/{r.name}")
-                tg.create_task(repo.status(args.verbose))
+                tg.create_task(repo.status(verbose))
     else:
         # TODO: perf test to ensure it's actually happening in parallel
         tasks = []
         for r in repos:
             repo = Repo(f"{base}/{r.hub}/{r.name}")
-            tasks.append(repo.status(args.verbose))
+            tasks.append(repo.status(verbose))
         for task in asyncio.as_completed(tasks):
             await task
 
 
 # TODO: add -v/-q as needed
-async def git_pull():
+async def git_pull() -> None:
     if version_info[0] == 3 and version_info[1] >= 11:
         async with asyncio.TaskGroup() as tg:  # pyright: ignore reportGeneralTypeIssues
             for r in repos:
@@ -652,33 +652,33 @@ async def git_pull():
             await task
 
 
-def main():
+def main() -> None:
     if args.install_nvim_python_client:
         upgrade_venvs(msg="Upgrading pip modules (pynvim, ...)")
 
     if args.init:
-        init()
+        init(args)
 
     if args.clone:
-        asyncio.run(git_clone())
+        asyncio.run(git_clone(args.clone_dst, args.clone_protocol, args.verbose))
 
     if args.links:
-        create_links()
+        create_links(args.verbose)
 
     if args.delete_links:
-        remove_links()
+        remove_links(args.verbose)
 
     if args.git_config:
-        git_config()
+        git_config(args.verbose)
 
     if args.tags:
-        ctags()
+        ctags(args.verbose)
 
     if args.cd_db_create:
-        cd_db_create()
+        cd_db_create(args.verbose)
 
     if args.status:
-        asyncio.run(git_status())
+        asyncio.run(git_status(args.verbose))
 
     if len(argv) == 1 or args.update:  # no args or --update
         asyncio.run(git_pull())
