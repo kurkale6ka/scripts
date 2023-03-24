@@ -2,7 +2,7 @@
 
 """OpenVPN helper for NordVPN
 
-DNS leak fix:
+DNS leak fix requirements:
   Install (openvpn-)update-systemd-resolved
   systemctl enable --now systemd-resolved
 """
@@ -18,33 +18,42 @@ vpn_configs = f"{vpn}/ovpn_{protocol}"
 download_url = "https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip"
 
 parser = argparse.ArgumentParser(
-    usage="vpn [options] [pattern] (or use zsh completion)"
+    description=__doc__, formatter_class=argparse.RawTextHelpFormatter
 )
-parser.add_argument("pattern", nargs="?")
-parser.add_argument("-a", "--auth", help=f"credentials file ({vpn}/details)")
-parser.add_argument("-b", "--batch", action="store_true", help="no codes with --list")
-parser.add_argument(
+grp_vpn = parser.add_argument_group("VPN")
+grp_vpn.add_argument("-a", "--auth", help=f"credentials file ({vpn}/details)")
+grp_vpn.add_argument(
     "-c", "--config", help=f"config file instead of pattern ({vpn_configs}/...)"
 )
-parser.add_argument(
+grp_vpn.add_argument(
     "-d",
     "--download",
     action="store_true",
-    help=f"download config files ({download_url})",
+    help=f"download config files:\n{download_url}",
 )
-parser.add_argument(
-    "-l", "--list", default=None, nargs="?", const=1, help="show countries"
+grp_vpn.add_argument("-p", "--protocol", help="defaults to udp")
+grp_countries = parser.add_argument_group("Countries")
+grp_countries.add_argument(
+    "-b", "--batch", action="store_true", help="no codes with --list"
 )
-parser.add_argument("-p", "--protocol", help="defaults to udp")
+grp_countries.add_argument(
+    "-l",
+    "--list",
+    default=None,
+    nargs="?",
+    const=1,
+    help="show countries and their codes",
+)
+grp_countries.add_argument(
+    "pattern",
+    nargs="?",
+    help="fuzzy country filter in order to provide a VPN config file",
+)
 args = parser.parse_args()
 
 # Colors
 esc = "\033["
 CYAN, RED, RESET = [f"{esc}{code}m" for code in (36, 31, 0)]
-
-if not any((args.download, args.list)):
-    if os.geteuid() != 0:
-        exit(RED + "Run as root" + RESET)
 
 countries = {
     # "af": "Afghanistan",
@@ -298,7 +307,7 @@ countries = {
     # "ax": "Åland Islands"
 }
 
-# # uk fix
+# TODO: uk fix
 # countries['uk'] = countries['gb']
 
 
@@ -312,41 +321,49 @@ def list(pattern=""):
                 # print(code.replace('uk', 'gb').upper(), '->', country)
 
 
-if args.list == 1:
-    list()
-elif args.list:
-    list(args.list)
-else:
-    fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
-    if args.pattern:
-        fzf.extend(("-q", args.pattern))
+if __name__ == "__main__":
+    # TODO: add to other scripts
+    if args.batch and not args.list:
+        parser.error("--batch requires --list")
 
-    with os.scandir(vpn_configs) as ls:
-        configs = "\n".join(
-            sorted(file.name for file in ls if file.name.endswith(".ovpn"))
+    if args.list == 1:
+        list()
+    elif args.list:
+        list(args.list)
+    else:
+        if os.geteuid() != 0:
+            exit(RED + "Run as root" + RESET)
+
+        fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
+        if args.pattern:
+            fzf.extend(("-q", args.pattern))
+
+        with os.scandir(vpn_configs) as ls:
+            configs = "\n".join(
+                sorted(file.name for file in ls if file.name.endswith(".ovpn"))
+            )
+            config = run(fzf, input=configs, stdout=PIPE, text=True)
+            config = vpn_configs + "/" + config.stdout.rstrip()
+
+        os.execlp(
+            "openvpn",
+            "openvpn",
+            "--config",
+            config,
+            "--script-security",
+            "2",
+            "--setenv",
+            "PATH",
+            "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "--up",
+            "/usr/bin/update-systemd-resolved",
+            "--up-restart",
+            "--down",
+            "/usr/bin/update-systemd-resolved",
+            "--down-pre",
+            "--dhcp-option",
+            "DOMAIN-ROUTE",
+            ".",
+            "--auth-user-pass",
+            auth,
         )
-        config = run(fzf, input=configs, stdout=PIPE, text=True)
-        config = vpn_configs + "/" + config.stdout.rstrip()
-
-    os.execlp(
-        "openvpn",
-        "openvpn",
-        "--config",
-        config,
-        "--script-security",
-        "2",
-        "--setenv",
-        "PATH",
-        "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-        "--up",
-        "/usr/bin/update-systemd-resolved",
-        "--up-restart",
-        "--down",
-        "/usr/bin/update-systemd-resolved",
-        "--down-pre",
-        "--dhcp-option",
-        "DOMAIN-ROUTE",
-        ".",
-        "--auth-user-pass",
-        auth,
-    )
