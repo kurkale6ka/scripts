@@ -9,9 +9,11 @@ DNS leak fix requirements:
 
 import os
 import argparse
-from subprocess import run, PIPE
+from subprocess import run, Popen, PIPE
+from typing import Pattern
 
-vpn = "/etc/openvpn"
+# vpn = "/etc/openvpn"
+vpn = "/tmp"
 auth = vpn + "/details"
 protocol = "udp"
 vpn_configs = f"{vpn}/ovpn_{protocol}"
@@ -44,14 +46,15 @@ grp_countries.add_argument(
 grp_countries.add_argument(
     "-l",
     "--list",
-    default=False,
     nargs="?",
+    default=False,
     const=1,
     help="show countries",
 )
 grp_countries.add_argument(
     "pattern",
     nargs="?",
+    default=False,
     help="fuzzy country filter in order to provide a VPN config file",
 )
 args = parser.parse_args()
@@ -76,6 +79,9 @@ class Country:
 
     @property
     def info(self) -> str:
+        # TODO:
+        # code in cyan
+        # self._code.replace('uk', 'gb').upper(), '->', self._name
         return f"{self._code.upper()} -> {self._name}"
 
     def match(self, pattern: str = "") -> bool:
@@ -341,15 +347,8 @@ class Countries:
     # countries['uk'] = countries['gb']
 
     @classmethod
-    def list(cls, codes: bool = True, filter: str = "") -> None:
-        for country in cls._all:
-            if country.match(filter):
-                if codes:
-                    print(country.info)
-                    # TODO: code in cyan
-                    # print(code.replace('uk', 'gb').upper(), '->', country)
-                else:
-                    print(country.name)
+    def list(cls, filter: str = "") -> tuple[Country]:
+        return tuple(c for c in cls._all if c.match(filter))
 
 
 if __name__ == "__main__":
@@ -359,20 +358,26 @@ if __name__ == "__main__":
 
     if args.list:
         if args.list == 1:
-            Countries().list(args.codes)
+            for c in Countries().list():
+                print(c.info if args.codes else c.name)
         elif args.list:
-            Countries().list(args.codes, filter=args.list)
+            for c in Countries().list(filter=args.list):
+                print(c.info if args.codes else c.name)
         exit()
 
     if args.download:
         os.execlp("wget", "wget", download_url)
 
-    if os.geteuid() != 0:
-        exit(RED + "Run as root" + RESET)
-
     fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
     if args.pattern:
-        fzf.extend(("-q", args.pattern))
+        countries = Countries().list(args.pattern)
+        countries = "\n".join(c.info for c in countries)
+
+        code = run(fzf, input=countries, stdout=PIPE, text=True)
+        code = code.stdout.rstrip().split(" -> ")[0]
+
+        # TODO: no .lower() please
+        fzf.extend(("-q", code.lower()))
 
     with os.scandir(vpn_configs) as ls:
         configs = "\n".join(
@@ -380,6 +385,9 @@ if __name__ == "__main__":
         )
         config = run(fzf, input=configs, stdout=PIPE, text=True)
         config = vpn_configs + "/" + config.stdout.rstrip()
+
+    if os.geteuid() != 0:
+        exit(RED + "Run as root" + RESET)
 
     os.execlp(
         "openvpn",
