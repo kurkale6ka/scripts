@@ -9,8 +9,7 @@ DNS leak fix requirements:
 
 import os
 import argparse
-from subprocess import run, Popen, PIPE
-from typing import Pattern
+from subprocess import run, PIPE
 
 # vpn = "/etc/openvpn"
 vpn = "/tmp"
@@ -31,7 +30,7 @@ grp_vpn.add_argument(
     "-d",
     "--download",
     action="store_true",
-    help=f"download config files:\n{download_url}",
+    help=f"download VPN config files from:\n{download_url}",
 )
 grp_vpn.add_argument(
     "-p", "--protocol", type=str, choices=["udp", "tcp"], default="udp", help="protocol"
@@ -363,7 +362,9 @@ if __name__ == "__main__":
     if args.download:
         os.execlp("wget", "wget", download_url)
 
+    # TODO: move to Countries
     fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
+
     if args.pattern:
         countries = Countries().list(args.pattern)
 
@@ -380,6 +381,8 @@ if __name__ == "__main__":
 
         fzf.extend(("--exact", "-q", code))
 
+    # Main: launch VPN
+    # TODO: use pathlib
     with os.scandir(vpn_configs) as ls:
         configs = "\n".join(
             sorted(file.name for file in ls if file.name.endswith(".ovpn"))
