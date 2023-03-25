@@ -79,9 +79,7 @@ class Country:
 
     @property
     def info(self) -> str:
-        # TODO:
-        # code in cyan
-        # self._code.replace('uk', 'gb').upper(), '->', self._name
+        # TODO: code in cyan
         return f"{self._code.upper()} -> {self._name}"
 
     def match(self, pattern: str = "") -> bool:
@@ -343,9 +341,6 @@ class Countries:
         # Country("ax", "Åland Islands)",
     ]
 
-    # TODO: uk fix
-    # countries['uk'] = countries['gb']
-
     @classmethod
     def list(cls, filter: str = "") -> tuple[Country]:
         return tuple(c for c in cls._all if c.match(filter))
@@ -371,13 +366,19 @@ if __name__ == "__main__":
     fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
     if args.pattern:
         countries = Countries().list(args.pattern)
-        countries = "\n".join(c.info for c in countries)
 
-        code = run(fzf, input=countries, stdout=PIPE, text=True)
-        code = code.stdout.rstrip().split(" -> ")[0]
+        if args.pattern in ("uk", "gb"):
+            code = "uk"
+        # unknown country code
+        elif not any(args.pattern == c.code for c in countries):
+            countries = "\n".join(c.info for c in countries)
+            code = run(fzf, input=countries, stdout=PIPE, text=True)
+            code = code.stdout.rstrip().split(" -> ")[0]
+            code = code.lower()
+        else:
+            code = args.pattern
 
-        # TODO: no .lower() please
-        fzf.extend(("-q", code.lower()))
+        fzf.extend(("--exact", "-q", code))
 
     with os.scandir(vpn_configs) as ls:
         configs = "\n".join(
