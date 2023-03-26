@@ -338,7 +338,7 @@ class Countries:
         # Country("ax", "Åland Islands)",
     ]
 
-    filter = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
+    filter = ["fzf", "-0", "-1", "--cycle", "--ansi", "--height", "60%"]
 
     @classmethod
     def list(cls, filter: str = "") -> tuple[Country]:
@@ -351,12 +351,12 @@ class Vpn:
 
     def get_config(self, filter):
         # TODO: use pathlib
-        with os.scandir(vpn_configs) as ls:
+        with os.scandir(self._src) as ls:
             configs = "\n".join(
                 sorted(file.name for file in ls if file.name.endswith(".ovpn"))
             )
             config = run(filter, input=configs, stdout=PIPE, text=True)
-            config = vpn_configs + "/" + config.stdout.rstrip()
+            config = self._src + "/" + config.stdout.rstrip()
         return config
 
     def launch(self, config, auth):
