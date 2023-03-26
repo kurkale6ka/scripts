@@ -414,7 +414,7 @@ if __name__ == "__main__":
             countries = "\n".join(c.info for c in countries)
             code = run(Countries.filter, input=countries, stdout=PIPE, text=True)
             code = code.stdout.rstrip().split(" -> ")[0]
-            code = code.lower()
+            code = code.lower().replace("gb", "uk")
         else:
             code = args.pattern
 
