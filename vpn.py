@@ -425,5 +425,10 @@ if __name__ == "__main__":
 
     # Main
     vpn = Vpn(src=vpn_configs)
-    config = vpn.get_config(filter=fzf)
+
+    if args.config:
+        config = args.config
+    else:
+        config = vpn.get_config(filter=fzf)
+
     vpn.launch(config, auth)
