@@ -24,9 +24,6 @@ parser = argparse.ArgumentParser(
 grp_vpn = parser.add_argument_group("VPN")
 grp_vpn.add_argument("-a", "--auth", help=f"credentials file ({vpn}/details)")
 grp_vpn.add_argument(
-    "-c", "--config", help=f"config file instead of pattern ({vpn_configs}/...)"
-)
-grp_vpn.add_argument(
     "-d",
     "--download",
     action="store_true",
@@ -35,12 +32,20 @@ grp_vpn.add_argument(
 grp_vpn.add_argument(
     "-p", "--protocol", type=str, choices=["udp", "tcp"], default="udp", help="protocol"
 )
+grp_vpn_cfg = parser.add_argument_group("VPN config file")
+grp_vpn_cfg.add_argument("-c", "--config", help=f"config file: {vpn_configs}/...")
+grp_vpn_cfg.add_argument(
+    "pattern",
+    nargs="?",
+    default=False,
+    help="fuzzy country filter in order to provide a VPN config file",
+)
 grp_countries = parser.add_argument_group("Countries")
 grp_countries.add_argument(
     "--codes",
     action=argparse.BooleanOptionalAction,
     default=True,
-    help="show country codes whit --list",
+    help="display country codes (requires --list)",
 )
 grp_countries.add_argument(
     "-l",
@@ -49,12 +54,6 @@ grp_countries.add_argument(
     default=False,
     const=1,
     help="show countries",
-)
-grp_countries.add_argument(
-    "pattern",
-    nargs="?",
-    default=False,
-    help="fuzzy country filter in order to provide a VPN config file",
 )
 args = parser.parse_args()
 
@@ -78,8 +77,7 @@ class Country:
 
     @property
     def info(self) -> str:
-        # TODO: code in cyan
-        return f"{self._code.upper()} -> {self._name}"
+        return f"{CYAN + self._code.upper() + RESET} -> {self._name}"
 
     def match(self, pattern: str = "") -> bool:
         if pattern == "" or pattern.lower() in self._code + self._name.lower():
