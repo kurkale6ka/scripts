@@ -11,18 +11,17 @@ import os
 import argparse
 from subprocess import run, PIPE
 
-# vpn = "/etc/openvpn"
-vpn = "/Users/mitko/tests/nord"
+vpn = "/etc/openvpn"
 auth = vpn + "/details"
-protocol = "udp"
-vpn_configs = f"{vpn}/ovpn_{protocol}"
 download_url = "https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip"
 
 parser = argparse.ArgumentParser(
     description=__doc__, formatter_class=argparse.RawTextHelpFormatter
 )
 grp_vpn = parser.add_argument_group("VPN")
-grp_vpn.add_argument("-a", "--auth", help=f"credentials file ({vpn}/details)")
+grp_vpn.add_argument(
+    "-a", "--auth", default=auth, help=f"credentials file ({vpn}/details)"
+)
 grp_vpn.add_argument(
     "-d",
     "--download",
@@ -33,7 +32,10 @@ grp_vpn.add_argument(
     "-p", "--protocol", type=str, choices=["udp", "tcp"], default="udp", help="protocol"
 )
 grp_vpn_cfg = parser.add_argument_group("VPN config file")
-grp_vpn_cfg.add_argument("-c", "--config", help=f"config file: {vpn_configs}/...")
+grp_vpn_cfg.add_argument("-c", "--config", help=f"config file path")
+grp_vpn_cfg.add_argument(
+    "-s", "--source", default=vpn, help=f"config files source folder"
+)
 grp_vpn_cfg.add_argument(
     "pattern",
     nargs="?",
@@ -421,11 +423,11 @@ if __name__ == "__main__":
         Countries.filter.extend(("--exact", "-q", code))
 
     # Main
-    vpn = Vpn(src=vpn_configs)
+    vpn = Vpn(src=f"{args.source}/ovpn_{args.protocol}")
 
     if args.config:
         config = args.config
     else:
         config = vpn.get_config(Countries.filter)
 
-    vpn.launch(config, auth)
+    vpn.launch(config, args.auth)
