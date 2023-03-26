@@ -12,7 +12,7 @@ import argparse
 from subprocess import run, PIPE
 
 # vpn = "/etc/openvpn"
-vpn = "/tmp"
+vpn = "/Users/mitko/tests/nord"
 auth = vpn + "/details"
 protocol = "udp"
 vpn_configs = f"{vpn}/ovpn_{protocol}"
@@ -345,6 +345,48 @@ class Countries:
         return tuple(c for c in cls._all if c.match(filter))
 
 
+class Vpn:
+    def __init__(self, src):
+        self._src = src
+
+    def get_config(self, filter):
+        # TODO: use pathlib
+        with os.scandir(vpn_configs) as ls:
+            configs = "\n".join(
+                sorted(file.name for file in ls if file.name.endswith(".ovpn"))
+            )
+            config = run(filter, input=configs, stdout=PIPE, text=True)
+            config = vpn_configs + "/" + config.stdout.rstrip()
+        return config
+
+    def launch(self, config, auth):
+        if os.geteuid() != 0:
+            exit(RED + "Run as root" + RESET)
+
+        os.execlp(
+            "openvpn",
+            "openvpn",
+            "--config",
+            config,
+            "--script-security",
+            "2",
+            "--setenv",
+            "PATH",
+            "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "--up",
+            "/usr/bin/update-systemd-resolved",
+            "--up-restart",
+            "--down",
+            "/usr/bin/update-systemd-resolved",
+            "--down-pre",
+            "--dhcp-option",
+            "DOMAIN-ROUTE",
+            ".",
+            "--auth-user-pass",
+            auth,
+        )
+
+
 if __name__ == "__main__":
     # # TODO: fix + add to other scripts
     # if args.codes and not args.list:
@@ -381,37 +423,7 @@ if __name__ == "__main__":
 
         fzf.extend(("--exact", "-q", code))
 
-    # Main: launch VPN
-    # TODO: use pathlib
-    with os.scandir(vpn_configs) as ls:
-        configs = "\n".join(
-            sorted(file.name for file in ls if file.name.endswith(".ovpn"))
-        )
-        config = run(fzf, input=configs, stdout=PIPE, text=True)
-        config = vpn_configs + "/" + config.stdout.rstrip()
-
-    if os.geteuid() != 0:
-        exit(RED + "Run as root" + RESET)
-
-    os.execlp(
-        "openvpn",
-        "openvpn",
-        "--config",
-        config,
-        "--script-security",
-        "2",
-        "--setenv",
-        "PATH",
-        "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-        "--up",
-        "/usr/bin/update-systemd-resolved",
-        "--up-restart",
-        "--down",
-        "/usr/bin/update-systemd-resolved",
-        "--down-pre",
-        "--dhcp-option",
-        "DOMAIN-ROUTE",
-        ".",
-        "--auth-user-pass",
-        auth,
-    )
+    # Main
+    vpn = Vpn(src=vpn_configs)
+    config = vpn.get_config(filter=fzf)
+    vpn.launch(config, auth)
