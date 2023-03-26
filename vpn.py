@@ -340,6 +340,8 @@ class Countries:
         # Country("ax", "Åland Islands)",
     ]
 
+    filter = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
+
     @classmethod
     def list(cls, filter: str = "") -> tuple[Country]:
         return tuple(c for c in cls._all if c.match(filter))
@@ -404,9 +406,6 @@ if __name__ == "__main__":
     if args.download:
         os.execlp("wget", "wget", download_url)
 
-    # TODO: move to Countries
-    fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
-
     if args.pattern:
         countries = Countries().list(args.pattern)
 
@@ -415,13 +414,13 @@ if __name__ == "__main__":
         # unknown country code
         elif not any(args.pattern == c.code for c in countries):
             countries = "\n".join(c.info for c in countries)
-            code = run(fzf, input=countries, stdout=PIPE, text=True)
+            code = run(Countries.filter, input=countries, stdout=PIPE, text=True)
             code = code.stdout.rstrip().split(" -> ")[0]
             code = code.lower()
         else:
             code = args.pattern
 
-        fzf.extend(("--exact", "-q", code))
+        Countries.filter.extend(("--exact", "-q", code))
 
     # Main
     vpn = Vpn(src=vpn_configs)
@@ -429,6 +428,6 @@ if __name__ == "__main__":
     if args.config:
         config = args.config
     else:
-        config = vpn.get_config(filter=fzf)
+        config = vpn.get_config(Countries.filter)
 
     vpn.launch(config, auth)
