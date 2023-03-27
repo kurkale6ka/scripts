@@ -425,6 +425,8 @@ if __name__ == "__main__":
     if args.pattern:
         countries = Countries().list(args.pattern)
 
+        # GB is the standard country code for United Kingdom,
+        # I am adding UK for ease of use
         if args.pattern in ("uk", "gb"):
             code = "uk"
         # unknown country code
