@@ -10,7 +10,8 @@ DNS leak fix requirements:
 - systemctl enable --now systemd-resolved
 """
 
-from os import scandir, geteuid, execlp
+from os import scandir, execlp
+from sys import argv
 from argparse import ArgumentParser, RawTextHelpFormatter, BooleanOptionalAction
 from subprocess import run, PIPE
 
@@ -64,8 +65,8 @@ grp_countries.add_argument(
 args = parser.parse_args()
 
 # Colors
-esc = "\033["
-CYAN, RED, RESET = (f"{esc}{code}m" for code in (36, 31, 0))
+ESC = "\033["
+CYAN, RED, RESET = (f"{ESC}{code}m" for code in (36, 31, 0))
 
 
 class Country:
@@ -379,11 +380,9 @@ class Vpn:
         return config
 
     def launch(self, config, auth):
-        if geteuid() != 0:
-            exit(RED + "Run as root" + RESET)
-
         execlp(
-            "openvpn",
+            "sudo",
+            "sudo",
             "openvpn",
             "--config",
             config,
@@ -407,9 +406,9 @@ class Vpn:
 
 
 if __name__ == "__main__":
-    # TODO: fix + add to other scripts
-    # if args.codes and not args.list:
-    #     parser.error("--codes requires --list")
+    # TODO: use regex + add to other scripts
+    if any("--n" in arg for arg in argv) and not args.list:
+        parser.error("--no-codes requires --list")
 
     if args.list:
         if args.list == 1:
@@ -426,6 +425,8 @@ if __name__ == "__main__":
     if args.pattern:
         countries = Countries().list(args.pattern)
 
+        # GB is the standard country code for United Kingdom,
+        # I am adding UK for ease of use
         if args.pattern in ("uk", "gb"):
             code = "uk"
         # unknown country code
