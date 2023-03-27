@@ -440,7 +440,7 @@ if __name__ == "__main__":
         Countries.filter.extend(("--exact", "-q", code))
 
     # Main
-    vpn = Vpn(src=f"{args.source}/ovpn_{args.protocol}")
+    vpn = Vpn(src=f"{args.source.rstrip('/')}/ovpn_{args.protocol}")
 
     if args.config:
         config = args.config
