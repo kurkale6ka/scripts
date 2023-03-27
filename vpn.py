@@ -11,6 +11,7 @@ DNS leak fix requirements:
 """
 
 from os import scandir, execlp
+from sys import argv
 from argparse import ArgumentParser, RawTextHelpFormatter, BooleanOptionalAction
 from subprocess import run, PIPE
 
@@ -405,9 +406,9 @@ class Vpn:
 
 
 if __name__ == "__main__":
-    # TODO: fix + add to other scripts
-    # if args.codes and not args.list:
-    #     parser.error("--codes requires --list")
+    # TODO: use regex + add to other scripts
+    if any("--n" in arg for arg in argv) and not args.list:
+        parser.error("--no-codes requires --list")
 
     if args.list:
         if args.list == 1:
