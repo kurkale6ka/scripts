@@ -2,6 +2,9 @@
 
 """Linux OpenVPN helper for NordVPN
 
+Use FZF to find a per-country VPN config.
+Plug DNS leaks.
+
 DNS leak fix requirements:
 - Install (openvpn-)update-systemd-resolved
 - systemctl enable --now systemd-resolved
@@ -85,9 +88,11 @@ class Country:
 
     @property
     def info(self) -> str:
+        """code -> name"""
         return f"{CYAN + self._code.upper() + RESET} -> {self._name}"
 
     def match(self, pattern: str = "") -> bool:
+        """compare against the fuzzy country filter"""
         if pattern == "" or pattern.lower() in self._code + self._name.lower():
             return True
         return False
