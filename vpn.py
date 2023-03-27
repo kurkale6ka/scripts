@@ -3,21 +3,19 @@
 """Linux OpenVPN helper for NordVPN
 
 DNS leak fix requirements:
-  Install (openvpn-)update-systemd-resolved
-  systemctl enable --now systemd-resolved
+- Install (openvpn-)update-systemd-resolved
+- systemctl enable --now systemd-resolved
 """
 
-import os
-import argparse
+from os import scandir, geteuid, execlp
+from argparse import ArgumentParser, RawTextHelpFormatter, BooleanOptionalAction
 from subprocess import run, PIPE
 
 vpn = "/etc/openvpn"
 auth = vpn + "/details"
 download_url = "https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip"
 
-parser = argparse.ArgumentParser(
-    description=__doc__, formatter_class=argparse.RawTextHelpFormatter
-)
+parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
 grp_vpn = parser.add_argument_group("VPN")
 grp_vpn.add_argument(
     "--credentials", default=auth, help=f"VPN credentials file ({vpn}/details)"
@@ -56,7 +54,7 @@ grp_countries.add_argument(
 )
 grp_countries.add_argument(
     "--codes",
-    action=argparse.BooleanOptionalAction,
+    action=BooleanOptionalAction,
     default=True,
     help="display country codes (requires --list)",
 )
@@ -367,20 +365,19 @@ class Vpn:
         self._src = src
 
     def get_config(self, filter):
-        # TODO: use pathlib
-        with os.scandir(self._src) as ls:
+        with scandir(self._src) as files:
             configs = "\n".join(
-                sorted(file.name for file in ls if file.name.endswith(".ovpn"))
+                sorted(file.name for file in files if file.name.endswith(".ovpn"))
             )
             config = run(filter, input=configs, stdout=PIPE, text=True)
             config = self._src + "/" + config.stdout.rstrip()
         return config
 
     def launch(self, config, auth):
-        if os.geteuid() != 0:
+        if geteuid() != 0:
             exit(RED + "Run as root" + RESET)
 
-        os.execlp(
+        execlp(
             "openvpn",
             "openvpn",
             "--config",
@@ -405,7 +402,7 @@ class Vpn:
 
 
 if __name__ == "__main__":
-    # # TODO: fix + add to other scripts
+    # TODO: fix + add to other scripts
     # if args.codes and not args.list:
     #     parser.error("--codes requires --list")
 
@@ -419,7 +416,7 @@ if __name__ == "__main__":
         exit()
 
     if args.download:
-        os.execlp("wget", "wget", download_url)
+        execlp("wget", "wget", download_url)
 
     if args.pattern:
         countries = Countries().list(args.pattern)
