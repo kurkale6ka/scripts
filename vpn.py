@@ -10,7 +10,7 @@ DNS leak fix requirements:
 - systemctl enable --now systemd-resolved
 """
 
-from os import scandir, geteuid, execlp
+from os import scandir, execlp
 from argparse import ArgumentParser, RawTextHelpFormatter, BooleanOptionalAction
 from subprocess import run, PIPE
 
@@ -64,8 +64,8 @@ grp_countries.add_argument(
 args = parser.parse_args()
 
 # Colors
-esc = "\033["
-CYAN, RED, RESET = (f"{esc}{code}m" for code in (36, 31, 0))
+ESC = "\033["
+CYAN, RED, RESET = (f"{ESC}{code}m" for code in (36, 31, 0))
 
 
 class Country:
@@ -379,11 +379,9 @@ class Vpn:
         return config
 
     def launch(self, config, auth):
-        if geteuid() != 0:
-            exit(RED + "Run as root" + RESET)
-
         execlp(
-            "openvpn",
+            "sudo",
+            "sudo",
             "openvpn",
             "--config",
             config,
