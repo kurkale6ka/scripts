@@ -581,7 +581,7 @@ def git_config(verbose: bool = False) -> None:
 
 def ctags(verbose: bool = False) -> None:
     cmd = [
-        "uctags",
+        "ctags",
         "-R",
         f"-f {env['HOME']}/repos/tags",
         # "--langmap=zsh:+.",  # files without extension. TODO: fix! not fully working, e.g. net/dig: variable 'out' not found. (zsh/autoload/*) vs . doesn't help
