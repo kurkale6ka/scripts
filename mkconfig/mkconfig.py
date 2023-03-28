@@ -39,33 +39,39 @@ except (ModuleNotFoundError, ImportError) as err:
     print(err, file=stderr)
 
     if "git" in str(err):
-        dedent(
-            """
-            Please Install `mkconfig`:
+        exit(
+            dedent(
+                """
+                Please Install `mkconfig`:
 
-            cd ~/repos/github/scripts/mkconfig
-            python3 -mvenv .venv
-            source .venv/bin/activate
-            pip install -U pip
-            pip install -e mkconfig
+                mkdir -p ~/repos/github
+                git -C ~/repos/github clone git@github.com:kurkale6ka/scripts.git
+                cd ~/repos/github/scripts/mkconfig
+                python3 -mvenv .venv
+                source .venv/bin/activate
+                pip install -U pip
+                pip install -e .
 
-            now you can use `mkconfig`
-            """
-        ).strip()
+                now you can use `mkconfig`
+                """
+            ).strip()
+        )
 
     if "decorate" in str(err):
-        dedent(
-            """
-            Please Install `decorate`:
+        exit(
+            dedent(
+                """
+                Please Install `decorate`:
 
-            mkdir -p ~/repos/gitlab
-            cd ~/repos/gitlab
-            git clone git@gitlab.com:kurkale6ka/styles.git
-            source ~/repos/github/scripts/mkconfig/.venv/bin/activate
-            pip install -U pip
-            pip install -e styles
-            """
-        ).strip()
+                mkdir -p ~/repos/gitlab
+                cd ~/repos/gitlab
+                git clone git@gitlab.com:kurkale6ka/styles.git
+                source ~/repos/github/scripts/mkconfig/.venv/bin/activate
+                pip install -U pip
+                pip install -e styles
+                """
+            ).strip()
+        )
 
     exit(1)
 
@@ -605,7 +611,10 @@ def ctags(verbose: bool = False) -> None:
             .replace(env["XDG_CONFIG_HOME"], "~/.config")
         )
 
-    run(cmd)
+    try:
+        run(cmd)
+    except FileNotFoundError:
+        print(Text("universal ctags missing").red, file=stderr)
 
 
 def cd_db_create(verbose: bool = False) -> None:
@@ -617,7 +626,9 @@ def cd_db_create(verbose: bool = False) -> None:
         print()
         run(("bat", "--language=bash", script))
 
-    run(cmd)
+    process = run(cmd)
+    if process.returncode != 0:
+        print(Text("sqlite3 missing").red, file=stderr)
 
 
 async def git_status(verbose: bool = False) -> None:
