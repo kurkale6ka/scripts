@@ -581,7 +581,7 @@ def git_config(verbose: bool = False) -> None:
 
 def ctags(verbose: bool = False) -> None:
     cmd = [
-        "ctags",
+        "uctags",
         "-R",
         f"-f {env['HOME']}/repos/tags",
         # "--langmap=zsh:+.",  # files without extension. TODO: fix! not fully working, e.g. net/dig: variable 'out' not found. (zsh/autoload/*) vs . doesn't help
@@ -611,7 +611,10 @@ def ctags(verbose: bool = False) -> None:
             .replace(env["XDG_CONFIG_HOME"], "~/.config")
         )
 
-    run(cmd)
+    try:
+        run(cmd)
+    except FileNotFoundError:
+        print(Text("universal ctags missing").red, file=stderr)
 
 
 def cd_db_create(verbose: bool = False) -> None:
@@ -623,7 +626,9 @@ def cd_db_create(verbose: bool = False) -> None:
         print()
         run(("bat", "--language=bash", script))
 
-    run(cmd)
+    process = run(cmd)
+    if process.returncode != 0:
+        print(Text("sqlite3 missing").red, file=stderr)
 
 
 async def git_status(verbose: bool = False) -> None:
