@@ -10,10 +10,11 @@ DNS leak fix requirements:
 - systemctl enable --now systemd-resolved
 """
 
-from os import scandir, execlp
+from os import scandir, execlp, environ as env
 from sys import argv
 from argparse import ArgumentParser, RawTextHelpFormatter, BooleanOptionalAction
 from subprocess import run, PIPE
+from pathlib import Path
 
 vpn = "/etc/openvpn"
 auth = vpn + "/details"
@@ -448,4 +449,8 @@ if __name__ == "__main__":
     else:
         config = vpn.get_config(Countries.filter)
 
+    print(
+        "VPN config:",
+        CYAN + str(Path(config).resolve()).replace(env["HOME"], "~") + RESET,
+    )
     vpn.launch(config, args.credentials)
