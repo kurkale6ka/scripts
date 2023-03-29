@@ -8,6 +8,7 @@ year/month/name_with_model
 
 from subprocess import run
 from os import environ as env
+from pathlib import Path
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -23,7 +24,7 @@ class Uploads:
     """TODO"""
 
     def __init__(self, src):
-        self._src = src
+        self._src = src.rstrip("/")
 
     def organize(self, test: bool = False, verbose: int = 0):
         """TODO"""
@@ -53,11 +54,22 @@ class Uploads:
 
         try:
             # die RED.'Test sorting of camera shots failed'.RESET, "\n";
-            result = run(cmd)
-            # TODO: test if stdout
-            print(result)
+            result = run(cmd, capture_output=True, text=True)
         except FileNotFoundError:
             exit("exiftool missing")
+        else:
+            if result.stdout:
+                print("Organize camera shots into timestamped folders")
+                print("----------------------------------------------")
+                for line in result.stdout.rstrip().split("\n"):
+                    # print(line)
+                    img, organized_img = line.split(" --> ")
+                    img, organized_img = img.strip("'"), organized_img.strip("'")
+                    print(
+                        Path(img).name,
+                        "-->",
+                        organized_img.replace(f"{self._src}/", ""),
+                    )
 
     def sync(self):
         pass
