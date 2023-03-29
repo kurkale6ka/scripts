@@ -43,9 +43,11 @@ class Uploads:
             "exiftool",
             *quiet,
             "-if",
+            # dates match or a single one only set
             "not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)",
             "-d",  # date format
             f"{self._src}/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
+            # the last valid -filename<$createdate supersedes the others
             f"-{name}<$datetimeoriginal.%le",
             f"-{name}<$datetimeoriginal ${{make;}}.%le",
             f"-{name}<$createdate.%le",
