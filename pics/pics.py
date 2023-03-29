@@ -16,6 +16,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "-s", "--source", type=str, default=f"{env['HOME']}/Dropbox/Camera Uploads", help=""
 )
+parser.add_argument(
+    "-d", "--destination", type=str, default=f"{env['HOME']}/Dropbox/pics", help=""
+)
 parser.add_argument("-n", "--dry-run", action="store_true", default=False, help="")
 parser.add_argument("-v", "--verbose", action="count", default=0, help="")
 args = parser.parse_args()
@@ -26,8 +29,9 @@ class Uploads:
 
     def __init__(self, src):
         self._src = src.rstrip("/")
+        self._renames = ""
 
-    def organize(self, test: bool = False, verbose: int = 0) -> str:
+    def organize(self, test: bool = False, verbose: int = 0):
         """TODO"""
 
         quiet = ["-q", "-q"]  # messages, warnings
@@ -61,42 +65,72 @@ class Uploads:
         else:
             if result.returncode != 0:
                 exit(Text(result.stderr.rstrip()).red)
-            else:
-                return result.stdout.rstrip()
+            elif test:
+                self._renames = result.stdout.rstrip()
 
-    def show(self, output: str) -> None:
+    def has_renames(self) -> bool:
+        return bool(self._renames)
+
+    # file -> tree
+    def get_rename_paths(self):
+        paths = []
+        for line in self._renames.split("\n"):
+            if " --> " in line:
+                file, tree = line.split(" --> ")
+                file, tree = file.strip("'"), tree.strip("'")
+
+                tree = tree.replace(f"{self._src}/", "")
+                paths.append((file, tree))
+        return paths
+
+    # years
+    def get_tree_roots(self):
+        return set(Path(tree).parents[-2] for _, tree in self.get_rename_paths())
+
+    def show_renames(self) -> None:
         print(Text("Organize camera shots into timestamped folders").green)
         print("----------------------------------------------")
 
-        for line in output.split("\n"):
+        for file, tree in self.get_rename_paths():
             # TODO: raw - print(line)
-            img, organized_img = line.split(" --> ")
-            img, organized_img = img.strip("'"), organized_img.strip("'")
-
-            organized_img = organized_img.replace(f"{self._src}/", "")
-
             print(
-                Path(img).name,
+                Path(file).name,
                 Text("-->").dim,
-                Text(f"{Path(organized_img).parent}/").dir + Path(organized_img).name,
+                Text(f"{Path(tree).parent}/").dir + Path(tree).name,
             )
 
-    def sync(self):
-        print("\nSyncing...")
+    def sync(self, dst):
+        print(f"\nSyncing to {dst}...")
+        months = (
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        )
+        for root in self.get_tree_roots():
+            print(root)
 
 
 def main():
     uploads = Uploads(args.source)
 
     # Test run for a preview
-    output = uploads.organize(test=True, verbose=args.verbose)
+    uploads.organize(test=True, verbose=args.verbose)
 
     # Real run
-    if output:
-        uploads.show(output)
+    if uploads.has_renames():
+        uploads.show_renames()
         if not args.dry_run:
             uploads.organize(test=False, verbose=0)
-            uploads.sync()
+            uploads.sync(args.destination)
 
 
 if __name__ == "__main__":
