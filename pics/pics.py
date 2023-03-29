@@ -38,12 +38,11 @@ class Uploads:
 
         name = "testname" if test else "filename"
 
-        # ref. 'RENAMING EXAMPLES' in 'man exiftool'
+        # ref. 'RENAMING EXAMPLES' in `man exiftool`
         cmd = [
             "exiftool",
             *quiet,
-            "-if",
-            # dates match or a single one only set
+            "-if",  # dates match or a single one only set
             "not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)",
             "-d",  # date format
             f"{self._src}/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
@@ -61,11 +60,11 @@ class Uploads:
             exit("exiftool missing")
         else:
             if result.returncode != 0:
-                exit(result.stderr.rstrip())
+                exit(Text(result.stderr.rstrip()).red)
             else:
                 return result.stdout.rstrip()
 
-    def show(self, output):
+    def show(self, output: str) -> None:
         print(Text("Organize camera shots into timestamped folders").green)
         print("----------------------------------------------")
 
