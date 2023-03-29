@@ -27,7 +27,7 @@ class Uploads:
     def __init__(self, src):
         self._src = src.rstrip("/")
 
-    def organize(self, test: bool = False, verbose: int = 0):
+    def organize(self, test: bool = False, verbose: int = 0) -> str:
         """TODO"""
 
         quiet = ["-q", "-q"]  # messages, warnings
@@ -54,15 +54,16 @@ class Uploads:
         ]
 
         try:
-            # die RED.'Test sorting of camera shots failed'.RESET, "\n";
             result = run(cmd, capture_output=True, text=True)
         except FileNotFoundError:
             exit("exiftool missing")
-
-        return result.stdout.rstrip()
+        else:
+            if result.returncode != 0:
+                exit(result.stderr.rstrip())
+            else:
+                return result.stdout.rstrip()
 
     def show(self, output):
-        # there seems to be no output with 'filename' (ie. when test=False), regardless of -q
         print(Text("Organize camera shots into timestamped folders").green)
         print("----------------------------------------------")
 
@@ -80,21 +81,20 @@ class Uploads:
             )
 
     def sync(self):
-        pass
+        print("\nSyncing...")
 
 
 def main():
     uploads = Uploads(args.source)
 
-    # test run for a preview
+    # Test run for a preview
     output = uploads.organize(test=True, verbose=args.verbose)
 
-    # real run
+    # Real run
     if output:
         uploads.show(output)
         if not args.dry_run:
             uploads.organize(test=False, verbose=0)
-            # TODO: test for errors before syncing
             uploads.sync()
 
 
