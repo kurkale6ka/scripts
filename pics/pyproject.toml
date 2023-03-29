@@ -1,0 +1,28 @@
+# Reinstall after changing this file!
+#   source .venv/bin/activate
+#   pip install -e .
+#   TODO: pip install --upgrade pip, how to achieve this?
+[project]
+name = "pics"
+version = "1.0.0"
+description = "Organize images into a hierarchy of folders by reading their EXIF metadata"
+readme = "README.md"
+# dependencies = [
+#     "gitpython",
+#     # "decorate", # this would install a package from PyPI, afaic I can't specify local dependencies.
+# ]
+authors = [
+    {name = "Dimitar Dimitrov", email = "kurkale6ka@gmail.com"},
+]
+
+# [project.urls]
+# repository = "https://github.com/kurkale6ka/scripts/tree/master/mkconfig"
+
+[project.scripts]
+# 3 parts: [package.]module:function
+# here I don't have a package and my module is the script bar the extension
+pics = "pics:main"
+
+[tool.pyright]
+venv = ".venv"
+venvPath = "."

@@ -9,6 +9,7 @@ year/month/name_with_model
 from subprocess import run
 from os import environ as env
 from pathlib import Path
+from decorate import Text  # pyright: ignore reportMissingImports
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -29,7 +30,7 @@ class Uploads:
     def organize(self, test: bool = False, verbose: int = 0):
         """TODO"""
 
-        quiet = ["-q", "-q"]
+        quiet = ["-q", "-q"]  # messages, warnings
         if verbose == 1:
             quiet.pop()
         if verbose == 2:
@@ -37,7 +38,6 @@ class Uploads:
 
         name = "testname" if test else "filename"
 
-        # test run
         cmd = [
             "exiftool",
             *quiet,
@@ -57,25 +57,31 @@ class Uploads:
             result = run(cmd, capture_output=True, text=True)
         except FileNotFoundError:
             exit("exiftool missing")
-        else:
-            if result.stdout:
-                print("Organize camera shots into timestamped folders")
-                print("----------------------------------------------")
-                for line in result.stdout.rstrip().split("\n"):
-                    # print(line)
-                    img, organized_img = line.split(" --> ")
-                    img, organized_img = img.strip("'"), organized_img.strip("'")
-                    print(
-                        Path(img).name,
-                        "-->",
-                        organized_img.replace(f"{self._src}/", ""),
-                    )
+
+        # there seems to be no output with 'filename' (ie. when test=False), regardless of the -q option
+        if result.stdout:
+            print(Text("Organize camera shots into timestamped folders").green)
+            print("----------------------------------------------")
+
+            for line in result.stdout.rstrip().split("\n"):
+                # TODO: raw - print(line)
+                img, organized_img = line.split(" --> ")
+                img, organized_img = img.strip("'"), organized_img.strip("'")
+
+                organized_img = organized_img.replace(f"{self._src}/", "")
+
+                print(
+                    Path(img).name,
+                    Text("-->").dim,
+                    Text(f"{Path(organized_img).parent}/").dir
+                    + Path(organized_img).name,
+                )
 
     def sync(self):
         pass
 
 
-if __name__ == "__main__":
+def main():
     uploads = Uploads(args.source)
 
     # test run for a preview
@@ -84,3 +90,7 @@ if __name__ == "__main__":
     # real run
     if not args.dry_run:
         uploads.organize(test=False, verbose=0)
+
+
+if __name__ == "__main__":
+    main()
