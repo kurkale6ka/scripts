@@ -38,12 +38,13 @@ class Uploads:
 
         name = "testname" if test else "filename"
 
+        # ref. 'RENAMING EXAMPLES' in 'man exiftool'
         cmd = [
             "exiftool",
             *quiet,
             "-if",
             "not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)",
-            "-d",
+            "-d",  # date format
             f"{self._src}/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
             f"-{name}<$datetimeoriginal.%le",
             f"-{name}<$datetimeoriginal ${{make;}}.%le",
@@ -58,24 +59,25 @@ class Uploads:
         except FileNotFoundError:
             exit("exiftool missing")
 
-        # there seems to be no output with 'filename' (ie. when test=False), regardless of the -q option
-        if result.stdout:
-            print(Text("Organize camera shots into timestamped folders").green)
-            print("----------------------------------------------")
+        return result.stdout.rstrip()
 
-            for line in result.stdout.rstrip().split("\n"):
-                # TODO: raw - print(line)
-                img, organized_img = line.split(" --> ")
-                img, organized_img = img.strip("'"), organized_img.strip("'")
+    def show(self, output):
+        # there seems to be no output with 'filename' (ie. when test=False), regardless of -q
+        print(Text("Organize camera shots into timestamped folders").green)
+        print("----------------------------------------------")
 
-                organized_img = organized_img.replace(f"{self._src}/", "")
+        for line in output.split("\n"):
+            # TODO: raw - print(line)
+            img, organized_img = line.split(" --> ")
+            img, organized_img = img.strip("'"), organized_img.strip("'")
 
-                print(
-                    Path(img).name,
-                    Text("-->").dim,
-                    Text(f"{Path(organized_img).parent}/").dir
-                    + Path(organized_img).name,
-                )
+            organized_img = organized_img.replace(f"{self._src}/", "")
+
+            print(
+                Path(img).name,
+                Text("-->").dim,
+                Text(f"{Path(organized_img).parent}/").dir + Path(organized_img).name,
+            )
 
     def sync(self):
         pass
@@ -85,11 +87,15 @@ def main():
     uploads = Uploads(args.source)
 
     # test run for a preview
-    uploads.organize(test=True, verbose=args.verbose)
+    output = uploads.organize(test=True, verbose=args.verbose)
 
     # real run
-    if not args.dry_run:
-        uploads.organize(test=False, verbose=0)
+    if output:
+        uploads.show(output)
+        if not args.dry_run:
+            uploads.organize(test=False, verbose=0)
+            # TODO: test for errors before syncing
+            uploads.sync()
 
 
 if __name__ == "__main__":
