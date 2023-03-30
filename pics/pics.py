@@ -10,7 +10,7 @@ I mostly use this script to sort my Dropbox Camera Uploads
 """
 
 from subprocess import run
-from os import environ as env
+from os import environ as env, rmdir
 from pathlib import Path
 from decorate import Text  # pyright: ignore reportMissingImports
 import argparse
@@ -90,9 +90,16 @@ class Uploads:
                 paths.append((file, tree))
         return paths
 
-    # years
-    def _get_tree_roots(self) -> set[Path]:
-        return set(Path(tree).parents[1] for _, tree in self._get_rename_paths())
+    # TODO: store as data? serialize in order to import to lib?
+    def _get_rename(self, kind: str) -> set[str]:
+        if kind == "years":
+            return set(
+                str(Path(tree).parents[1]) for _, tree in self._get_rename_paths()
+            )
+        else:
+            return set(
+                str(Path(tree).parents[0]) for _, tree in self._get_rename_paths()
+            )
 
     def show_renames(self) -> None:
         print(Text("Organize camera shots into timestamped folders").green)
@@ -109,33 +116,36 @@ class Uploads:
     def move(self, dst):
         """Move new trees"""
 
-        # months = (
-        #     "January",
-        #     "February",
-        #     "March",
-        #     "April",
-        #     "May",
-        #     "June",
-        #     "July",
-        #     "August",
-        #     "September",
-        #     "October",
-        #     "November",
-        #     "December",
-        # )
+        print(f"\nmoving pictures to {dst.replace(env['HOME'], '~')}...\n")
 
-        print(f"\nMoving pictures to {dst.replace(env['HOME'], '~')}...\n")
+        def build_cmd(preview: bool = False) -> list[str]:
+            return [
+                "rsync",
+                "--remove-source-files",
+                "--partial",
+                "-ain" if preview else "-a",
+                *self._get_rename("years"),
+                dst,
+            ]
 
-        cmd = [
-            "rsync",
-            "--remove-source-files",
-            "--partial",
-            "-ain",
-            *self._get_tree_roots(),
-            dst,
-        ]
-
-        run(cmd)
+        print("changeset:")
+        sync = run(build_cmd(preview=True))  # preview: list images being moved
+        if sync.returncode == 0:
+            # TODO: restart an old move
+            # $ pics 2017 2023 -> this would only run move()?
+            # or regex match years?
+            # or do some jsondump/load?
+            answer = input("proceed (y/n)? ")
+            if answer == "y":
+                print()
+                sync = run(build_cmd())  # move images
+                if sync.returncode == 0:
+                    # delete source years + months after a successful transfer
+                    print("cleanup")
+                    for month in self._get_rename("months"):
+                        rmdir(month)
+                    for year in self._get_rename("years"):
+                        rmdir(year)
 
 
 def main():
