@@ -6,7 +6,7 @@ filename -> year
             └─ month
                └─ filename_[camera-model]
 
-I mostly use this script to sort my Dropbox camera uploads
+I mostly use this script to sort my Dropbox Camera Uploads
 """
 
 from subprocess import run
@@ -77,36 +77,37 @@ class Uploads:
         return bool(self._renames)
 
     # file -> tree
-    def _get_rename_paths(self) -> list[str]:
+    def _get_rename_paths(self, relative=False) -> list[str]:
         paths = []
         for line in self._renames.split("\n"):
             if " --> " in line:
                 file, tree = line.split(" --> ")
                 file, tree = file.strip("'"), tree.strip("'")
 
-                tree = tree.replace(f"{self._src}/", "")
+                if relative:
+                    tree = tree.replace(f"{self._src}/", "")  # remove /path/to/source
+
                 paths.append((file, tree))
         return paths
 
     # years
-    def _get_tree_roots(self):
-        return set(Path(tree).parents[-2] for _, tree in self._get_rename_paths())
+    def _get_tree_roots(self) -> set[Path]:
+        return set(Path(tree).parents[1] for _, tree in self._get_rename_paths())
 
     def show_renames(self) -> None:
         print(Text("Organize camera shots into timestamped folders").green)
         print("----------------------------------------------")
 
-        for file, tree in self._get_rename_paths():
-            # TODO: raw - print(line)
+        for file, tree in self._get_rename_paths(relative=True):
+            # TODO: add raw print option?
             print(
                 Path(file).name,
                 Text("-->").dim,
                 Text(f"{Path(tree).parent}/").dir + Path(tree).name,
             )
 
-    # TODO: rename to 'move'? + change docstring
-    def sync(self, dst):
-        f"""Sync new trees to {dst}"""
+    def move(self, dst):
+        """Move new trees"""
 
         # months = (
         #     "January",
@@ -123,9 +124,18 @@ class Uploads:
         #     "December",
         # )
 
-        print(f"\nSyncing to {dst}...")
-        for root in self._get_tree_roots():
-            print(root)
+        print(f"\nMoving pictures to {dst.replace(env['HOME'], '~')}...\n")
+
+        cmd = [
+            "rsync",
+            "--remove-source-files",
+            "--partial",
+            "-ain",
+            *self._get_tree_roots(),
+            dst,
+        ]
+
+        run(cmd)
 
 
 def main():
@@ -139,7 +149,7 @@ def main():
         uploads.show_renames()
         if not args.dry_run:
             uploads.organize(test=False, verbose=0)
-            uploads.sync(args.destination)
+            uploads.move(args.destination)
 
 
 if __name__ == "__main__":
