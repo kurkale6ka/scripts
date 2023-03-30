@@ -1,9 +1,12 @@
 #! /usr/bin/env python3
 
-"""Organize images into a hierarchy of folders by reading their EXIF metadata
+"""Organize files into a hierarchy of folders by reading their EXIF metadata
 
-year/month/name_with_model
-└─ month
+filename -> year
+            └─ month
+               └─ filename_[camera-model]
+
+I mostly use this script to sort my Dropbox camera uploads
 """
 
 from subprocess import run
@@ -12,7 +15,7 @@ from pathlib import Path
 from decorate import Text  # pyright: ignore reportMissingImports
 import argparse
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description="Organize your files into years/months")
 parser.add_argument(
     "-s", "--source", type=str, default=f"{env['HOME']}/Dropbox/Camera Uploads", help=""
 )
@@ -31,8 +34,11 @@ class Uploads:
         self._src = src.rstrip("/")
         self._renames = ""
 
-    def organize(self, test: bool = False, verbose: int = 0):
-        """TODO"""
+    def organize(self, test: bool = False, verbose: int = 0) -> None:
+        """Organize source files into years/months
+
+        exiftool will do the renaming (ref. 'RENAMING EXAMPLES' in `man exiftool`)
+        """
 
         quiet = ["-q", "-q"]  # messages, warnings
         if verbose == 1:
@@ -42,7 +48,6 @@ class Uploads:
 
         name = "testname" if test else "filename"
 
-        # ref. 'RENAMING EXAMPLES' in `man exiftool`
         cmd = [
             "exiftool",
             *quiet,
@@ -65,14 +70,14 @@ class Uploads:
         else:
             if result.returncode != 0:
                 exit(Text(result.stderr.rstrip()).red)
-            elif test:
+            elif result.stdout.rstrip():
                 self._renames = result.stdout.rstrip()
 
     def has_renames(self) -> bool:
         return bool(self._renames)
 
     # file -> tree
-    def get_rename_paths(self):
+    def _get_rename_paths(self) -> list[str]:
         paths = []
         for line in self._renames.split("\n"):
             if " --> " in line:
@@ -84,14 +89,14 @@ class Uploads:
         return paths
 
     # years
-    def get_tree_roots(self):
-        return set(Path(tree).parents[-2] for _, tree in self.get_rename_paths())
+    def _get_tree_roots(self):
+        return set(Path(tree).parents[-2] for _, tree in self._get_rename_paths())
 
     def show_renames(self) -> None:
         print(Text("Organize camera shots into timestamped folders").green)
         print("----------------------------------------------")
 
-        for file, tree in self.get_rename_paths():
+        for file, tree in self._get_rename_paths():
             # TODO: raw - print(line)
             print(
                 Path(file).name,
@@ -99,23 +104,27 @@ class Uploads:
                 Text(f"{Path(tree).parent}/").dir + Path(tree).name,
             )
 
+    # TODO: rename to 'move'? + change docstring
     def sync(self, dst):
+        f"""Sync new trees to {dst}"""
+
+        # months = (
+        #     "January",
+        #     "February",
+        #     "March",
+        #     "April",
+        #     "May",
+        #     "June",
+        #     "July",
+        #     "August",
+        #     "September",
+        #     "October",
+        #     "November",
+        #     "December",
+        # )
+
         print(f"\nSyncing to {dst}...")
-        months = (
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-        )
-        for root in self.get_tree_roots():
+        for root in self._get_tree_roots():
             print(root)
 
 
