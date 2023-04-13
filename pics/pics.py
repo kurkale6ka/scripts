@@ -10,12 +10,15 @@ I mostly use this script to sort my Dropbox Camera Uploads
 """
 
 from subprocess import run
-from os import environ as env, rmdir
+from os import environ as env
 from pathlib import Path
 from decorate import Text  # pyright: ignore reportMissingImports
 import argparse
 
-parser = argparse.ArgumentParser(description="Organize your files into years/months")
+parser = argparse.ArgumentParser(
+    description="Organize your files into years/months",
+    formatter_class=argparse.RawTextHelpFormatter,
+)
 parser.add_argument(
     "-s",
     "--source",
@@ -30,8 +33,13 @@ parser.add_argument(
     default=f"{env['HOME']}/Dropbox/pics",
     help="destination for organized files to be moved to",
 )
-parser.add_argument("-n", "--dry-run", action="store_true", default=False, help="")
-parser.add_argument("-v", "--verbose", action="count", default=0, help="")
+parser.add_argument(
+    "-q",
+    "--quiet",
+    action="count",
+    default=0,
+    help="-q to suppress messages\n-qq to suppress messages/warnings",
+)
 args = parser.parse_args()
 
 
@@ -42,27 +50,27 @@ class Uploads:
         self._src = src.rstrip("/")
         self._renames = ""
 
-    def organize(self, test: bool = False, verbose: int = 0) -> None:
+    def organize(self, dst, test: bool = False, quiet: int = 0) -> None:
         """Organize source files into years/months
 
         exiftool will do the renaming (ref. 'RENAMING EXAMPLES' in `man exiftool`)
         """
 
-        quiet = ["-q", "-q"]  # messages, warnings
-        if verbose == 1:
-            quiet.pop()
-        if verbose == 2:
-            quiet.clear()
+        self._dst = dst.rstrip("/")
+
+        silence = []
+        if quiet > 0:
+            silence.append("-q")
 
         name = "testname" if test else "filename"
 
         cmd = [
             "exiftool",
-            *quiet,
+            *silence,
             "-if",  # dates match or a single one only set
             "not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)",
             "-d",  # date format
-            f"{self._src}/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
+            f"{self._dst}/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
             # the last valid -filename<$createdate supersedes the others
             f"-{name}<$datetimeoriginal.%le",
             f"-{name}<$datetimeoriginal ${{make;}}.%le",
@@ -84,90 +92,43 @@ class Uploads:
     def has_renames(self) -> bool:
         return bool(self._renames)
 
-    # file -> tree
-    def _get_rename_paths(self, relative=False) -> list[str]:
-        paths = []
+    # TODO: -qqq to hide src/dst!?
+    def show_renames(self) -> None:
+        print(Text("Organize camera shots into timestamped folders").green)
+        print("----------------------------------------------")
+
         for line in self._renames.split("\n"):
             if " --> " in line:
                 file, tree = line.split(" --> ")
                 file, tree = file.strip("'"), tree.strip("'")
 
-                if relative:
-                    tree = tree.replace(f"{self._src}/", "")  # remove /path/to/source
+                fparent = str(Path(file).parent).replace(env["HOME"], "~")
+                tparent = str(Path(tree).parents[2]).replace(env["HOME"], "~")
 
-                paths.append((file, tree))
-        return paths
+                # year/month/
+                tdate = Text("/".join(Path(tree).parent.parts[-2:]) + "/").dir
 
-    # TODO: store as data? serialize in order to import to lib?
-    def _get_rename(self, kind: str) -> set[str]:
-        if kind == "years":
-            return set(
-                str(Path(tree).parents[1]) for _, tree in self._get_rename_paths()
-            )
-        else:
-            return set(
-                str(Path(tree).parents[0]) for _, tree in self._get_rename_paths()
-            )
-
-    def show_renames(self) -> None:
-        print(Text("Organize camera shots into timestamped folders").green)
-        print("----------------------------------------------")
-
-        for file, tree in self._get_rename_paths(relative=True):
-            # TODO: add raw print option?
-            print(
-                Path(file).name,
-                Text("-->").dim,
-                Text(f"{Path(tree).parent}/").dir + Path(tree).name,
-            )
-
-    def move(self, dst):
-        """Move new trees"""
-
-        print(f"\nmoving pictures to {dst.replace(env['HOME'], '~')}...\n")
-
-        def _move_cmd(preview: bool = False) -> list[str]:
-            return [
-                "rsync",
-                "--remove-source-files",
-                "--partial",
-                "-ain" if preview else "-a",
-                *self._get_rename("years"),
-                dst,
-            ]
-
-        print("changeset:")
-        sync = run(_move_cmd(preview=True))  # preview: list images being moved
-        if sync.returncode == 0:
-            # TODO: restart an old move
-            # $ pics 2017 2023 -> this would only run move()?
-            # or regex match years?
-            # or do some jsondump/load?
-            answer = input("proceed (y/n)? ")
-            if answer == "y":
-                print()
-                sync = run(_move_cmd())  # move images
-                if sync.returncode == 0:
-                    # delete source years + months after a successful transfer
-                    print("cleanup")
-                    for month in self._get_rename("months"):
-                        rmdir(month)
-                    for year in self._get_rename("years"):
-                        rmdir(year)
+                print(
+                    fparent + "/" + Text(Path(file).name).cyan,
+                    Text("-->").dim,
+                    tparent + "/" + tdate + Text(Path(tree).name).cyan,
+                )
+            else:
+                print(line)
 
 
 def main():
     uploads = Uploads(args.source)
 
     # Test run for a preview
-    uploads.organize(test=True, verbose=args.verbose)
+    uploads.organize(args.destination, test=True, quiet=args.quiet)
 
     # Real run
     if uploads.has_renames():
         uploads.show_renames()
-        if not args.dry_run:
-            uploads.organize(test=False, verbose=0)
-            uploads.move(args.destination)
+        answer = input("\nproceed (y/n)? ")
+        if answer == "y":
+            uploads.organize(args.destination, test=False, quiet=0)
 
 
 if __name__ == "__main__":
