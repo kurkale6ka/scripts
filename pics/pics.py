@@ -24,7 +24,7 @@ parser.add_argument(
     "--source",
     type=str,
     default=f"{env['HOME']}/Dropbox/Camera Uploads",
-    help="source containing files to be organized",
+    help="source foder containing files to be organized",
 )
 parser.add_argument(
     "-d",
@@ -60,14 +60,14 @@ class Uploads:
 
         silence = []
         if quiet > 0:
-            silence.append("-q")
+            silence.extend(["-q"] * quiet)
 
         name = "testname" if test else "filename"
 
         cmd = [
             "exiftool",
             *silence,
-            "-if",  # dates match or a single one only set
+            "-if",  # it's wrong if both dates are present but are different
             "not ($createdate and $datetimeoriginal and $createdate ne $datetimeoriginal)",
             "-d",  # date format
             f"{self._dst}/%Y/%B/%d-%b-%Y %Hh%Mm%S%%-c",
