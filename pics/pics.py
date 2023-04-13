@@ -17,10 +17,18 @@ import argparse
 
 parser = argparse.ArgumentParser(description="Organize your files into years/months")
 parser.add_argument(
-    "-s", "--source", type=str, default=f"{env['HOME']}/Dropbox/Camera Uploads", help=""
+    "-s",
+    "--source",
+    type=str,
+    default=f"{env['HOME']}/Dropbox/Camera Uploads",
+    help="source containing files to be organized",
 )
 parser.add_argument(
-    "-d", "--destination", type=str, default=f"{env['HOME']}/Dropbox/pics", help=""
+    "-d",
+    "--destination",
+    type=str,
+    default=f"{env['HOME']}/Dropbox/pics",
+    help="destination for organized files to be moved to",
 )
 parser.add_argument("-n", "--dry-run", action="store_true", default=False, help="")
 parser.add_argument("-v", "--verbose", action="count", default=0, help="")
