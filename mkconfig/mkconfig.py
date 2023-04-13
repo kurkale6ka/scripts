@@ -263,7 +263,7 @@ class Repo:
             if verbose:
                 print(
                     Text(self._name).cyan + ":",
-                    self._repo.git(P=True).diff("--color=always", "-w"),
+                    self._repo.git(P=True).diff("--color=always", "-w") or "no diffs",
                 )
             else:
                 print(
