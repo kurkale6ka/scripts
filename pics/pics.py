@@ -126,7 +126,7 @@ class Uploads:
 
         print(f"\nmoving pictures to {dst.replace(env['HOME'], '~')}...\n")
 
-        def build_cmd(preview: bool = False) -> list[str]:
+        def _move_cmd(preview: bool = False) -> list[str]:
             return [
                 "rsync",
                 "--remove-source-files",
@@ -137,7 +137,7 @@ class Uploads:
             ]
 
         print("changeset:")
-        sync = run(build_cmd(preview=True))  # preview: list images being moved
+        sync = run(_move_cmd(preview=True))  # preview: list images being moved
         if sync.returncode == 0:
             # TODO: restart an old move
             # $ pics 2017 2023 -> this would only run move()?
@@ -146,7 +146,7 @@ class Uploads:
             answer = input("proceed (y/n)? ")
             if answer == "y":
                 print()
-                sync = run(build_cmd())  # move images
+                sync = run(_move_cmd())  # move images
                 if sync.returncode == 0:
                     # delete source years + months after a successful transfer
                     print("cleanup")
