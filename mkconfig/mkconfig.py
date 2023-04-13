@@ -246,7 +246,7 @@ class Repo:
                 link.src = self._root  # needed for the nvim/vim folder links
             link.create(verbose)
 
-    async def fetch(self):
+    async def _fetch(self):
         proc = await asyncio.create_subprocess_exec(
             "git", "-C", self._root, "fetch", "--prune", "-q"
         )
@@ -254,7 +254,7 @@ class Repo:
 
     async def status(self, verbose=False):
         # TODO: include stash info
-        await self.fetch()
+        await self._fetch()
         if (
             self._repo.is_dirty(untracked_files=True)
             or self._repo.active_branch.name not in ("main", "master")
@@ -263,7 +263,7 @@ class Repo:
             if verbose:
                 print(
                     Text(self._name).cyan + ":",
-                    self._repo.git(P=True).diff("--color=always", "-w"),
+                    self._repo.git(P=True).diff("--color=always", "-w") or "no diffs",
                 )
             else:
                 print(
@@ -274,9 +274,10 @@ class Repo:
     # TODO: is it safe? make safer?
     async def update(self):
         try:
+            await self._fetch()
             print(
                 Text(self._name).cyan + ":",
-                self._repo.git(c="color.ui=always").pull("--prune"),
+                self._repo.git(c="color.ui=always").rebase(),
             )
         except GitCommandError as err:
             print(
