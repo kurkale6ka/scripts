@@ -158,23 +158,24 @@ class Media:
         run(cmd)
 
 
-def organize():
-    uploads = Uploads(args.source)
-
-    # Test run for a preview
-    uploads.organize(args.destination, test=True, quiet=args.quiet)
-
-    # Real run
-    if uploads.has_renames():
-        uploads.show_renames()
-        answer = input("\nproceed (y/n)? ")
-        if answer == "y":
-            uploads.organize(args.destination, test=False, quiet=0)
-
-
-if __name__ == "__main__":
+def main():
     if len(argv) == 1 or args.tags or args.file:
         media = Media(args.file)
         media.info(args.tags.split(","), args.verbose)
+    # Organize
     else:
-        organize()
+        uploads = Uploads(args.source)
+
+        # Test run for a preview
+        uploads.organize(args.destination, test=True, quiet=args.quiet)
+
+        # Real run
+        if uploads.has_renames():
+            uploads.show_renames()
+            answer = input("\nproceed (y/n)? ")
+            if answer == "y":
+                uploads.organize(args.destination, test=False, quiet=0)
+
+
+if __name__ == "__main__":
+    main()
