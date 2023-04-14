@@ -145,20 +145,32 @@ class Media:
             tags = ["all"]
         elif tags in (["d"], ["dates"]):
             tags = ["alldates"]
-        elif len(tags) == 1:
-            cmd.append("-S")  # shortest output format
+        else:
+            # Edge case fix:
+            # if -tX is used, we would be passing -X which won't be a tag (there aren't any single-char tags),
+            # but it might be a valid exiftool option that will result unexpected behavior
+            one_letter_tags = [tag for tag in tags if len(tag) == 1]
+            if one_letter_tags:
+                err_tags = ", ".join(f"-{tag}" for tag in one_letter_tags)
+                exit("Invalid tag(s) found: " + Text(err_tags).red)
+            elif len(tags) == 1:
+                cmd.append("-S")  # shortest output format when checking a single tag
 
         tags = [f"-{tag}" for tag in tags]
 
         if quiet > 0:
             cmd.extend(["-q"] * quiet)
 
+        if view:
+            view_cmd = cmd[:]
+            view_cmd.extend(tag.replace("*", "\\*") for tag in tags)
+            view_cmd.extend(
+                f"'{file}'" if " " in file else file for file in self._files
+            )
+            print(Text(" ".join(view_cmd)).yellow)
+
         cmd.extend(tags)
         cmd.extend(self._files)
-
-        if view:
-            # TODO: escape files, show errors about wrong tag
-            print(Text(" ".join(cmd).replace("*", "\\*")).yellow)
 
         run(cmd)
 
