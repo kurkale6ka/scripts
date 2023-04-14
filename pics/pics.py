@@ -13,6 +13,7 @@ from subprocess import run
 from os import environ as env
 from pathlib import Path
 from decorate import Text  # pyright: ignore reportMissingImports
+from sys import argv
 import argparse
 
 parser = argparse.ArgumentParser(
@@ -40,6 +41,20 @@ parser.add_argument(
     default=0,
     help="-q to suppress messages\n-qq to suppress messages/warnings",
 )
+tags = parser.add_argument_group("Tags")
+tags.add_argument(
+    "-t",
+    "--tags",
+    type=str,
+    nargs="?",
+    default="*keyword*,subject,title,*comment*,make,model,createdate,datetimeoriginal",  # tags I am mostly interested in
+    const="*keyword*,subject,title,*comment*,make,model,createdate,datetimeoriginal",
+    help="Show EXIF tags. Tags must be separated with comas\n-ta => all (tags)\n-td => alldates",
+)
+tags.add_argument("-v", "--verbose", action="store_true", help="show exiftool command")
+tags.add_argument(
+    "file", type=str, nargs="*", default=".", help="View file/dir tags"
+)  # TODO: show default value in help
 args = parser.parse_args()
 
 
@@ -117,7 +132,33 @@ class Uploads:
                 print(line)
 
 
-def main():
+class Media:
+    def __init__(self, files):
+        self._files = files
+
+    def info(self, tags=[], verbose: bool = False) -> None:
+        cmd = ["exiftool", "-a", "-G"]
+
+        if tags == ["a"]:
+            tags = ["all"]
+        elif tags in (["d"], ["dates"]):
+            tags = ["alldates"]
+        elif len(tags) == 1:
+            cmd.append("-S")  # shortest output format
+
+        tags = [f"-{tag}" for tag in tags]
+
+        cmd.extend(tags)
+        cmd.extend(self._files)
+
+        if verbose:
+            # TODO: escape files, show errors about wrong tag
+            print(Text(" ".join(cmd).replace("*", "\\*")).yellow)
+
+        run(cmd)
+
+
+def organize():
     uploads = Uploads(args.source)
 
     # Test run for a preview
@@ -132,4 +173,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(argv) == 1 or args.tags or args.file:
+        media = Media(args.file)
+        media.info(args.tags.split(","), args.verbose)
+    else:
+        organize()
