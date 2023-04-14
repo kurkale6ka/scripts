@@ -49,12 +49,16 @@ tags.add_argument(
     nargs="?",
     default="*keyword*,subject,title,*comment*,make,model,createdate,datetimeoriginal",  # tags I am mostly interested in
     const="*keyword*,subject,title,*comment*,make,model,createdate,datetimeoriginal",
-    help="Show EXIF tags. Tags must be separated with comas\n-ta => all (tags)\n-td => alldates",
+    help="Tags must be separated by comas (-tmake,model)\n-ta => all (tags)\n-td => alldates",
 )
-tags.add_argument("-v", "--verbose", action="store_true", help="show exiftool command")
+tags.add_argument("-v", "--verbose", action="store_true", help="view exiftool command")
 tags.add_argument(
-    "file", type=str, nargs="*", default=".", help="View file/dir tags"
-)  # TODO: show default value in help
+    "file",
+    type=str,
+    nargs="*",
+    default=".",
+    help="show file/dir (default current dir) tags",
+)
 args = parser.parse_args()
 
 
@@ -159,7 +163,7 @@ class Media:
 
 
 def main():
-    if len(argv) == 1 or args.tags or args.file:
+    if args.tags or args.file:
         media = Media(args.file)
         media.info(args.tags.split(","), args.verbose)
     # Organize
