@@ -4,9 +4,10 @@
 
 filename -> year
             └─ month
-               └─ filename_[camera-model]
+               └─ filename_[camera_model]
 
-I mostly use this script to sort my Dropbox Camera Uploads
+I mostly use this script to sort my Dropbox Camera Uploads.
+This script also allows to view EXIF tags.
 """
 
 from subprocess import run
@@ -17,7 +18,8 @@ from decorate import Text  # pyright: ignore reportMissingImports
 import argparse
 
 parser = argparse.ArgumentParser(
-    description="Organize your files into years/months",
+    usage="\npics [-s SOURCE] [-d DESTINATION] [-v] [-q]\npics -t [tag1,tag2] [files|dir ...] [-v] [-q]",
+    description=__doc__,
     formatter_class=argparse.RawTextHelpFormatter,
 )
 parser.add_argument(
@@ -52,11 +54,11 @@ tags.add_argument(
     help="Tags must be separated by comas (-tmake,model)\n-ta => all (tags)\n-td => alldates",
 )
 tags.add_argument(
-    "file",
+    "files",
     type=str,
     nargs="*",
     default=["."],
-    help="show file/dir (default current dir) tags",
+    help="show files/dir (default current dir) tags",
 )
 args = parser.parse_args()
 
@@ -183,8 +185,9 @@ class Media:
 
 
 def main():
+    # Show tags
     if args.tags:
-        media = Media(args.file)
+        media = Media(args.files)
         media.info(args.tags.split(","), args.view, args.quiet)
     # Organize
     else:
