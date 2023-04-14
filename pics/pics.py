@@ -13,7 +13,6 @@ from subprocess import run
 from os import environ as env
 from pathlib import Path
 from decorate import Text  # pyright: ignore reportMissingImports
-from sys import argv
 import argparse
 
 parser = argparse.ArgumentParser(
@@ -47,16 +46,15 @@ tags.add_argument(
     "--tags",
     type=str,
     nargs="?",
-    default="*keyword*,subject,title,*comment*,make,model,createdate,datetimeoriginal",  # tags I am mostly interested in
     const="*keyword*,subject,title,*comment*,make,model,createdate,datetimeoriginal",
     help="Tags must be separated by comas (-tmake,model)\n-ta => all (tags)\n-td => alldates",
 )
-tags.add_argument("-v", "--verbose", action="store_true", help="view exiftool command")
+tags.add_argument("-v", "--view", action="store_true", help="view exiftool command")
 tags.add_argument(
     "file",
     type=str,
     nargs="*",
-    default=".",
+    default=["."],
     help="show file/dir (default current dir) tags",
 )
 args = parser.parse_args()
@@ -140,7 +138,7 @@ class Media:
     def __init__(self, files):
         self._files = files
 
-    def info(self, tags=[], verbose: bool = False) -> None:
+    def info(self, tags=[], view: bool = False, quiet: int = 0) -> None:
         cmd = ["exiftool", "-a", "-G"]
 
         if tags == ["a"]:
@@ -152,10 +150,13 @@ class Media:
 
         tags = [f"-{tag}" for tag in tags]
 
+        if quiet > 0:
+            cmd.extend(["-q"] * quiet)
+
         cmd.extend(tags)
         cmd.extend(self._files)
 
-        if verbose:
+        if view:
             # TODO: escape files, show errors about wrong tag
             print(Text(" ".join(cmd).replace("*", "\\*")).yellow)
 
@@ -163,9 +164,9 @@ class Media:
 
 
 def main():
-    if args.tags or args.file:
+    if args.tags:
         media = Media(args.file)
-        media.info(args.tags.split(","), args.verbose)
+        media.info(args.tags.split(","), args.view, args.quiet)
     # Organize
     else:
         uploads = Uploads(args.source)
