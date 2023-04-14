@@ -106,12 +106,12 @@ class Uploads:
                 tparent = str(Path(tree).parents[2]).replace(env["HOME"], "~")
 
                 # year/month/
-                tdate = Text("/".join(Path(tree).parent.parts[-2:]) + "/").dir
+                tdate = "/".join(Path(tree).parent.parts[-2:]) + "/"
 
                 print(
                     fparent + "/" + Text(Path(file).name).cyan,
                     Text("-->").dim,
-                    tparent + "/" + tdate + Text(Path(tree).name).cyan,
+                    tparent + "/" + Text(tdate).dir + Text(Path(tree).name).cyan,
                 )
             else:
                 print(line)
