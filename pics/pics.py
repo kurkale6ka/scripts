@@ -12,6 +12,7 @@ I mostly use this script to sort my Dropbox Camera Uploads
 from subprocess import run
 from os import environ as env
 from pathlib import Path
+from pprint import pprint
 from decorate import Text  # pyright: ignore reportMissingImports
 import argparse
 
@@ -33,6 +34,7 @@ parser.add_argument(
     default=f"{env['HOME']}/Dropbox/pics",
     help="destination for organized files to be moved to",
 )
+parser.add_argument("-v", "--view", action="store_true", help="view exiftool command")
 parser.add_argument(
     "-q",
     "--quiet",
@@ -49,7 +51,6 @@ tags.add_argument(
     const="*keyword*,subject,title,*comment*,make,model,createdate,datetimeoriginal",
     help="Tags must be separated by comas (-tmake,model)\n-ta => all (tags)\n-td => alldates",
 )
-tags.add_argument("-v", "--view", action="store_true", help="view exiftool command")
 tags.add_argument(
     "file",
     type=str,
@@ -67,7 +68,9 @@ class Uploads:
         self._src = src.rstrip("/")
         self._renames = ""
 
-    def organize(self, dst, test: bool = False, quiet: int = 0) -> None:
+    def organize(
+        self, dst, test: bool = False, view: bool = False, quiet: int = 0
+    ) -> None:
         """Organize source files into years/months
 
         exiftool will do the renaming (ref. 'RENAMING EXAMPLES' in `man exiftool`)
@@ -95,6 +98,10 @@ class Uploads:
             f"-{name}<$createdate ${{make;}}.%le",
             self._src,
         ]
+
+        if view:
+            pprint(cmd)
+            print()
 
         try:
             result = run(cmd, capture_output=True, text=True)
@@ -184,7 +191,7 @@ def main():
         uploads = Uploads(args.source)
 
         # Test run for a preview
-        uploads.organize(args.destination, test=True, quiet=args.quiet)
+        uploads.organize(args.destination, test=True, view=args.view, quiet=args.quiet)
 
         # Real run
         if uploads.has_renames():
