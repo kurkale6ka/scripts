@@ -64,7 +64,7 @@ args = parser.parse_args()
 
 
 class Uploads:
-    """TODO"""
+    """Source foder containing files to be organized"""
 
     def __init__(self, src):
         self._src = src.rstrip("/")
@@ -78,6 +78,7 @@ class Uploads:
         exiftool will do the renaming (ref. 'RENAMING EXAMPLES' in `man exiftool`)
         """
 
+        # destination for organized files to be moved to (TODO: could be used with -qqq in show_renames())
         self._dst = dst.rstrip("/")
 
         silence = []
