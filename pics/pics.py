@@ -19,6 +19,7 @@ from subprocess import run
 from os import environ as env
 from sys import stderr
 from pathlib import Path
+from signal import signal, SIGINT
 from pprint import pprint
 from textwrap import dedent
 import argparse
@@ -42,6 +43,13 @@ except (ModuleNotFoundError, ImportError) as err:
             ).strip()
         )
     exit(1)
+
+
+def interrupt_handler(sig, frame):  # pyright: ignore reportUnusedVariable
+    exit(Text("\nCanceled").red)
+
+
+signal(SIGINT, interrupt_handler)
 
 parser = argparse.ArgumentParser(
     usage="\npics [-s SOURCE] [-d DESTINATION] [-v] [-q]\npics -t [tag1,tag2] [files|dir ...] [-v] [-q]",
@@ -229,6 +237,8 @@ def main():
             answer = input("\nproceed (y/n)? ")
             if answer == "y":
                 uploads.organize(args.destination, test=False, quiet=0)
+        else:
+            print("Nothing todo")
 
 
 if __name__ == "__main__":
