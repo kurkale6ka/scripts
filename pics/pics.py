@@ -10,12 +10,38 @@ I mostly use this script to sort my Dropbox Camera Uploads.
 This script also allows to view EXIF tags.
 """
 
+# INSTALL
+# python3 -mvenv .venv
+# source .venv/bin/activate
+# pip install --editable .
+
 from subprocess import run
 from os import environ as env
+from sys import stderr
 from pathlib import Path
 from pprint import pprint
-from decorate import Text  # pyright: ignore reportMissingImports
+from textwrap import dedent
 import argparse
+
+try:
+    from decorate import Text  # pyright: ignore reportMissingImports
+except (ModuleNotFoundError, ImportError) as err:
+    print(err, file=stderr)
+    if "decorate" in str(err):
+        exit(
+            dedent(
+                f"""
+                Please Install `decorate`:
+                mkdir -p {env['REPOS_BASE'].replace(env['HOME'], '~')}/gitlab
+                cd {env['REPOS_BASE'].replace(env['HOME'], '~')}/gitlab
+                git clone git@gitlab.com:kurkale6ka/styles.git
+                source {env['REPOS_BASE'].replace(env['HOME'], '~')}/github/scripts/mkconfig/.venv/bin/activate
+                pip install -U pip
+                pip install -e styles
+                """
+            ).strip()
+        )
+    exit(1)
 
 parser = argparse.ArgumentParser(
     usage="\npics [-s SOURCE] [-d DESTINATION] [-v] [-q]\npics -t [tag1,tag2] [files|dir ...] [-v] [-q]",
@@ -117,7 +143,7 @@ class Uploads:
                 self._renames = result.stdout.rstrip()
 
     def has_renames(self) -> bool:
-        return bool(self._renames)
+        return bool("-->" in self._renames)
 
     # TODO: -qqq to hide src/dst!?
     def show_renames(self) -> None:
