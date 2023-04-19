@@ -279,6 +279,7 @@ class Documents:
 
                 if extension in extensions:
                     browser.open(
+                        # TODO: git branch --show-current
                         f"https://github.com/kurkale6ka/help/blob/master/{data.document}"
                     )
                     exit()
