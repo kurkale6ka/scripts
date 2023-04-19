@@ -151,7 +151,7 @@ class Uploads:
                 self._renames = result.stdout.rstrip()
 
     def has_renames(self) -> bool:
-        return bool("-->" in self._renames)
+        return "-->" in self._renames
 
     # TODO: -qqq to hide src/dst!?
     def show_renames(self) -> None:
