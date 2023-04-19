@@ -52,7 +52,7 @@ def interrupt_handler(sig, frame):  # pyright: ignore reportUnusedVariable
 signal(SIGINT, interrupt_handler)
 
 parser = argparse.ArgumentParser(
-    usage="\npics [-s SOURCE] [-d DESTINATION] [-v] [-q]\npics -t [tag1,tag2] [files|dir ...] [-v] [-q]",
+    usage="\n  pics    [-s SOURCE] [-d DESTINATION] [-v] [-q]: organize\n  pics -t [tag1,tag2] [files|dir ...]  [-v] [-q]: show tags",
     description=__doc__,
     formatter_class=argparse.RawTextHelpFormatter,
 )
@@ -85,7 +85,7 @@ tags.add_argument(
     type=str,
     nargs="?",
     const="*keyword*,subject,title,*comment*,make,model,createdate,datetimeoriginal",
-    help="Tags must be separated by comas (-tmake,model)\n-ta => all (tags)\n-td => alldates",
+    help="Tags must be separated by comas: -tmake,model\n-ta => all (tags)\n-td => alldates",
 )
 tags.add_argument(
     "files",
@@ -151,7 +151,7 @@ class Uploads:
                 self._renames = result.stdout.rstrip()
 
     def has_renames(self) -> bool:
-        return bool("-->" in self._renames)
+        return "-->" in self._renames
 
     # TODO: -qqq to hide src/dst!?
     def show_renames(self) -> None:
