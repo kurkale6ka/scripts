@@ -52,7 +52,7 @@ def interrupt_handler(sig, frame):  # pyright: ignore reportUnusedVariable
 signal(SIGINT, interrupt_handler)
 
 parser = argparse.ArgumentParser(
-    usage="\npics [-s SOURCE] [-d DESTINATION] [-v] [-q]\npics -t [tag1,tag2] [files|dir ...] [-v] [-q]",
+    usage="\n  pics    [-s SOURCE] [-d DESTINATION] [-v] [-q]: organize\n  pics -t [tag1,tag2] [files|dir ...]  [-v] [-q]: show tags",
     description=__doc__,
     formatter_class=argparse.RawTextHelpFormatter,
 )
