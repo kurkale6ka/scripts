@@ -85,7 +85,7 @@ tags.add_argument(
     type=str,
     nargs="?",
     const="*keyword*,subject,title,*comment*,make,model,createdate,datetimeoriginal",
-    help="Tags must be separated by comas: -tmake,model\n-ta => all (tags)\n-td => alldates",
+    help="Tags must be separated by comas: -tmake,model\n-ta => all (tags)\n-td => alldates\ndefault: -*keyword* -subject -title -*comment* -make -model -createdate -datetimeoriginal",
 )
 tags.add_argument(
     "files",
