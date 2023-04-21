@@ -277,7 +277,7 @@ class Repo:
             await self._fetch()
             print(
                 Text(self._name).cyan + ":",
-                self._repo.git(c="color.ui=always").rebase(),
+                self._repo.git(c="color.ui=always").rebase("-v"),
             )
         except GitCommandError as err:
             print(
