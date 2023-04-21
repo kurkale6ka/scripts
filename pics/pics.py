@@ -2,9 +2,9 @@
 
 """Organize files into a hierarchy of folders by reading their EXIF metadata
 
-filename -> year
-            └─ month
-               └─ filename_[camera_model]
+filename ->  year
+            └─  month
+               └─  filename_[camera_model]
 
 I mostly use this script to sort my Dropbox Camera Uploads.
 This script also allows to view EXIF tags.
@@ -85,7 +85,7 @@ tags.add_argument(
     type=str,
     nargs="?",
     const="*keyword*,subject,title,*comment*,make,model,createdate,datetimeoriginal",
-    help="Tags must be separated by comas: -tmake,model\n-ta => all (tags)\n-td => alldates\ndefault: -*keyword* -subject -title -*comment* -make -model -createdate -datetimeoriginal",
+    help="Tags must be separated by comas: -tmake,model\n-ta => all (tags)\n-td => alldates\ndefault: -t\\*keyword\\*,subject,title,\\*comment\\*,make,model,createdate,datetimeoriginal",
 )
 tags.add_argument(
     "files",
