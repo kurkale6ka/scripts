@@ -89,7 +89,7 @@ class MyCertificate:
 
 
 if __name__ == "__main__":
-    cert = MyCertificate(args.certificate)
+    cert = MyCertificate(certificate=args.certificate)
 
     if args.fingerprint:
         cert.add_field("fingerprint")
