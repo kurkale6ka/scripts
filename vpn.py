@@ -378,7 +378,10 @@ class Vpn:
                     sorted(file.name for file in files if file.name.endswith(".ovpn"))
                 )
                 config = run(filter, input=configs, stdout=PIPE, text=True)
-                config = self._src + "/" + config.stdout.rstrip()
+                if config.returncode == 130:
+                    exit("canceled")
+                else:
+                    config = self._src + "/" + config.stdout.rstrip()
         except FileNotFoundError:
             exit(
                 RED
@@ -441,8 +444,11 @@ if __name__ == "__main__":
         elif not any(args.pattern == c.code for c in countries):
             countries = "\n".join(c.info for c in countries)
             code = run(Countries.filter, input=countries, stdout=PIPE, text=True)
-            code = code.stdout.rstrip().split(" -> ")[0]
-            code = code.lower().replace("gb", "uk")
+            if code.returncode == 130:
+                exit("canceled")
+            else:
+                code = code.stdout.rstrip().split(" -> ")[0]
+                code = code.lower().replace("gb", "uk")
         else:
             code = args.pattern
 
