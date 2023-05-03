@@ -372,12 +372,19 @@ class Vpn:
         self._src = src
 
     def get_config(self, filter):
-        with scandir(self._src) as files:
-            configs = "\n".join(
-                sorted(file.name for file in files if file.name.endswith(".ovpn"))
+        try:
+            with scandir(self._src) as files:
+                configs = "\n".join(
+                    sorted(file.name for file in files if file.name.endswith(".ovpn"))
+                )
+                config = run(filter, input=configs, stdout=PIPE, text=True)
+                config = self._src + "/" + config.stdout.rstrip()
+        except FileNotFoundError:
+            exit(
+                RED
+                + "Config files missing! Download with -d, then unzip in /etc/openvpn"
+                + RESET
             )
-            config = run(filter, input=configs, stdout=PIPE, text=True)
-            config = self._src + "/" + config.stdout.rstrip()
         return config
 
     def launch(self, config, auth):
