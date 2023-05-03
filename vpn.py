@@ -434,16 +434,21 @@ if __name__ == "__main__":
         execlp("wget", "wget", download_url)
 
     if args.pattern:
-        countries = Countries().list(args.pattern)
+        countries = Countries().list()
 
         # GB is the standard country code for United Kingdom,
-        # I am adding UK for ease of use
+        # I am adding UK for 'ease of use'
         if args.pattern in ("uk", "gb"):
             code = "uk"
         # unknown country code
         elif not any(args.pattern == c.code for c in countries):
             countries = "\n".join(c.info for c in countries)
-            code = run(Countries.filter, input=countries, stdout=PIPE, text=True)
+            code = run(
+                Countries.filter + ["-q", args.pattern],
+                input=countries,
+                stdout=PIPE,
+                text=True,
+            )
             if code.returncode == 130:
                 exit("canceled")
             else:
