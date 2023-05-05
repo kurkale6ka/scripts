@@ -93,12 +93,6 @@ class Country:
         """code -> name"""
         return f"{CYAN + self._code.upper() + RESET} -> {self._name}"
 
-    def match(self, pattern: str = "") -> bool:
-        """compare against the fuzzy country filter"""
-        if pattern == "" or pattern.lower() in self._code + self._name.lower():
-            return True
-        return False
-
 
 class Countries:
     _all = [
@@ -360,11 +354,23 @@ class Countries:
     filter = ["fzf", "-0", "-1", "--cycle", "--ansi", "--height", "60%"]
 
     @classmethod
-    def list(cls, filter: str = "", all: bool = False) -> tuple[Country]:
+    def list(cls, country_filter: str = "", all: bool = False) -> tuple[Country]:
         if all:
-            return tuple(c for c in cls._all if c.match(filter))
+            countries = tuple(cls._all)
         else:
-            return tuple(c for c in cls._all if c.match(filter) and c.netflix)
+            countries = tuple(c for c in cls._all if c.netflix)
+
+        if country_filter:
+            res = run(
+                cls.filter + ["-f", country_filter],
+                input="\n".join(c.info for c in countries),
+                capture_output=True,
+                text=True,
+            )
+            res = [r[:2].lower() for r in res.stdout.rstrip("\n").split("\n")]
+            return tuple(c for c in countries if c.code in res)
+        else:
+            return countries
 
 
 class Vpn:
@@ -426,7 +432,7 @@ if __name__ == "__main__":
             for c in Countries().list(all=args.all):
                 print(c.info if args.codes else c.name)
         elif args.list:
-            for c in Countries().list(filter=args.list, all=args.all):
+            for c in Countries().list(country_filter=args.list, all=args.all):
                 print(c.info if args.codes else c.name)
         exit()
 
