@@ -52,7 +52,7 @@ grp_countries.add_argument(
     nargs="?",
     default=False,
     const=1,
-    help="show countries where Netflix is available",
+    help="show countries where Netflix is available\nLIST is a fuzzy country filter",
 )
 grp_countries.add_argument(
     "-a", "--all", action="store_true", help="show all countries"
@@ -71,10 +71,10 @@ CYAN, RED, RESET = (f"{ESC}{code}m" for code in (36, 31, 0))
 
 
 class Country:
-    def __init__(self, code: str, name: str, netflix: bool = False):
+    def __init__(self, code: str, name: str, has_netflix: bool = False):
         self._code = code
         self._name = name
-        self._netflix = netflix
+        self._has_netflix = has_netflix
 
     @property
     def code(self) -> str:
@@ -85,25 +85,19 @@ class Country:
         return self._name
 
     @property
-    def netflix(self) -> bool:
-        return self._netflix
+    def has_netflix(self) -> bool:
+        return self._has_netflix
 
     @property
     def info(self) -> str:
-        """code -> name"""
+        """CODE -> name"""
         return f"{CYAN + self._code.upper() + RESET} -> {self._name}"
-
-    def match(self, pattern: str = "") -> bool:
-        """compare against the fuzzy country filter"""
-        if pattern == "" or pattern.lower() in self._code + self._name.lower():
-            return True
-        return False
 
 
 class Countries:
     _all = [
         Country("af", "Afghanistan"),
-        Country("al", "Albania", netflix=True),
+        Country("al", "Albania", has_netflix=True),
         Country("dz", "Algeria"),
         Country("as", "American Samoa"),
         Country("ad", "Andorra"),
@@ -111,41 +105,41 @@ class Countries:
         Country("ai", "Anguilla"),
         Country("aq", "Antarctica"),
         Country("ag", "Antigua and Barbuda"),
-        Country("ar", "Argentina", netflix=True),
+        Country("ar", "Argentina", has_netflix=True),
         Country("am", "Armenia"),
         Country("aw", "Aruba"),
-        Country("au", "Australia", netflix=True),
-        Country("at", "Austria", netflix=True),
+        Country("au", "Australia", has_netflix=True),
+        Country("at", "Austria", has_netflix=True),
         Country("az", "Azerbaijan"),
         Country("bs", "Bahamas (the)"),
         Country("bh", "Bahrain"),
         Country("bd", "Bangladesh"),
         Country("bb", "Barbados"),
         Country("by", "Belarus"),
-        Country("be", "Belgium", netflix=True),
+        Country("be", "Belgium", has_netflix=True),
         Country("bz", "Belize"),
         Country("bj", "Benin"),
         Country("bm", "Bermuda"),
         Country("bt", "Bhutan"),
         Country("bo", "Bolivia (Plurinational State of)"),
         Country("bq", "Bonaire, Sint Eustatius and Saba"),
-        Country("ba", "Bosnia and Herzegovina", netflix=True),
+        Country("ba", "Bosnia and Herzegovina", has_netflix=True),
         Country("bw", "Botswana"),
         Country("bv", "Bouvet Island"),
-        Country("br", "Brazil", netflix=True),
+        Country("br", "Brazil", has_netflix=True),
         Country("io", "British Indian Ocean Territory (the)"),
         Country("bn", "Brunei Darussalam"),
-        Country("bg", "Bulgaria", netflix=True),
+        Country("bg", "Bulgaria", has_netflix=True),
         Country("bf", "Burkina Faso"),
         Country("bi", "Burundi"),
         Country("cv", "Cabo Verde"),
         Country("kh", "Cambodia"),
         Country("cm", "Cameroon"),
-        Country("ca", "Canada", netflix=True),
+        Country("ca", "Canada", has_netflix=True),
         Country("ky", "Cayman Islands (the)"),
         Country("cf", "Central African Republic (the)"),
         Country("td", "Chad"),
-        Country("cl", "Chile", netflix=True),
+        Country("cl", "Chile", has_netflix=True),
         Country("cn", "China"),
         Country("cx", "Christmas Island"),
         Country("cc", "Cocos (Keeling) Islands (the)"),
@@ -154,14 +148,14 @@ class Countries:
         Country("cd", "Congo (the Democratic Republic of the)"),
         Country("cg", "Congo (the)"),
         Country("ck", "Cook Islands (the)"),
-        Country("cr", "Costa Rica", netflix=True),
-        Country("hr", "Croatia", netflix=True),
+        Country("cr", "Costa Rica", has_netflix=True),
+        Country("hr", "Croatia", has_netflix=True),
         Country("cu", "Cuba"),
         Country("cw", "Curaçao"),
-        Country("cy", "Cyprus", netflix=True),
-        Country("cz", "Czechia", netflix=True),
+        Country("cy", "Cyprus", has_netflix=True),
+        Country("cz", "Czechia", has_netflix=True),
         Country("ci", "Côte d'Ivoire"),
-        Country("dk", "Denmark", netflix=True),
+        Country("dk", "Denmark", has_netflix=True),
         Country("dj", "Djibouti"),
         Country("dm", "Dominica"),
         Country("do", "Dominican Republic (the)"),
@@ -170,24 +164,24 @@ class Countries:
         Country("sv", "El Salvador"),
         Country("gq", "Equatorial Guinea"),
         Country("er", "Eritrea"),
-        Country("ee", "Estonia", netflix=True),
+        Country("ee", "Estonia", has_netflix=True),
         Country("sz", "Eswatini"),
         Country("et", "Ethiopia"),
         Country("fk", "Falkland Islands (the) [Malvinas]"),
         Country("fo", "Faroe Islands (the)"),
         Country("fj", "Fiji"),
-        Country("fi", "Finland", netflix=True),
-        Country("fr", "France", netflix=True),
+        Country("fi", "Finland", has_netflix=True),
+        Country("fr", "France", has_netflix=True),
         Country("gf", "French Guiana"),
         Country("pf", "French Polynesia"),
         Country("tf", "French Southern Territories (the)"),
         Country("ga", "Gabon"),
         Country("gm", "Gambia (the)"),
-        Country("ge", "Georgia", netflix=True),
-        Country("de", "Germany", netflix=True),
+        Country("ge", "Georgia", has_netflix=True),
+        Country("de", "Germany", has_netflix=True),
         Country("gh", "Ghana"),
         Country("gi", "Gibraltar"),
-        Country("gr", "Greece", netflix=True),
+        Country("gr", "Greece", has_netflix=True),
         Country("gl", "Greenland"),
         Country("gd", "Grenada"),
         Country("gp", "Guadeloupe"),
@@ -201,41 +195,41 @@ class Countries:
         Country("hm", "Heard Island and McDonald Islands"),
         Country("va", "Holy See (the)"),
         Country("hn", "Honduras"),
-        Country("hk", "Hong Kong", netflix=True),
-        Country("hu", "Hungary", netflix=True),
-        Country("is", "Iceland", netflix=True),
-        Country("in", "India", netflix=True),
-        Country("id", "Indonesia", netflix=True),
+        Country("hk", "Hong Kong", has_netflix=True),
+        Country("hu", "Hungary", has_netflix=True),
+        Country("is", "Iceland", has_netflix=True),
+        Country("in", "India", has_netflix=True),
+        Country("id", "Indonesia", has_netflix=True),
         Country("ir", "Iran (Islamic Republic of)"),
         Country("iq", "Iraq"),
-        Country("ie", "Ireland", netflix=True),
+        Country("ie", "Ireland", has_netflix=True),
         Country("im", "Isle of Man"),
-        Country("il", "Israel", netflix=True),
-        Country("it", "Italy", netflix=True),
+        Country("il", "Israel", has_netflix=True),
+        Country("it", "Italy", has_netflix=True),
         Country("jm", "Jamaica"),
-        Country("jp", "Japan", netflix=True),
+        Country("jp", "Japan", has_netflix=True),
         Country("je", "Jersey"),
         Country("jo", "Jordan"),
         Country("kz", "Kazakhstan"),
         Country("ke", "Kenya"),
         Country("ki", "Kiribati"),
         Country("kp", "Korea (the Democratic People's Republic of)"),
-        Country("kr", "Korea (the Republic of)", netflix=True),
+        Country("kr", "Korea (the Republic of)", has_netflix=True),
         Country("kw", "Kuwait"),
         Country("kg", "Kyrgyzstan"),
         Country("la", "Lao People's Democratic Republic (the)"),
-        Country("lv", "Latvia", netflix=True),
+        Country("lv", "Latvia", has_netflix=True),
         Country("lb", "Lebanon"),
         Country("ls", "Lesotho"),
         Country("lr", "Liberia"),
         Country("ly", "Libya"),
         Country("li", "Liechtenstein"),
         Country("lt", "Lithuania"),
-        Country("lu", "Luxembourg", netflix=True),
+        Country("lu", "Luxembourg", has_netflix=True),
         Country("mo", "Macao"),
         Country("mg", "Madagascar"),
         Country("mw", "Malawi"),
-        Country("my", "Malaysia", netflix=True),
+        Country("my", "Malaysia", has_netflix=True),
         Country("mv", "Maldives"),
         Country("ml", "Mali"),
         Country("mt", "Malta"),
@@ -244,9 +238,9 @@ class Countries:
         Country("mr", "Mauritania"),
         Country("mu", "Mauritius"),
         Country("yt", "Mayotte"),
-        Country("mx", "Mexico", netflix=True),
+        Country("mx", "Mexico", has_netflix=True),
         Country("fm", "Micronesia (Federated States of)"),
-        Country("md", "Moldova (the Republic of)", netflix=True),
+        Country("md", "Moldova (the Republic of)", has_netflix=True),
         Country("mc", "Monaco"),
         Country("mn", "Mongolia"),
         Country("me", "Montenegro"),
@@ -257,16 +251,16 @@ class Countries:
         Country("na", "Namibia"),
         Country("nr", "Nauru"),
         Country("np", "Nepal"),
-        Country("nl", "Netherlands (the)", netflix=True),
+        Country("nl", "Netherlands (the)", has_netflix=True),
         Country("nc", "New Caledonia"),
-        Country("nz", "New Zealand", netflix=True),
+        Country("nz", "New Zealand", has_netflix=True),
         Country("ni", "Nicaragua"),
         Country("ne", "Niger (the)"),
         Country("ng", "Nigeria"),
         Country("nu", "Niue"),
         Country("nf", "Norfolk Island"),
         Country("mp", "Northern Mariana Islands (the)"),
-        Country("no", "Norway", netflix=True),
+        Country("no", "Norway", has_netflix=True),
         Country("om", "Oman"),
         Country("pk", "Pakistan"),
         Country("pw", "Palau"),
@@ -277,12 +271,12 @@ class Countries:
         Country("pe", "Peru"),
         Country("ph", "Philippines (the)"),
         Country("pn", "Pitcairn"),
-        Country("pl", "Poland", netflix=True),
-        Country("pt", "Portugal", netflix=True),
+        Country("pl", "Poland", has_netflix=True),
+        Country("pt", "Portugal", has_netflix=True),
         Country("pr", "Puerto Rico"),
         Country("qa", "Qatar"),
-        Country("mk", "Republic of North Macedonia", netflix=True),
-        Country("ro", "Romania", netflix=True),
+        Country("mk", "Republic of North Macedonia", has_netflix=True),
+        Country("ro", "Romania", has_netflix=True),
         Country("ru", "Russian Federation (the)"),
         Country("rw", "Rwanda"),
         Country("re", "Réunion"),
@@ -298,55 +292,55 @@ class Countries:
         Country("st", "Sao Tome and Principe"),
         Country("sa", "Saudi Arabia"),
         Country("sn", "Senegal"),
-        Country("rs", "Serbia", netflix=True),
+        Country("rs", "Serbia", has_netflix=True),
         Country("sc", "Seychelles"),
         Country("sl", "Sierra Leone"),
-        Country("sg", "Singapore", netflix=True),
+        Country("sg", "Singapore", has_netflix=True),
         Country("sx", "Sint Maarten (Dutch part)"),
-        Country("sk", "Slovakia", netflix=True),
-        Country("si", "Slovenia", netflix=True),
+        Country("sk", "Slovakia", has_netflix=True),
+        Country("si", "Slovenia", has_netflix=True),
         Country("sb", "Solomon Islands"),
         Country("so", "Somalia"),
-        Country("za", "South Africa", netflix=True),
+        Country("za", "South Africa", has_netflix=True),
         Country("gs", "South Georgia and the South Sandwich Islands"),
         Country("ss", "South Sudan"),
-        Country("es", "Spain", netflix=True),
+        Country("es", "Spain", has_netflix=True),
         Country("lk", "Sri Lanka"),
         Country("sd", "Sudan (the)"),
         Country("sr", "Suriname"),
         Country("sj", "Svalbard and Jan Mayen"),
-        Country("se", "Sweden", netflix=True),
-        Country("ch", "Switzerland", netflix=True),
+        Country("se", "Sweden", has_netflix=True),
+        Country("ch", "Switzerland", has_netflix=True),
         Country("sy", "Syrian Arab Republic"),
-        Country("tw", "Taiwan (Province of China)", netflix=True),
+        Country("tw", "Taiwan (Province of China)", has_netflix=True),
         Country("tj", "Tajikistan"),
         Country("tz", "Tanzania, United Republic of"),
-        Country("th", "Thailand", netflix=True),
+        Country("th", "Thailand", has_netflix=True),
         Country("tl", "Timor-Leste"),
         Country("tg", "Togo"),
         Country("tk", "Tokelau"),
         Country("to", "Tonga"),
         Country("tt", "Trinidad and Tobago"),
         Country("tn", "Tunisia"),
-        Country("tr", "Turkey", netflix=True),
+        Country("tr", "Turkey", has_netflix=True),
         Country("tm", "Turkmenistan"),
         Country("tc", "Turks and Caicos Islands (the)"),
         Country("tv", "Tuvalu"),
         Country("ug", "Uganda"),
-        Country("ua", "Ukraine", netflix=True),
-        Country("ae", "United Arab Emirates (the)", netflix=True),
+        Country("ua", "Ukraine", has_netflix=True),
+        Country("ae", "United Arab Emirates (the)", has_netflix=True),
         Country(
             "gb",
             "United Kingdom of Great Britain and Northern Ireland (the)",
-            netflix=True,
+            has_netflix=True,
         ),
         Country("um", "United States Minor Outlying Islands (the)"),
-        Country("us", "United States of America (the)", netflix=True),
+        Country("us", "United States of America (the)", has_netflix=True),
         Country("uy", "Uruguay"),
         Country("uz", "Uzbekistan"),
         Country("vu", "Vanuatu"),
         Country("ve", "Venezuela (Bolivarian Republic of)"),
-        Country("vn", "Viet Nam", netflix=True),
+        Country("vn", "Viet Nam", has_netflix=True),
         Country("vg", "Virgin Islands (British)"),
         Country("vi", "Virgin Islands (U.S.)"),
         Country("wf", "Wallis and Futuna"),
@@ -360,11 +354,24 @@ class Countries:
     filter = ["fzf", "-0", "-1", "--cycle", "--ansi", "--height", "60%"]
 
     @classmethod
-    def list(cls, filter: str = "", all: bool = False) -> tuple[Country]:
+    def list(cls, country_filter: str = "", all: bool = False) -> tuple[Country]:
         if all:
-            return tuple(c for c in cls._all if c.match(filter))
+            countries = tuple(cls._all)
         else:
-            return tuple(c for c in cls._all if c.match(filter) and c.netflix)
+            countries = tuple(c for c in cls._all if c.has_netflix)
+
+        if country_filter:
+            res = run(
+                cls.filter + ["-f", country_filter],
+                input="\n".join(c.info for c in countries),
+                capture_output=True,
+                text=True,
+            )
+            # ['us', 'gb', 'fr', ...]
+            res = [r[:2].lower() for r in res.stdout.rstrip("\n").split("\n")]
+            return tuple(c for c in countries if c.code in res)
+        else:
+            return countries
 
 
 class Vpn:
@@ -426,7 +433,7 @@ if __name__ == "__main__":
             for c in Countries().list(all=args.all):
                 print(c.info if args.codes else c.name)
         elif args.list:
-            for c in Countries().list(filter=args.list, all=args.all):
+            for c in Countries().list(country_filter=args.list, all=args.all):
                 print(c.info if args.codes else c.name)
         exit()
 
@@ -434,16 +441,21 @@ if __name__ == "__main__":
         execlp("wget", "wget", download_url)
 
     if args.pattern:
-        countries = Countries().list(args.pattern)
+        countries = Countries().list()
 
         # GB is the standard country code for United Kingdom,
-        # I am adding UK for ease of use
+        # I am adding UK for 'ease of use'
         if args.pattern in ("uk", "gb"):
             code = "uk"
         # unknown country code
         elif not any(args.pattern == c.code for c in countries):
             countries = "\n".join(c.info for c in countries)
-            code = run(Countries.filter, input=countries, stdout=PIPE, text=True)
+            code = run(
+                Countries.filter + ["-q", args.pattern],
+                input=countries,
+                stdout=PIPE,
+                text=True,
+            )
             if code.returncode == 130:
                 exit("canceled")
             else:
