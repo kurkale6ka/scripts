@@ -52,7 +52,7 @@ grp_countries.add_argument(
     nargs="?",
     default=False,
     const=1,
-    help="show countries where Netflix is available",
+    help="show countries where Netflix is available\nLIST is a fuzzy country filter",
 )
 grp_countries.add_argument(
     "-a", "--all", action="store_true", help="show all countries"
