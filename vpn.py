@@ -375,27 +375,32 @@ class Countries:
 
 
 class Vpn:
-    def __init__(self, src):
-        self._src = src
+    def __init__(self, source=""):
+        self._source = source
 
     def get_config(self, filter):
         try:
-            with scandir(self._src) as files:
+            with scandir(self._source) as files:
                 configs = "\n".join(
                     sorted(file.name for file in files if file.name.endswith(".ovpn"))
                 )
                 config = run(filter, input=configs, stdout=PIPE, text=True)
+
+                if not config.stdout:
+                    exit(RED + "VPN config file missing" + RESET)
+
                 if config.returncode == 130:
                     exit("canceled")
                 else:
-                    config = self._src + "/" + config.stdout.rstrip()
+                    config = self._source + "/" + config.stdout.rstrip()
         except FileNotFoundError:
             exit(
                 RED
                 + "Config files missing! Download with -d, then unzip in /etc/openvpn"
                 + RESET
             )
-        return config
+        else:
+            return config
 
     def launch(self, config, auth):
         execlp(
@@ -467,15 +472,19 @@ if __name__ == "__main__":
         Countries.filter.extend(("--exact", "-q", code))
 
     # Main
-    vpn = Vpn(src=f"{args.source.rstrip('/')}/ovpn_{args.protocol}")
+    vpn = Vpn(source=f"{args.source.rstrip('/')}/ovpn_{args.protocol}")
 
     if args.config:
         config = args.config
     else:
         config = vpn.get_config(Countries.filter)
 
-    print(
-        "VPN config:",
-        CYAN + str(Path(config).resolve()).replace(env["HOME"], "~") + RESET,
-    )
+    if Path(config).is_file():
+        print(
+            "VPN config:",
+            CYAN + str(Path(config).resolve()).replace(env["HOME"], "~") + RESET,
+        )
+    else:
+        exit(RED + "Given VPN config isn't a file. Typo?" + RESET)
+
     vpn.launch(config, args.credentials)
