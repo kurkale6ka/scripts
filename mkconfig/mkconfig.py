@@ -659,8 +659,8 @@ async def git_pull() -> None:
         tasks = []
         for r in repos:
             repo = Repo(f"{base}/{r.hub}/{r.name}")
-            tasks.append(repo.update())
-        for task in asyncio.as_completed(tasks):
+            tasks.append(asyncio.create_task(repo.update()))
+        for task in tasks:
             await task
 
 
