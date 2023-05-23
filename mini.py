@@ -4,6 +4,9 @@
 """
 
 import argparse
+from dataclasses import dataclass
+from os import PathLike
+from pathlib import Path
 from subprocess import run, PIPE
 
 
@@ -12,27 +15,32 @@ parser.add_argument("tool", type=str, default="bash", help="get config(s) for to
 args = parser.parse_args()
 
 
+@dataclass
 class MiniConfig:
+    name: str
+    location: PathLike = Path(".")
+    comments: str = "#"
 
-    """TODO"""
 
-    def __init__(self, tool, location=".", comments="#"):
-        self._tool = tool
-        self._location = location
-        self._comments = comments
-
+configs = {
+    "readline": MiniConfig("inputrc", location=Path("config/dotfiles/.inputrc.mini")),
+    "bash": MiniConfig("bashrc", location=Path("bash/.bashrc.mini")),
+    "editor": MiniConfig("vimrc", location=Path("vim/.vimrc.mini")),
+    "ksh_profile": MiniConfig("profile", location=Path("config/ksh/.profile.mini")),
+    "ksh": MiniConfig("kshrc", location=Path("config/ksh/.kshrc.mini")),
+}
 
 bash = [
-    MiniConfig("readline", location="config/dotfiles/.inputrc.mini"),
-    MiniConfig("bashrc", location="bash/.bashrc.mini"),
-    MiniConfig("editor", location="vim/.vimrc.mini"),
+    configs["readline"],
+    configs["bash"],
+    configs["editor"],
 ]
 
-ksh = dict(
-    profile="config/ksh/.profile.mini",
-    rc="config/ksh/.kshrc.mini",
-    editor="vim/.vimrc.mini",
-)
+ksh = [
+    configs["ksh_profile"],
+    configs["ksh"],
+    configs["editor"],
+]
 
 if __name__ == "__main__":
     if args.tool in ("bash", "ksh"):
