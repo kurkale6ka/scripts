@@ -79,10 +79,7 @@ else
 
 if (-t STDOUT)
 {
-   open my $CLIPBOARD, '|-', $^O eq 'darwin' ? 'pbcopy' : 'xclip' or die "$!\n";
-
-   # copy to system clipboard
-   say $CLIPBOARD $_
+    say
 } else {
    say
 }

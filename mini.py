@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
 from subprocess import run, PIPE
+from os import environ as env
 
 
 parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
@@ -28,6 +29,10 @@ class MiniConfig:
     info: str = ""
     path: PathLike = Path(".")
     comments: str = "#"
+
+    # prepend base
+    def __post_init__(self):
+        self.path = Path(f"{env['REPOS_BASE']}/github/{self.path}")
 
 
 inputrc = MiniConfig(
@@ -55,9 +60,15 @@ if __name__ == "__main__":
 
     if not args.all and args.tool in ("bash", "ksh"):  # TODO: use regex?
         if args.tool == "bash":
-            print(mini_configs[inputrc.name].path)
-            print(mini_configs[bashrc.name].path)
-            print(mini_configs[vimrc.name].path)
+            # cat config
+            with open(mini_configs[inputrc.name].path) as f_inputrc, open(
+                mini_configs[bashrc.name].path
+            ) as f_bashrc, open(mini_configs[vimrc.name].path) as f_vimrc:
+                print(mini_configs[inputrc.name].comments, "-" * 78)
+                print(f_inputrc.read().rstrip())
+            # print(mini_configs[inputrc.name].path)
+            # print(mini_configs[bashrc.name].path)
+            # print(mini_configs[vimrc.name].path)
         else:
             print(mini_configs[profile.name].path)
             print(mini_configs[kshrc.name].path)
@@ -68,9 +79,13 @@ if __name__ == "__main__":
             for cfg in mini_configs.values()
         )
         config = run(filter, input=configs, stdout=PIPE, text=True)
+
         if config.returncode == 130:
             exit("canceled")
         else:
             config = config.stdout.rstrip()
             config = config.split(":")[0]
-        print(mini_configs[config].path)
+
+        # cat config
+        with open(mini_configs[config].path) as conf:
+            print(conf.read().rstrip())
