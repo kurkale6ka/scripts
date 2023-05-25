@@ -61,18 +61,17 @@ if __name__ == "__main__":
     if not args.all and args.tool in ("bash", "ksh"):  # TODO: use regex?
         if args.tool == "bash":
             # cat config
-            with open(mini_configs[inputrc.name].path) as f_inputrc, open(
-                mini_configs[bashrc.name].path
-            ) as f_bashrc, open(mini_configs[vimrc.name].path) as f_vimrc:
-                print(mini_configs[inputrc.name].comments, "-" * 78)
+            with open(inputrc.path) as f_inputrc, open(bashrc.path) as f_bashrc, open(
+                vimrc.path
+            ) as f_vimrc:
+                print("cat >> ~/.inputrc << 'INPUTRC'")
+                print(inputrc.comments, "-" * 78)
                 print(f_inputrc.read().rstrip())
-            # print(mini_configs[inputrc.name].path)
-            # print(mini_configs[bashrc.name].path)
-            # print(mini_configs[vimrc.name].path)
+                print("INPUTRC")
         else:
-            print(mini_configs[profile.name].path)
-            print(mini_configs[kshrc.name].path)
-            print(mini_configs[vimrc.name].path)
+            print(profile.path)
+            print(kshrc.path)
+            print(vimrc.path)
     else:
         configs = "\n".join(
             f"{cfg.name}: {cfg.info}" if cfg.info else cfg.name
