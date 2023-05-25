@@ -34,6 +34,13 @@ class MiniConfig:
     def __post_init__(self):
         self.path = Path(f"{env['REPOS_BASE']}/github/{self.path}")
 
+    def get(self, file):
+        out = f"cat >> ~/.{self.name} << '{self.name.upper()}'\n"
+        out += f"{self.comments} {'-' * 78}\n"
+        out += file.read()  # TODO: open the file here
+        out += self.name.upper()
+        return out
+
 
 inputrc = MiniConfig(
     "inputrc", info="readline", path=Path("config/dotfiles/.inputrc.mini")
@@ -64,10 +71,7 @@ if __name__ == "__main__":
             with open(inputrc.path) as f_inputrc, open(bashrc.path) as f_bashrc, open(
                 vimrc.path
             ) as f_vimrc:
-                print("cat >> ~/.inputrc << 'INPUTRC'")
-                print(inputrc.comments, "-" * 78)
-                print(f_inputrc.read().rstrip())
-                print("INPUTRC")
+                print(inputrc.get(f_inputrc))
         else:
             print(profile.path)
             print(kshrc.path)
