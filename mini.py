@@ -79,8 +79,10 @@ if __name__ == "__main__":
     if not args.all and args.config in ("bash", "ksh"):  # TODO: use regex?
         if args.config == "bash":
             mini_config = inputrc.get() + "\n\n" + bashrc.get() + "\n\n" + vimrc.get()
+            feedback = "copied bash configs"
         else:
             mini_config = profile.get() + "\n\n" + kshrc.get() + "\n\n" + vimrc.get()
+            feedback = "copied ksh configs"
     else:
         configs = "\n".join(
             f"{cfg.name}: {cfg.info}" if cfg.info else cfg.name
@@ -95,5 +97,7 @@ if __name__ == "__main__":
             config = config.split(":")[0]
 
         mini_config = mini_configs[config].get()
+        feedback = "config copied"
 
     run(cb_tool, input=mini_config, text=True)
+    print(feedback)
