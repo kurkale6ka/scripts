@@ -2,9 +2,8 @@
 
 """Copy mini configs for pasting on remote systems
 
-- inputrc
-- Bash/Korn rcs
-- vimrc
+- bash: inputrc/bashrc/vimrc
+-  ksh: profile/kshrc/vimrc
 """
 
 from argparse import ArgumentParser, RawTextHelpFormatter
@@ -18,7 +17,11 @@ from os import environ as env
 parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
 parser.add_argument("-a", "--all", action="store_true", help="choose from all configs")
 parser.add_argument(
-    "tool", type=str, default="bash", nargs="?", help="get config(s) for tool"
+    "config",
+    type=str,
+    default="bash",
+    nargs="?",
+    help="get config(s), fuzzy pattern allowed\ndefault: bash (inputrc/bashrc/vimrc)\nspecial: ksh (profile/kshrc/vimrc)",
 )
 args = parser.parse_args()
 
@@ -62,12 +65,12 @@ mini_configs = {
 }
 
 if __name__ == "__main__":
-    filter = ("fzf", "-q", args.tool, "-0", "-1", "--cycle")
+    filter = ("fzf", "-q", args.config, "-0", "-1", "--cycle")
     if args.all:
         filter = ("fzf", "--cycle")
 
-    if not args.all and args.tool in ("bash", "ksh"):  # TODO: use regex?
-        if args.tool == "bash":
+    if not args.all and args.config in ("bash", "ksh"):  # TODO: use regex?
+        if args.config == "bash":
             print(inputrc.get())
             print()
             print(bashrc.get())
