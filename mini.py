@@ -8,11 +8,10 @@
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 from dataclasses import dataclass
-from os import PathLike
 from pathlib import Path
 from subprocess import run, PIPE
-from os import environ as env
-import platform
+from os import environ as env, PathLike
+from platform import release, system
 
 parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
 parser.add_argument("-a", "--all", action="store_true", help="choose from all configs")
@@ -65,9 +64,10 @@ mini_configs = {
 }
 
 if __name__ == "__main__":
-    if "microsoft-standard" in platform.release():  # WSL2
+    # Select clipboard
+    if "microsoft-standard" in release():  # WSL2
         cb_tool = "clip.exe"
-    elif platform.system() == "Linux":
+    elif system() == "Linux":
         cb_tool = "xclip"
     else:
         cb_tool = "pbcopy"  # Darwin
@@ -76,13 +76,14 @@ if __name__ == "__main__":
     if args.all:
         filter = ("fzf", "--cycle")
 
-    if not args.all and args.config in ("bash", "ksh"):  # TODO: use regex?
+    if not args.all and args.config in ("bash", "ksh"):
         if args.config == "bash":
             mini_config = inputrc.get() + "\n\n" + bashrc.get() + "\n\n" + vimrc.get()
             feedback = "copied bash configs"
         else:
             mini_config = profile.get() + "\n\n" + kshrc.get() + "\n\n" + vimrc.get()
             feedback = "copied ksh configs"
+    # --all
     else:
         configs = "\n".join(
             f"{cfg.name}: {cfg.info}" if cfg.info else cfg.name
@@ -99,5 +100,6 @@ if __name__ == "__main__":
         mini_config = mini_configs[config].get()
         feedback = "config copied"
 
+    # Copy config to clipboard
     run(cb_tool, input=mini_config, text=True)
     print(feedback)

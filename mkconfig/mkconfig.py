@@ -347,7 +347,7 @@ repos = (
             Link("calc.pl", f"{env['HOME']}/bin/="),
             Link("cert.pl", f"{env['HOME']}/bin/cert"),
             Link("mkconfig/.venv/bin/mkconfig", f"{env['HOME']}/bin"),
-            Link("mini.pl", f"{env['HOME']}/bin/mini"),
+            Link("mini.py", f"{env['HOME']}/bin/mini"),
             Link("pics/.venv/bin/pics", f"{env['HOME']}/bin"),
             Link("pc.pl", f"{env['HOME']}/bin/pc"),
             Link("rseverywhere.pl", f"{env['HOME']}/bin/rseverywhere"),
