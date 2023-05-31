@@ -12,7 +12,7 @@ from os import PathLike
 from pathlib import Path
 from subprocess import run, PIPE
 from os import environ as env
-
+import platform
 
 parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
 parser.add_argument("-a", "--all", action="store_true", help="choose from all configs")
@@ -65,23 +65,22 @@ mini_configs = {
 }
 
 if __name__ == "__main__":
+    if "microsoft-standard" in platform.release():  # WSL2
+        cb_tool = "clip.exe"
+    elif platform.system() == "Linux":
+        cb_tool = "xclip"
+    else:
+        cb_tool = "pbcopy"  # Darwin
+
     filter = ("fzf", "-q", args.config, "-0", "-1", "--cycle")
     if args.all:
         filter = ("fzf", "--cycle")
 
     if not args.all and args.config in ("bash", "ksh"):  # TODO: use regex?
         if args.config == "bash":
-            print(inputrc.get())
-            print()
-            print(bashrc.get())
-            print()
-            print(vimrc.get())
+            mini_config = inputrc.get() + "\n\n" + bashrc.get() + "\n\n" + vimrc.get()
         else:
-            print(profile.get())
-            print()
-            print(kshrc.get())
-            print()
-            print(vimrc.get())
+            mini_config = profile.get() + "\n\n" + kshrc.get() + "\n\n" + vimrc.get()
     else:
         configs = "\n".join(
             f"{cfg.name}: {cfg.info}" if cfg.info else cfg.name
@@ -95,4 +94,6 @@ if __name__ == "__main__":
             config = config.stdout.rstrip()
             config = config.split(":")[0]
 
-        print(mini_configs[config].get())
+        mini_config = mini_configs[config].get()
+
+    run(cb_tool, input=mini_config, text=True)
