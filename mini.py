@@ -12,6 +12,7 @@ from pathlib import Path
 from subprocess import run, PIPE
 from os import environ as env, PathLike
 from platform import release, system
+from sys import stderr
 
 parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
 parser.add_argument("-a", "--all", action="store_true", help="choose from all configs")
@@ -101,5 +102,10 @@ if __name__ == "__main__":
         feedback = "config copied"
 
     # Copy config to clipboard
-    run(cb_tool, input=mini_config, text=True)
-    print(feedback)
+    cb = run(cb_tool, input=mini_config, text=True)
+
+    if cb.returncode == 0:
+        print(feedback)
+    else:
+        print(mini_config, "\n")
+        print("failed to copy config", file=stderr)
