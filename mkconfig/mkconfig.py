@@ -311,8 +311,8 @@ repos = (
         "vim",
         links=(
             Link(None, f"{env['HOME']}/.vim", "-rT"),
-            Link(".vimrc", f"{env['HOME']}", "-r"),
-            Link(".gvimrc", f"{env['HOME']}", "-r"),
+            Link(".vimrc", env['HOME'], "-r"),
+            Link(".gvimrc", env['HOME'], "-r"),
         ),
     ),
     RepoData(
@@ -322,7 +322,7 @@ repos = (
             f"{env['XDG_DATA_HOME']}/zsh",  # for zsh history file
         ),
         links=(
-            Link(".zshenv", f"{env['HOME']}", "-r"),
+            Link(".zshenv", env['HOME'], "-r"),
             Link(".zprofile", f"{env['XDG_CONFIG_HOME']}/zsh"),
             Link(".zshrc", f"{env['XDG_CONFIG_HOME']}/zsh"),
             Link("autoload", f"{env['XDG_CONFIG_HOME']}/zsh"),
@@ -331,9 +331,9 @@ repos = (
     RepoData(
         "bash",
         links=(
-            Link(".bash_profile", f"{env['HOME']}", "-r"),
-            Link(".bashrc", f"{env['HOME']}", "-r"),
-            Link(".bash_logout", f"{env['HOME']}", "-r"),
+            Link(".bash_profile", env['HOME'], "-r"),
+            Link(".bashrc", env['HOME'], "-r"),
+            Link(".bash_logout", env['HOME'], "-r"),
         ),
         make_links=False,
     ),
@@ -368,11 +368,12 @@ repos = (
             Link("tmux/lay.pl", f"{env['HOME']}/bin/lay"),
             Link("tmux/Nodes.pm", f"{env['HOME']}/bin/nodes"),
             Link("dotfiles/.gitignore", f"{env['XDG_CONFIG_HOME']}/git/ignore"),
-            Link("dotfiles/.irbrc", f"{env['HOME']}", "-r"),
-            Link("dotfiles/.Xresources", f"{env['HOME']}", "-r"),
-            Link("ctags/.ctags", f"{env['HOME']}", "-r"),
-            Link("tmux/.tmux.conf", f"{env['HOME']}", "-r"),
+            Link("dotfiles/.irbrc", env['HOME'], "-r"),
+            Link("dotfiles/.Xresources", env['HOME'], "-r"),
+            Link("ctags/.ctags", env['HOME'], "-r"),
+            Link("tmux/.tmux.conf", env['HOME'], "-r"),
             Link("XDG/bat_config", f"{env['XDG_CONFIG_HOME']}/bat/config"),
+            Link("XDG/starship.toml", env['XDG_CONFIG_HOME']),
         ),
     ),
     RepoData("help"),
