@@ -18,8 +18,8 @@ use Time::Piece;
 use Time::Seconds;
 
 my $PINK = color 'ansi205';
-my $GRAY = color 'ansi242';
-my $R = color 'reset';
+my $DIM = FAINT;
+my $RES = RESET;
 
 my $help = << "----------";
 Certificate/CSR information
@@ -31,8 +31,8 @@ cert [options] file|URL
 --fingerprint, -f
 --text,        -t
 --view,        -v : print openssl commands
-$GRAY–––––––––$R
---subject,     -s : ${GRAY}defaults$R
+$DIM–––––––––$RES
+--subject,     -s : ${DIM}defaults$RES
 --issuer,      -i
 --dates,       -d
 
@@ -160,10 +160,10 @@ sub cert
          $d_end = RED.$d_end.RESET;
       }
 
-      s/^subject.+cn\h*=\h*/$GRAY.'subject: '.RESET/megi;
-      s/^issuer.+cn\h*=\h*/$GRAY.' issuer: '.RESET/megi;
-      s/^notbefore=/$GRAY.'   from: '.RESET/megi;
-      s/^notafter=.+/$GRAY.'     to: '.RESET.$d_end/megi;
+      s/^subject.+cn\h*=\h*/FAINT.'subject: '.RESET/megi;
+      s/^issuer.+cn\h*=\h*/FAINT.' issuer: '.RESET/megi;
+      s/^notbefore=/FAINT.'   from: '.RESET/megi;
+      s/^notafter=.+/FAINT.'     to: '.RESET.$d_end/megi;
 
       say;
    } elsif (defined $text) {
@@ -190,7 +190,7 @@ sub csr
       # default subject
       my $prompt = 'Subject: ';
       my $subj = "/C=GB/ST=State/L=London/O=Company/OU=IT/CN=$fqdn/emailAddress=";
-      my $subj_fields = ' ' x length($prompt) . $GRAY.$subj.RESET;
+      my $subj_fields = ' ' x length($prompt) . FAINT.$subj.RESET;
 
       # get subject from previous CSR
       if (-f $cert)
@@ -234,7 +234,7 @@ sub check
          $_ = run '-g', $command;
          s/\n{2,}(?=issuer|\z)/\n/gi;
          s/\n{2,}/\n\n/g;
-         s/^.*cn\h*=\h*/$GRAY.$&.RESET/megi;
+         s/^.*cn\h*=\h*/FAINT.$&.RESET/megi;
          say;
       } else {
          run $command;
