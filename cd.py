@@ -21,7 +21,7 @@ class CDPaths:
         with open(histfile) as file:
             paths = []
             for line in file:
-                if line.lstrip().startswith("cd "):
+                if line.strip().startswith("cd "):
                     # cd /path && echo hi
                     dir = line.split("&&")[0].split(None, 1)[1]
 
@@ -53,7 +53,9 @@ class CDPaths:
                 #             paths.append(a_path)
                 #             break
         return sorted(
-            Counter(p.resolve().as_posix() for p in paths).items(),
+            Counter(
+                p.absolute().as_posix().replace(env["HOME"], "~") for p in paths
+            ).items(),
             key=operator.itemgetter(1),
             reverse=True,
         )
@@ -83,6 +85,6 @@ if __name__ == "__main__":
     proc = run(fzf, input=paths, stdout=PIPE, text=True)
 
     if proc.returncode == 0:
-        print(proc.stdout.rstrip())
+        print(proc.stdout.rstrip().replace("~", env["HOME"]))
     else:
         exit(proc.returncode)
