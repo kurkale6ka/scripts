@@ -11,10 +11,13 @@ import re
 from pathlib import Path
 from collections import Counter
 import operator
+from subprocess import run, PIPE
 
 
 class CDPaths:
     def __init__(self, histfile):
+        # TODO: typing
+        """Get 'cd' lines from the shell's history file"""
         with open(histfile) as file:
             paths = []
             for line in file:
@@ -33,6 +36,7 @@ class CDPaths:
         self._paths = paths
 
     def get(self):
+        """Returns a list of tuples: path - weight"""
         paths = []
         for p in self._paths:
             if p.exists():
@@ -62,16 +66,23 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--histfile",
-        type=str,
-        help="",
+        type=str,  # TODO: ensure this is a valid path
+        help="shell's history file location",
         default=os.environ.get(
             "HISTFILE", os.environ["XDG_DATA_HOME"] + "/zsh/history"
         ),
     )
     args = parser.parse_args()
 
-    cd_paths = CDPaths(args.histfile)
+    paths = "\n".join(p[0] for p in CDPaths(args.histfile).get())
 
-    # print(cd_paths.get())
-    for p in cd_paths.get():
-        print(p[0])
+    fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
+    # if filter_query:
+    #     fzf.extend(("-q", args.filter))
+
+    proc = run(fzf, input=paths, stdout=PIPE, text=True)
+
+    if proc.returncode == 0:
+        print(proc.stdout.rstrip())
+    else:
+        exit(proc.returncode)
