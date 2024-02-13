@@ -54,7 +54,8 @@ class CDPaths:
                 #             break
         return sorted(
             Counter(
-                p.absolute().as_posix().replace(env["HOME"], "~") for p in paths
+                os.path.normpath(p.absolute().as_posix()).replace(env["HOME"], "~")
+                for p in paths
             ).items(),
             key=operator.itemgetter(1),
             reverse=True,
@@ -74,13 +75,14 @@ if __name__ == "__main__":
             "HISTFILE", os.environ["XDG_DATA_HOME"] + "/zsh/history"
         ),
     )
+    parser.add_argument("query", type=str, nargs="?", help="fzf query")
     args = parser.parse_args()
 
     paths = "\n".join(p[0] for p in CDPaths(args.histfile).get())
 
     fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
-    # if filter_query:
-    #     fzf.extend(("-q", args.filter))
+    if args.query:
+        fzf.extend(("-q", args.query))
 
     proc = run(fzf, input=paths, stdout=PIPE, text=True)
 
