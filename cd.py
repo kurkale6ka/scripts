@@ -45,13 +45,6 @@ class CDPaths:
                 h_path = Path(env["HOME"]).joinpath(p)
                 if h_path.exists():
                     paths.append(h_path)
-                # too slow
-                # else:
-                #     for a in self._absolute_paths():
-                #         a_path = Path(a).joinpath(p)
-                #         if a_path.exists():
-                #             paths.append(a_path)
-                #             break
         return sorted(
             Counter(
                 os.path.normpath(p.absolute().as_posix()).replace(env["HOME"], "~")
@@ -60,9 +53,6 @@ class CDPaths:
             key=operator.itemgetter(1),
             reverse=True,
         )
-
-    # def _absolute_paths(self):
-    #     return [p for p in self._paths if p.is_absolute()]
 
 
 if __name__ == "__main__":
