@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 """
-Fuzzy cd
+Fuzzy cd, using shell's history
 """
 
 import argparse
@@ -59,7 +59,11 @@ class CDPaths:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog='shell function:\nc() {\n  cd -- "$(~/repos/github/scripts/cd.py "$1")"\n}',
+    )
     parser.add_argument(
         "--histfile",
         type=str,  # TODO: ensure this is a valid path
@@ -68,7 +72,12 @@ if __name__ == "__main__":
             "HISTFILE", os.environ["XDG_DATA_HOME"] + "/zsh/history"
         ),
     )
-    parser.add_argument("query", type=str, nargs="?", help="fzf query")
+    parser.add_argument(
+        "query",
+        type=str,
+        nargs="?",
+        help="fzf query\nsearch syntax: https://github.com/junegunn/fzf#search-syntax",
+    )
     args = parser.parse_args()
 
     paths = "\n".join(p[0] for p in CDPaths(args.histfile).get())
