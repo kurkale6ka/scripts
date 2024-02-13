@@ -36,7 +36,9 @@ class CDPaths:
         self._paths = paths
 
     def get(self):
-        """Returns a list of tuples: path - weight"""
+        """Returns a list of tuples: path - weight
+        Paths are then ordered from the most visited down
+        """
         paths = []
         for p in self._paths:
             if p.exists():
@@ -49,6 +51,7 @@ class CDPaths:
             Counter(
                 os.path.normpath(p.absolute().as_posix()).replace(env["HOME"], "~")
                 for p in paths
+                if p.resolve() != Path.home()
             ).items(),
             key=operator.itemgetter(1),
             reverse=True,
