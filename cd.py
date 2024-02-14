@@ -21,16 +21,22 @@ class CDPaths:
         with open(histfile) as file:
             paths = []
             for line in file:
-                if line.strip().startswith("cd "):
+                cmd = line.strip()
+                if re.match("(?:(?:builtin|command) +)?cd ", cmd):
+                    cmd = cmd.replace("builtin", "", 1).replace("command", "", 1)
+
                     # cd /path && echo hi
-                    dir = line.split("&&")[0].split(None, 1)[1]
+                    dir = cmd.split("&&")[0].split(None, 1)[1]
 
                     # cd -- -hello
                     if "-- " in dir:
                         dir = dir.split("--")[1]
 
+                    # TODO: cd() proper function -h ...
                     # checking the regex should be faster than checking for Path existence
-                    if not re.fullmatch("-\\d*", dir):
+                    if re.fullmatch("-\\d*", dir) or re.fullmatch("[./]+", dir):
+                        continue
+                    else:
                         if all(not d in Path(dir).parts for d in [".git", ".venv"]):
                             paths.append(Path(dir.strip().replace("~", env["HOME"])))
         self._paths = paths
