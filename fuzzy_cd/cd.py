@@ -48,7 +48,10 @@ class CDPaths:
         paths = []
         for p in self._paths:
             if p.exists():
-                paths.append(p)
+                # if CWD includes a symlink, I'd like to keep it
+                # without this, absolute() below won't show links
+                c_path = Path(env["PWD"]).joinpath(p)
+                paths.append(c_path)
             else:
                 h_path = Path(env["HOME"]).joinpath(p)
                 if h_path.exists():

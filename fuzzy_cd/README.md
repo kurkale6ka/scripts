@@ -2,7 +2,7 @@
 
 ```bash
 c() {
-    script='/path/to/cd.py'
+    script=/path/to/cd.py
 
     for arg in "$@"
     do
