@@ -18,7 +18,7 @@ class CDPaths:
     def __init__(self, histfile):
         # TODO: typing
         """Get 'cd' lines from the shell's history file"""
-        with open(histfile) as file:
+        with histfile as file:
             paths = []
             for line in file:
                 cmd = line.strip()
@@ -32,7 +32,6 @@ class CDPaths:
                     if "-- " in dir:
                         dir = dir.split("--")[1]
 
-                    # TODO: cd() proper function -h ...
                     # checking the regex should be faster than checking for Path existence
                     if re.fullmatch("-\\d*", dir) or re.fullmatch("[./]+", dir):
                         continue
@@ -47,14 +46,13 @@ class CDPaths:
         """
         paths = []
         for p in self._paths:
-            if p.exists():
+            if p.is_dir():
                 # if CWD includes a symlink, I'd like to keep it
                 # without this, absolute() below won't show links
-                c_path = Path(env["PWD"]).joinpath(p)
-                paths.append(c_path)
+                paths.append(Path(env["PWD"]).joinpath(p))
             else:
                 h_path = Path(env["HOME"]).joinpath(p)
-                if h_path.exists():
+                if h_path.is_dir():
                     paths.append(h_path)
         return sorted(
             Counter(
@@ -73,7 +71,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--histfile",
-        type=str,  # TODO: ensure this is a valid path
+        type=argparse.FileType("r"),
         help="shell's history file location",
         default=os.environ.get(
             "HISTFILE", os.environ["XDG_DATA_HOME"] + "/zsh/history"
