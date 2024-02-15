@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "fcd"
+version = "1.0.0"
+description = "Fuzzy cd, using shell's history"
+authors = ["Dimitar Dimitrov <kurkale6ka@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+tabulate = "*"
+
+[tool.poetry.scripts]
+fcd = "fcd:main"
+
+[tool.pyright]
+venv = ".venv"
+venvPath = "."
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -12,6 +12,7 @@ from pathlib import Path
 from collections import Counter
 import operator
 from subprocess import run, PIPE
+from tabulate import tabulate
 
 
 class CDPaths:
@@ -65,7 +66,7 @@ class CDPaths:
         )
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
@@ -78,6 +79,12 @@ if __name__ == "__main__":
         ),
     )
     parser.add_argument(
+        "-s",
+        "--stats",
+        action="store_true",
+        help="show locations with their weight (cd frequency)",
+    )
+    parser.add_argument(
         "query",
         type=str,
         nargs="?",
@@ -85,15 +92,30 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    paths = "\n".join(p[0] for p in CDPaths(args.histfile).get())
-
-    fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
-    if args.query:
-        fzf.extend(("-q", args.query))
-
-    proc = run(fzf, input=paths, stdout=PIPE, text=True)
-
-    if proc.returncode == 0:
-        print(proc.stdout.rstrip().replace("~", env["HOME"]))
+    # Start
+    if args.stats:
+        print(
+            tabulate(
+                [(p, w) for (p, w) in CDPaths(args.histfile).get() if w > 1]
+                + [("...", 1)],
+                headers=["location", "weight"],
+                colalign=("right", "left"),
+            )
+        )
     else:
-        exit(proc.returncode)
+        paths = "\n".join(p[0] for p in CDPaths(args.histfile).get())
+
+        fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
+        if args.query:
+            fzf.extend(("-q", args.query))
+
+        proc = run(fzf, input=paths, stdout=PIPE, text=True)
+
+        if proc.returncode == 0:
+            print(proc.stdout.rstrip().replace("~", env["HOME"]))
+        else:
+            exit(proc.returncode)
+
+
+if __name__ == "__main__":
+    main()
