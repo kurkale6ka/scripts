@@ -66,9 +66,7 @@ class CDPaths:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawTextHelpFormatter,
-        epilog='shell function:\nc() {\n  cd -- "$(~/repos/github/scripts/cd.py "$1")"\n}',
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument(
         "--histfile",
