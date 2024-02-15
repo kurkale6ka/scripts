@@ -17,7 +17,7 @@ c() {
 
     for arg in "$@"
     do
-        if [[ $arg == @(-h|--help|-s|--stat) ]]
+        if [[ $arg == @(-h|--help|-s|--stats) ]]
         then
             "$script" "$arg"
             return
@@ -37,7 +37,7 @@ script=/path/to/fuzzy_cd/.venv/bin/fcd
 
 for arg in "$@"
 do
-    if [[ $arg == (-h|--help|-s|--stat) ]]
+    if [[ $arg == (-h|--help|-s|--stats) ]]
     then
         "$script" "$arg"
         return
