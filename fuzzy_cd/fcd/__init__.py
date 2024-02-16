@@ -57,7 +57,7 @@ class CDPaths:
                     paths.append(h_path)
         return sorted(
             Counter(
-                os.path.normpath(p.absolute().as_posix()).replace(env["HOME"], "~")
+                os.path.normpath(p.absolute()).replace(env["HOME"], "~")
                 for p in paths
                 if p.resolve() != Path.home()
             ).items(),
