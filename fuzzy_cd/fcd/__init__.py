@@ -14,8 +14,9 @@ import operator
 from subprocess import run, PIPE
 from tabulate import tabulate
 
-# TODO: check 'c' records a cd in history
-# typing
+# TODO:
+# - add typing hints
+# - do not add 'c ' entries in zsh history (modify .zshrc)
 
 
 class CDPaths:
@@ -24,7 +25,7 @@ class CDPaths:
         Only interactive 'cd' usage is considered,
         'cd's within for loops or other commands are unchecked
         """
-        with histfile as file:
+        with open(histfile) as file:
             paths = []
 
             cd_re = re.compile("(?:(?:builtin|command) +)?(cd .+)")
@@ -85,12 +86,18 @@ class CDPaths:
 
 
 def main():
+    def validate_histfile(file):
+        if Path(file).is_file():
+            return file
+        else:
+            raise argparse.ArgumentTypeError(f"'{file}' does not exist")
+
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument(
         "--histfile",
-        type=argparse.FileType("r"),
+        type=validate_histfile,
         help="shell's history file location",
         default=env.get("HISTFILE", env["XDG_DATA_HOME"] + "/zsh/history"),
     )
@@ -128,7 +135,16 @@ def main():
         proc = run(fzf, input=paths, stdout=PIPE, text=True)
 
         if proc.returncode == 0:
-            print(Path(proc.stdout.rstrip()).expanduser())
+            dir = Path(proc.stdout.rstrip())
+            # expanduser() is needed for cd -- "$("$script" "$@")" to work
+            print(dir.expanduser())
+
+            # append to shell's history
+            with open(args.histfile, "a") as file:
+                if str(dir).startswith("-"):
+                    file.write(f"cd -- {dir}\n")
+                else:
+                    file.write(f"cd {dir}\n")
         else:
             exit(proc.returncode)
 
