@@ -8,37 +8,53 @@ import argparse
 import os
 from os import environ as env
 import re
-from pathlib import Path
+from pathlib import Path, PurePath
 from collections import Counter
 import operator
 from subprocess import run, PIPE
 from tabulate import tabulate
 
+# TODO: check 'c' records a cd in history
+# typing
+
 
 class CDPaths:
     def __init__(self, histfile):
-        # TODO: typing
-        """Get 'cd' lines from the shell's history file"""
+        """Get 'cd' lines from the shell's history file.
+        Only interactive 'cd' usage is considered,
+        'cd's within for loops or other commands are unchecked
+        """
         with histfile as file:
             paths = []
+
+            cd_re = re.compile("(?:(?:builtin|command) +)?(cd .+)")
+            dir_dash_re = re.compile("-\\d*")  # -num
+            dir_dots_re = re.compile("[./]+")  # ../..
+
             for line in file:
-                cmd = line.strip()
-                if re.match("(?:(?:builtin|command) +)?cd ", cmd):
-                    cmd = cmd.replace("builtin", "", 1).replace("command", "", 1)
+                match = cd_re.match(line.strip())
+                if match:
+                    cd = match.group(1)
 
-                    # cd /path && echo hi
-                    dir = cmd.split("&&")[0].split(None, 1)[1]
+                    # cd /path && echo 1 && echo 2
+                    dir = cd.split("&&", 1)[0].split(None, 1)[1].rstrip()
 
-                    # cd -- -hello
-                    if "-- " in dir:
-                        dir = dir.split("--")[1]
+                    # cd -- -hello--world
+                    if dir.startswith("-- "):
+                        dir = dir.split("--", 1)[1].lstrip()
 
-                    # checking the regex should be faster than checking for Path existence
-                    if re.fullmatch("-\\d*", dir) or re.fullmatch("[./]+", dir):
+                    # remove quote escaped or \ escaped white spaces
+                    dir = dir.strip("'\"").replace("\\ ", " ")
+
+                    # exclude:
+                    # cd -2, checking the regex 'should' be faster than checking if -num is a dir
+                    # cd ../..
+                    # cd */.venv/*, .git, ...
+                    if dir_dash_re.fullmatch(dir) or dir_dots_re.fullmatch(dir):
                         continue
                     else:
-                        if all(not d in Path(dir).parts for d in [".git", ".venv"]):
-                            paths.append(Path(dir.strip()))
+                        if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
+                            paths.append(dir)
         self._paths = paths
 
     def get(self):
@@ -47,7 +63,7 @@ class CDPaths:
         """
         paths = []
         for p in self._paths:
-            path = p.expanduser()
+            path = Path(p).expanduser()
             if path.is_dir():
                 # For relative paths, absolute() below resolves links,
                 # Path().cwd() does the same.
