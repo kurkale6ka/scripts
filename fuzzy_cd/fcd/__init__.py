@@ -38,7 +38,7 @@ class CDPaths:
                         continue
                     else:
                         if all(not d in Path(dir).parts for d in [".git", ".venv"]):
-                            paths.append(Path(dir.strip().replace("~", env["HOME"])))
+                            paths.append(Path(dir.strip()))
         self._paths = paths
 
     def get(self):
@@ -47,12 +47,13 @@ class CDPaths:
         """
         paths = []
         for p in self._paths:
-            if p.is_dir():
+            path = p.expanduser()
+            if path.is_dir():
                 # if CWD includes a symlink, I'd like to keep it
                 # without this, absolute() below won't show links
-                paths.append(Path(env["PWD"]).joinpath(p))
+                paths.append(Path(env["PWD"]).joinpath(path))
             else:
-                h_path = Path(env["HOME"]).joinpath(p)
+                h_path = Path(env["HOME"]).joinpath(path)
                 if h_path.is_dir():
                     paths.append(h_path)
         return sorted(
@@ -112,7 +113,7 @@ def main():
         proc = run(fzf, input=paths, stdout=PIPE, text=True)
 
         if proc.returncode == 0:
-            print(proc.stdout.rstrip().replace("~", env["HOME"]))
+            print(Path(proc.stdout.rstrip()).expanduser())
         else:
             exit(proc.returncode)
 
