@@ -53,12 +53,12 @@ class CDPaths:
                 # without this, absolute() below won't show links
                 paths.append(Path(env["PWD"]).joinpath(path))
             else:
-                h_path = Path(env["HOME"]).joinpath(path)
+                h_path = Path.home().joinpath(path)
                 if h_path.is_dir():
                     paths.append(h_path)
         return sorted(
             Counter(
-                os.path.normpath(p.absolute()).replace(env["HOME"], "~")
+                os.path.normpath(p.absolute()).replace(str(Path.home()), "~")
                 for p in paths
                 if p.resolve() != Path.home()
             ).items(),
@@ -75,9 +75,7 @@ def main():
         "--histfile",
         type=argparse.FileType("r"),
         help="shell's history file location",
-        default=os.environ.get(
-            "HISTFILE", os.environ["XDG_DATA_HOME"] + "/zsh/history"
-        ),
+        default=env.get("HISTFILE", env["XDG_DATA_HOME"] + "/zsh/history"),
     )
     parser.add_argument(
         "-s",
