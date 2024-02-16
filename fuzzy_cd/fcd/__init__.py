@@ -42,15 +42,16 @@ class CDPaths:
         self._paths = paths
 
     def get(self):
-        """Returns a list of tuples: path - weight
+        """Returns a list of tuples: path, weight
         Paths are then ordered from the most visited down
         """
         paths = []
         for p in self._paths:
             path = p.expanduser()
             if path.is_dir():
-                # if CWD includes a symlink, I'd like to keep it
-                # without this, absolute() below won't show links
+                # For relative paths, absolute() below resolves links,
+                # Path().cwd() does the same.
+                # Since I want to keep them, I use PWD!
                 paths.append(Path(env["PWD"]).joinpath(path))
             else:
                 h_path = Path.home().joinpath(path)
