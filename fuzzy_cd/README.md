@@ -26,6 +26,9 @@ c() {
 
     cd -- "$("$script" "$@")"
 }
+
+# in .bashrc
+HISTIGNORE='c:c *'
 ```
 
 # ZSH autoload setup
@@ -45,4 +48,7 @@ do
 done
 
 cd -- "$("$script" "$@")"
+
+# in .zshenv
+HISTORY_IGNORE='(c|c *)'
 ```
