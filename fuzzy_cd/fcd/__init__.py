@@ -145,7 +145,8 @@ def main() -> None:
 
             # append to shell's history
             with open(args.histfile, "a") as file:
-                if str(dir).startswith("-"):
+                dir = str(dir).replace(" ", "\\ ")
+                if dir.startswith("-"):
                     file.write(f"cd -- {dir}\n")
                 else:
                     file.write(f"cd {dir}\n")
