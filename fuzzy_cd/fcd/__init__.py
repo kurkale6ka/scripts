@@ -14,16 +14,15 @@ import operator
 from subprocess import run, PIPE
 from tabulate import tabulate
 
-# TODO:
-# - add typing hints
-# - do not add 'c ' entries in zsh history (modify .zshrc)
-
 
 class CDPaths:
-    def __init__(self, histfile):
+    def __init__(self, histfile: str | os.PathLike) -> None:
         """Get 'cd' lines from the shell's history file.
+
         Only interactive 'cd' usage is considered,
         'cd's within for loops or other commands are unchecked
+
+        Set a list of paths
         """
         with open(histfile) as file:
             paths = []
@@ -56,20 +55,25 @@ class CDPaths:
                     else:
                         if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
                             paths.append(dir)
+
         self._paths = paths
 
-    def get(self):
-        """Returns a list of tuples: path, weight
-        Paths are then ordered from the most visited down
+    def get(self) -> list[tuple[str, int]]:
+        """Returns a list of tuples: path, weight.
+
+        paths are then ordered from the most visited down
         """
         paths = []
         for p in self._paths:
             path = Path(p).expanduser()
             if path.is_dir():
-                # For relative paths, absolute() below resolves links,
-                # Path().cwd() does the same.
-                # Since I want to keep them, I use PWD!
-                paths.append(Path(env["PWD"]).joinpath(path))
+                if path.is_absolute():
+                    paths.append(path)
+                else:
+                    # For relative paths, absolute() below resolves links,
+                    # Path().cwd() does the same.
+                    # Since I want to keep them, I use PWD!
+                    paths.append(Path(env["PWD"]).joinpath(path))
             else:
                 h_path = Path.home().joinpath(path)
                 if h_path.is_dir():
@@ -85,8 +89,8 @@ class CDPaths:
         )
 
 
-def main():
-    def validate_histfile(file):
+def main() -> None:
+    def validate_histfile(file: str | os.PathLike) -> str | os.PathLike:
         if Path(file).is_file():
             return file
         else:
