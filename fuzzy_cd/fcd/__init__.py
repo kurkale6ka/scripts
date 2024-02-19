@@ -14,9 +14,11 @@ import operator
 from subprocess import run, PIPE
 from tabulate import tabulate
 
+File = str | os.PathLike
+
 
 class CDPaths:
-    def __init__(self, histfile: str | os.PathLike) -> None:
+    def __init__(self, histfile: File) -> None:
         """Get 'cd' lines from the shell's history file.
 
         Only interactive 'cd' usage is considered,
@@ -90,7 +92,7 @@ class CDPaths:
 
 
 def main() -> None:
-    def validate_histfile(file: str | os.PathLike) -> str | os.PathLike:
+    def validate_histfile(file: File) -> File:
         if Path(file).is_file():
             return file
         else:

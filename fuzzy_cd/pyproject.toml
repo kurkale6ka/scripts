@@ -6,6 +6,7 @@ authors = ["Dimitar Dimitrov <kurkale6ka@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
+python = "^3.10"
 tabulate = "*"
 
 [tool.poetry.scripts]
