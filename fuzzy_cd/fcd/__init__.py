@@ -66,6 +66,7 @@ class CDPaths:
         paths are then ordered from the most visited down
         """
         paths = []
+        ipaths = []
         for p in self._paths:
             path = Path(p).expanduser()
             if path.is_dir():
@@ -76,10 +77,13 @@ class CDPaths:
                     # Path().cwd() does the same.
                     # Since I want to keep them, I use PWD!
                     paths.append(Path(env["PWD"]).joinpath(path))
-            else:
+            elif not path.is_absolute():
                 h_path = Path.home().joinpath(path)
                 if h_path.is_dir():
                     paths.append(h_path)
+            else:
+                ipaths.append(path)
+        print("Invalid paths:", "\n".join(map(str, ipaths)), sep="\n")
         return sorted(
             Counter(
                 os.path.normpath(p.absolute()).replace(str(Path.home()), "~")
@@ -114,6 +118,9 @@ def main() -> None:
         help="show locations with their weight (cd frequency)",
     )
     parser.add_argument(
+        "-c", "--cleanup", action="store_true", help="clean invalid paths"
+    )
+    parser.add_argument(
         "query",
         type=str,
         nargs="?",
@@ -131,6 +138,9 @@ def main() -> None:
                 colalign=("right", "left"),
             )
         )
+    elif args.cleanup:
+        ...
+        # print("Invalid paths:", "\n".join(ipaths))
     else:
         paths = "\n".join(p[0] for p in CDPaths(args.histfile).get())
 
