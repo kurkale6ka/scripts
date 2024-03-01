@@ -58,15 +58,16 @@ class CDPaths:
                         if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
                             paths.append(dir)
 
-        self._paths = paths
+        self._paths: list[str] = paths
 
-    def get(self) -> list[tuple[str, int]]:
+    def get(self, invalid=False) -> list[tuple[str, int]]:
         """Returns a list of tuples: path, weight.
 
         paths are then ordered from the most visited down
         """
-        paths = []
-        ipaths = []
+        paths: list[Path] = []
+        ipaths: list[str] = []
+
         for p in self._paths:
             path = Path(p).expanduser()
             if path.is_dir():
@@ -82,17 +83,24 @@ class CDPaths:
                 if h_path.is_dir():
                     paths.append(h_path)
             else:
-                ipaths.append(path)
-        print("Invalid paths:", "\n".join(map(str, ipaths)), sep="\n")
-        return sorted(
-            Counter(
-                os.path.normpath(p.absolute()).replace(str(Path.home()), "~")
-                for p in paths
-                if p.resolve() != Path.home()
-            ).items(),
-            key=operator.itemgetter(1),
-            reverse=True,
-        )
+                ipaths.append(p)
+
+        if invalid:
+            return sorted(
+                Counter(os.path.normpath(p) for p in ipaths).items(),
+                key=operator.itemgetter(1),
+                reverse=True,
+            )
+        else:
+            return sorted(
+                Counter(
+                    os.path.normpath(p.absolute()).replace(str(Path.home()), "~")
+                    for p in paths
+                    if p.resolve() != Path.home()
+                ).items(),
+                key=operator.itemgetter(1),
+                reverse=True,
+            )
 
 
 def main() -> None:
@@ -129,20 +137,26 @@ def main() -> None:
     args = parser.parse_args()
 
     # Start
+    cdpaths = CDPaths(args.histfile)
+
     if args.stats:
         print(
             tabulate(
-                [(p, w) for (p, w) in CDPaths(args.histfile).get() if w > 1]
-                + [("...", 1)],
-                headers=["location", "weight"],
+                [(p, w) for (p, w) in cdpaths.get() if w > 1] + [("...", 1)],
+                headers=["Location", "Weight"],
                 colalign=("right", "left"),
             )
         )
     elif args.cleanup:
-        ...
-        # print("Invalid paths:", "\n".join(ipaths))
+        print(
+            tabulate(
+                [(p, w) for (p, w) in cdpaths.get(invalid=True)],
+                headers=["Invalid paths", "Occurences"],
+                colalign=("right", "left"),
+            )
+        )
     else:
-        paths = "\n".join(p[0] for p in CDPaths(args.histfile).get())
+        paths = "\n".join(p[0] for p in cdpaths.get())
 
         fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
         if args.query:
@@ -152,6 +166,7 @@ def main() -> None:
 
         if proc.returncode == 0:
             dir = Path(proc.stdout.rstrip())
+
             # expanduser() is needed for cd -- "$("$script" "$@")" to work
             print(dir.expanduser())
 
