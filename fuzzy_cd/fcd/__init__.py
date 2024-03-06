@@ -10,11 +10,18 @@ from os import environ as env
 import re
 from pathlib import Path, PurePath
 from collections import Counter
+from dataclasses import dataclass
 import operator
 from subprocess import run, PIPE
 from tabulate import tabulate
 
 File = str | os.PathLike
+
+
+@dataclass
+class HistoryEntry:
+    value: str = ""
+    cdpath: str | None = None
 
 
 class CDPaths:
@@ -28,12 +35,15 @@ class CDPaths:
         """
         with open(histfile) as file:
             paths = []
+            history: list[HistoryEntry] = []
 
             cd_re = re.compile("(?:(?:builtin|command) +)?(cd .+)")
             dir_dash_re = re.compile("-\\d*")  # -num
             dir_dots_re = re.compile("[./]+")  # ../..
 
             for line in file:
+                history.append(HistoryEntry(value=line))
+
                 match = cd_re.match(line.strip())
                 if match:
                     cd = match.group(1)
@@ -57,10 +67,16 @@ class CDPaths:
                     else:
                         if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
                             paths.append(dir)
+                            history[-1].cdpath = dir
 
         self._paths: list[str] = paths
+        self._history: list[HistoryEntry] = history
 
-    def get(self, invalid=False) -> list[tuple[str, int]]:
+    @property
+    def history(self):
+        return self._history
+
+    def get(self, invalid=False) -> list[str]:
         """Returns a list of tuples: path, weight.
 
         paths are then ordered from the most visited down
@@ -86,21 +102,9 @@ class CDPaths:
                 ipaths.append(p)
 
         if invalid:
-            return sorted(
-                Counter(os.path.normpath(p) for p in ipaths).items(),
-                key=operator.itemgetter(1),
-                reverse=True,
-            )
+            return ipaths
         else:
-            return sorted(
-                Counter(
-                    os.path.normpath(p.absolute()).replace(str(Path.home()), "~")
-                    for p in paths
-                    if p.resolve() != Path.home()
-                ).items(),
-                key=operator.itemgetter(1),
-                reverse=True,
-            )
+            return paths
 
 
 def main() -> None:
@@ -148,14 +152,48 @@ def main() -> None:
             )
         )
     elif args.cleanup:
-        print(
-            tabulate(
-                [(p, w) for (p, w) in cdpaths.get(invalid=True)],
-                headers=["Invalid paths", "Occurences"],
-                colalign=("right", "left"),
+
+        # return sorted(
+        #     Counter(os.path.normpath(p) for p in ipaths).items(),
+        #     key=operator.itemgetter(1),
+        #     reverse=True,
+        # )
+        ipaths = cdpaths.get(invalid=True)
+        if ipaths:
+            print(
+                tabulate(
+                    [(p, o) for (p, o) in ipaths],
+                    headers=["Invalid paths", "Occurences"],
+                    colalign=("right", "left"),
+                )
             )
-        )
+
+            # delete from history
+            lines: list[str] = []
+            invalid_paths = [ipath[0] for ipath in ipaths]
+
+            from pprint import pprint as p
+
+            for entry in cdpaths.history:
+                if entry.cdpath:
+                    p(entry)
+                    p(ipaths)
+                if not entry.cdpath or not entry.cdpath in invalid_paths:
+                    lines.append(entry.value)
+
+            # if lines:
+            #     with open(args.histfile, "w") as file:
+            #         file.writelines(lines)
     else:
+        # return sorted(
+        #     Counter(
+        #         os.path.normpath(p.absolute()).replace(str(Path.home()), "~")
+        #         for p in paths
+        #         if p.resolve() != Path.home()
+        #     ).items(),
+        #     key=operator.itemgetter(1),
+        #     reverse=True,
+        # )
         paths = "\n".join(p[0] for p in cdpaths.get())
 
         fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
