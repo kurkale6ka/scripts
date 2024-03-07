@@ -76,13 +76,12 @@ class CDPaths:
     def history(self):
         return self._history
 
-    def get(self, invalid=False) -> list[str]:
+    def get(self) -> list[Path]:
         """Returns a list of tuples: path, weight.
 
         paths are then ordered from the most visited down
         """
         paths: list[Path] = []
-        ipaths: list[str] = []
 
         for p in self._paths:
             path = Path(p).expanduser()
@@ -98,13 +97,49 @@ class CDPaths:
                 h_path = Path.home().joinpath(path)
                 if h_path.is_dir():
                     paths.append(h_path)
-            else:
+
+        return paths
+
+    def print(self) -> None:
+        cdpaths = sorted(
+            Counter(
+                os.path.normpath(p.absolute()).replace(str(Path.home()), "~")
+                for p in self.get()
+                if p.resolve() != Path.home()
+            ).items(),
+            key=operator.itemgetter(1),
+            reverse=True,
+        )
+        print(
+            tabulate(
+                [(p, w) for (p, w) in cdpaths if w > 1] + [("...", 1)],
+                headers=["Location", "Weight"],
+                colalign=("right", "left"),
+            )
+        )
+
+
+class CDPathsInvalid(CDPaths):
+    def get(self) -> list[str]:
+        """Returns a list of tuples: path, weight.
+
+        paths are then ordered from the most visited down
+        """
+        ipaths: list[str] = []
+
+        for p in self._paths:
+            path = Path(p).expanduser()
+            if not path.is_dir() and path.is_absolute():
                 ipaths.append(p)
 
-        if invalid:
-            return ipaths
-        else:
-            return paths
+        return ipaths
+
+    def print(self):
+        return sorted(
+            Counter(os.path.normpath(p) for p in self.get()).items(),
+            key=operator.itemgetter(1),
+            reverse=True,
+        )
 
 
 def main() -> None:
@@ -144,20 +179,9 @@ def main() -> None:
     cdpaths = CDPaths(args.histfile)
 
     if args.stats:
-        print(
-            tabulate(
-                [(p, w) for (p, w) in cdpaths.get() if w > 1] + [("...", 1)],
-                headers=["Location", "Weight"],
-                colalign=("right", "left"),
-            )
-        )
+        cdpaths.print()
     elif args.cleanup:
 
-        # return sorted(
-        #     Counter(os.path.normpath(p) for p in ipaths).items(),
-        #     key=operator.itemgetter(1),
-        #     reverse=True,
-        # )
         ipaths = cdpaths.get(invalid=True)
         if ipaths:
             print(
@@ -185,15 +209,6 @@ def main() -> None:
             #     with open(args.histfile, "w") as file:
             #         file.writelines(lines)
     else:
-        # return sorted(
-        #     Counter(
-        #         os.path.normpath(p.absolute()).replace(str(Path.home()), "~")
-        #         for p in paths
-        #         if p.resolve() != Path.home()
-        #     ).items(),
-        #     key=operator.itemgetter(1),
-        #     reverse=True,
-        # )
         paths = "\n".join(p[0] for p in cdpaths.get())
 
         fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
