@@ -67,6 +67,7 @@ class CDPaths:
                     else:
                         if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
                             paths.append(dir)
+                            # this entry is a 'cd ...' command, this will help with --cleanup
                             history[-1].cdpath = dir
 
         self._paths: list[str] = paths
@@ -76,7 +77,7 @@ class CDPaths:
     def history(self):
         return self._history
 
-    def get(self) -> list[Path]:
+    def get(self) -> list[tuple[str, int]]:
         """Returns a list of tuples: path, weight.
 
         paths are then ordered from the most visited down
@@ -98,33 +99,28 @@ class CDPaths:
                 if h_path.is_dir():
                     paths.append(h_path)
 
-        return paths
-
-    def print(self) -> None:
-        cdpaths = sorted(
+        return sorted(
             Counter(
                 os.path.normpath(p.absolute()).replace(str(Path.home()), "~")
-                for p in self.get()
+                for p in paths
                 if p.resolve() != Path.home()
             ).items(),
             key=operator.itemgetter(1),
             reverse=True,
         )
-        print(
-            tabulate(
-                [(p, w) for (p, w) in cdpaths if w > 1] + [("...", 1)],
-                headers=["Location", "Weight"],
-                colalign=("right", "left"),
-            )
+
+    @property
+    def stats(self) -> str:
+        return tabulate(
+            [(p, w) for (p, w) in self.get() if w > 1] + [("...", 1)],
+            headers=["Location", "Weight"],
+            colalign=("right", "left"),
         )
 
 
 class CDPathsInvalid(CDPaths):
-    def get(self) -> list[str]:
-        """Returns a list of tuples: path, weight.
-
-        paths are then ordered from the most visited down
-        """
+    def get(self) -> list[tuple[str, int]]:
+        """Returns a list of tuples: ipath, occurences"""
         ipaths: list[str] = []
 
         for p in self._paths:
@@ -132,13 +128,14 @@ class CDPathsInvalid(CDPaths):
             if not path.is_dir() and path.is_absolute():
                 ipaths.append(p)
 
-        return ipaths
+        return sorted(Counter(ipaths).items(), key=operator.itemgetter(1), reverse=True)
 
-    def print(self):
-        return sorted(
-            Counter(os.path.normpath(p) for p in self.get()).items(),
-            key=operator.itemgetter(1),
-            reverse=True,
+    @property
+    def stats(self) -> str:
+        return tabulate(
+            [(p, o) for (p, o) in self.get()],
+            headers=["Invalid paths", "Occurences"],
+            colalign=("right", "left"),
         )
 
 
@@ -176,40 +173,30 @@ def main() -> None:
     args = parser.parse_args()
 
     # Start
-    cdpaths = CDPaths(args.histfile)
-
     if args.stats:
-        cdpaths.print()
+        print(CDPaths(args.histfile).stats)
+
     elif args.cleanup:
-
-        ipaths = cdpaths.get(invalid=True)
+        cdpaths = CDPathsInvalid(args.histfile)
+        ipaths = cdpaths.get()
         if ipaths:
-            print(
-                tabulate(
-                    [(p, o) for (p, o) in ipaths],
-                    headers=["Invalid paths", "Occurences"],
-                    colalign=("right", "left"),
-                )
-            )
+            print(cdpaths.stats)
 
-            # delete from history
-            lines: list[str] = []
-            invalid_paths = [ipath[0] for ipath in ipaths]
+            # TODO: take a backup
+            if input("Delete from history (y/n)? ") == "y":
+                lines: list[str] = []
+                invalid_paths = [ipath[0] for ipath in ipaths]
 
-            from pprint import pprint as p
+                for entry in cdpaths.history:
+                    if not entry.cdpath or not entry.cdpath in invalid_paths:
+                        lines.append(entry.value)
 
-            for entry in cdpaths.history:
-                if entry.cdpath:
-                    p(entry)
-                    p(ipaths)
-                if not entry.cdpath or not entry.cdpath in invalid_paths:
-                    lines.append(entry.value)
-
-            # if lines:
-            #     with open(args.histfile, "w") as file:
-            #         file.writelines(lines)
+                if lines:
+                    with open(args.histfile, "w") as file:
+                        file.writelines(lines)
     else:
-        paths = "\n".join(p[0] for p in cdpaths.get())
+        cdpaths = CDPaths(args.histfile)
+        paths = "\n".join(path[0] for path in cdpaths.get())
 
         fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
         if args.query:
