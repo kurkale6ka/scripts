@@ -218,7 +218,7 @@ def main() -> None:
         if proc.returncode == 0:
             dir = Path(proc.stdout.rstrip())
 
-            # expanduser() is needed for cd -- "$("$script" "$@")" to work
+            # expanduser() is needed for cd -- "$dir" in the shell function to work
             print(dir.expanduser())
 
             # append to shell's history
