@@ -185,7 +185,7 @@ def main() -> None:
             print(cdpaths.stats)
 
             # TODO: take a backup?
-            if input("Delete from history (y/n)? ") == "y":
+            if input("\nDelete from history (y/n)? ") == "y":
                 lines: list[str] = []
                 invalid_paths = [ipath[0] for ipath in ipaths]
 
@@ -193,12 +193,15 @@ def main() -> None:
                     if not entry.cdpath or not entry.cdpath in invalid_paths:
                         lines.append(entry.value)
 
-                if lines:
+                if len(lines) == len(cdpaths.history) - len(invalid_paths):
                     with open(args.histfile, "w") as file:
                         file.writelines(lines)
+                else:
+                    exit(f"error while writing {args.histfile}")
+        else:
+            print("nothing to cleanup")
     else:
-        cdpaths = CDPaths(args.histfile)
-        paths = "\n".join(path[0] for path in cdpaths.get())
+        paths = "\n".join(path[0] for path in CDPaths(args.histfile).get())
 
         fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
         if args.query:
