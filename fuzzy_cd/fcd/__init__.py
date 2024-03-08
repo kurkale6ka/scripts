@@ -10,6 +10,7 @@ from os import environ as env
 import re
 from pathlib import Path, PurePath
 from collections import Counter
+from dataclasses import dataclass
 import operator
 from subprocess import run, PIPE
 from tabulate import tabulate
@@ -17,23 +18,34 @@ from tabulate import tabulate
 File = str | os.PathLike
 
 
+@dataclass
+class HistoryEntry:
+    value: str = ""
+    # only added if the entry was a 'cd ...' command
+    cdpath: str | None = None
+
+
 class CDPaths:
     def __init__(self, histfile: File) -> None:
-        """Get 'cd' lines from the shell's history file.
+        """Get 'cd' lines from the shell's history file
 
         Only interactive 'cd' usage is considered,
         'cd's within for loops or other commands are unchecked
 
         Set a list of paths
+        Set history
         """
         with open(histfile) as file:
             paths = []
+            history: list[HistoryEntry] = []
 
             cd_re = re.compile("(?:(?:builtin|command) +)?(cd .+)")
             dir_dash_re = re.compile("-\\d*")  # -num
             dir_dots_re = re.compile("[./]+")  # ../..
 
             for line in file:
+                history.append(HistoryEntry(value=line))
+
                 match = cd_re.match(line.strip())
                 if match:
                     cd = match.group(1)
@@ -57,15 +69,23 @@ class CDPaths:
                     else:
                         if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
                             paths.append(dir)
+                            # this entry is a 'cd ...' command, this will help with --cleanup
+                            history[-1].cdpath = dir
 
-        self._paths = paths
+        self._paths: list[str] = paths
+        self._history: list[HistoryEntry] = history
+
+    @property
+    def history(self):
+        return self._history
 
     def get(self) -> list[tuple[str, int]]:
         """Returns a list of tuples: path, weight.
 
         paths are then ordered from the most visited down
         """
-        paths = []
+        paths: list[Path] = []
+
         for p in self._paths:
             path = Path(p).expanduser()
             if path.is_dir():
@@ -76,10 +96,11 @@ class CDPaths:
                     # Path().cwd() does the same.
                     # Since I want to keep them, I use PWD!
                     paths.append(Path(env["PWD"]).joinpath(path))
-            else:
+            elif not path.is_absolute():
                 h_path = Path.home().joinpath(path)
                 if h_path.is_dir():
                     paths.append(h_path)
+
         return sorted(
             Counter(
                 os.path.normpath(p.absolute()).replace(str(Path.home()), "~")
@@ -88,6 +109,35 @@ class CDPaths:
             ).items(),
             key=operator.itemgetter(1),
             reverse=True,
+        )
+
+    @property
+    def stats(self) -> str:
+        return tabulate(
+            [(p, w) for (p, w) in self.get() if w > 1] + [("...", 1)],
+            headers=["Location", "Weight"],
+            colalign=("right", "left"),
+        )
+
+
+class CDPathsInvalid(CDPaths):
+    def get(self) -> list[tuple[str, int]]:
+        """Returns a list of tuples: ipath, occurences"""
+        ipaths: list[str] = []
+
+        for p in self._paths:
+            path = Path(p).expanduser()
+            if not path.is_dir() and path.is_absolute():
+                ipaths.append(p)
+
+        return sorted(Counter(ipaths).items(), key=operator.itemgetter(1), reverse=True)
+
+    @property
+    def stats(self) -> str:
+        return tabulate(
+            [(p, o) for (p, o) in self.get()],
+            headers=["Invalid paths", "Occurences"],
+            colalign=("right", "left"),
         )
 
 
@@ -114,6 +164,9 @@ def main() -> None:
         help="show locations with their weight (cd frequency)",
     )
     parser.add_argument(
+        "-c", "--cleanup", action="store_true", help="clean invalid paths"
+    )
+    parser.add_argument(
         "query",
         type=str,
         nargs="?",
@@ -123,16 +176,38 @@ def main() -> None:
 
     # Start
     if args.stats:
-        print(
-            tabulate(
-                [(p, w) for (p, w) in CDPaths(args.histfile).get() if w > 1]
-                + [("...", 1)],
-                headers=["location", "weight"],
-                colalign=("right", "left"),
-            )
-        )
+        print(CDPaths(args.histfile).stats)
+
+    elif args.cleanup:
+        cdpaths = CDPathsInvalid(args.histfile)
+
+        ipaths = cdpaths.get()
+        if ipaths:
+            print(cdpaths.stats)
+            try:
+                if input("\nDelete from history (y/n)? ").lower() in ("y", "yes"):
+                    lines: list[str] = []
+                    invalid_paths = [ipath[0] for ipath in ipaths]
+
+                    for entry in cdpaths.history:
+                        if not entry.cdpath or not entry.cdpath in invalid_paths:
+                            lines.append(entry.value)
+
+                    if len(lines) == len(cdpaths.history) - len(invalid_paths):
+                        with open(args.histfile, "w") as file:
+                            file.writelines(lines)
+                    else:
+                        exit(f"error while writing {args.histfile}")
+                else:
+                    print("no")
+            except KeyboardInterrupt:
+                print()
+                exit()
+        else:
+            print("nothing to cleanup")
+
     else:
-        paths = "\n".join(p[0] for p in CDPaths(args.histfile).get())
+        paths = "\n".join(path[0] for path in CDPaths(args.histfile).get())
 
         fzf = ["fzf", "-0", "-1", "--cycle", "--height", "60%"]
         if args.query:
@@ -142,6 +217,7 @@ def main() -> None:
 
         if proc.returncode == 0:
             dir = Path(proc.stdout.rstrip())
+
             # expanduser() is needed for cd -- "$("$script" "$@")" to work
             print(dir.expanduser())
 
