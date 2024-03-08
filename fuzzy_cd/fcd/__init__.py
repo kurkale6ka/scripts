@@ -180,26 +180,32 @@ def main() -> None:
 
     elif args.cleanup:
         cdpaths = CDPathsInvalid(args.histfile)
+
         ipaths = cdpaths.get()
         if ipaths:
             print(cdpaths.stats)
+            try:
+                if input("\nDelete from history (y/n)? ").lower() in ("y", "yes"):
+                    lines: list[str] = []
+                    invalid_paths = [ipath[0] for ipath in ipaths]
 
-            # TODO: take a backup?
-            if input("\nDelete from history (y/n)? ") == "y":
-                lines: list[str] = []
-                invalid_paths = [ipath[0] for ipath in ipaths]
+                    for entry in cdpaths.history:
+                        if not entry.cdpath or not entry.cdpath in invalid_paths:
+                            lines.append(entry.value)
 
-                for entry in cdpaths.history:
-                    if not entry.cdpath or not entry.cdpath in invalid_paths:
-                        lines.append(entry.value)
-
-                if len(lines) == len(cdpaths.history) - len(invalid_paths):
-                    with open(args.histfile, "w") as file:
-                        file.writelines(lines)
+                    if len(lines) == len(cdpaths.history) - len(invalid_paths):
+                        with open(args.histfile, "w") as file:
+                            file.writelines(lines)
+                    else:
+                        exit(f"error while writing {args.histfile}")
                 else:
-                    exit(f"error while writing {args.histfile}")
+                    print("no")
+            except KeyboardInterrupt:
+                print()
+                exit()
         else:
             print("nothing to cleanup")
+
     else:
         paths = "\n".join(path[0] for path in CDPaths(args.histfile).get())
 
