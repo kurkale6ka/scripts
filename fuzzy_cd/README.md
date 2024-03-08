@@ -25,7 +25,12 @@ c() {
         fi
     done
 
-    cd -- "$("$script" "$@")"
+    dir="$("$script" "$@")"
+
+    if [[ -n $dir ]]
+    then
+        cd -- "$dir"
+    fi
 }
 
 HISTIGNORE='c:c *'
@@ -48,7 +53,12 @@ do
     fi
 done
 
-cd -- "$("$script" "$@")"
+dir="$("$script" "$@")"
+
+if [[ -n $dir ]]
+then
+    cd -- "$dir"
+fi
 ```
 
 ```bash
