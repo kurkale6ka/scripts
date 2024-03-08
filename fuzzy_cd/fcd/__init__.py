@@ -21,17 +21,19 @@ File = str | os.PathLike
 @dataclass
 class HistoryEntry:
     value: str = ""
+    # only added if the entry was a 'cd ...' command
     cdpath: str | None = None
 
 
 class CDPaths:
     def __init__(self, histfile: File) -> None:
-        """Get 'cd' lines from the shell's history file.
+        """Get 'cd' lines from the shell's history file
 
         Only interactive 'cd' usage is considered,
         'cd's within for loops or other commands are unchecked
 
         Set a list of paths
+        Set history
         """
         with open(histfile) as file:
             paths = []
@@ -182,7 +184,7 @@ def main() -> None:
         if ipaths:
             print(cdpaths.stats)
 
-            # TODO: take a backup
+            # TODO: take a backup?
             if input("Delete from history (y/n)? ") == "y":
                 lines: list[str] = []
                 invalid_paths = [ipath[0] for ipath in ipaths]
