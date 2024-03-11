@@ -18,6 +18,8 @@ File = str | os.PathLike
 
 
 class CDPaths:
+    excluded = [".git", ".venv"]
+
     def __init__(self, histfile: File) -> None:
         """Get 'cd' lines from the shell's history file
 
@@ -63,7 +65,7 @@ class CDPaths:
 
                     # exclude:
                     # cd */.venv/*, .git, ...
-                    if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
+                    if all(not exc in PurePath(dir).parts for exc in self.excluded):
                         paths.append(dir)
                         # this entry is a 'cd ...' command, this will help with --cleanup
                         history[-1]["cdpath"] = dir
@@ -101,9 +103,16 @@ class CDPaths:
                     # Since I want to keep them, I use PWD!
                     paths.append(Path(env["PWD"]).joinpath(path))
             elif not path.is_absolute():
-                h_path = Path.home().joinpath(path)
-                if h_path.is_dir():
-                    paths.append(h_path)
+                # cd old new # zsh feature
+                # not checking cases with white spaces
+                old_new = p.split()
+
+                if len(old_new) == 2 and all(Path(_p).is_dir() for _p in old_new):
+                    paths.extend(Path(env["PWD"]).joinpath(_p) for _p in old_new)
+                else:
+                    h_path = Path.home().joinpath(path)
+                    if h_path.is_dir():
+                        paths.append(h_path)
 
         return sorted(
             Counter(
