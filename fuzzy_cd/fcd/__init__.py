@@ -31,14 +31,23 @@ class CDPaths:
             paths = []
             history: list[dict] = []
 
-            cd_re = re.compile("(?:(?:builtin|command) +)?(cd .+)")
-            dir_dash_re = re.compile("-\\d*")  # -num
-            dir_dots_re = re.compile("[./]+")  # ../..
+            start = "(?:(?:builtin|command) +)?"
+            dir_dash_re = re.compile(start + "cd +-\\d*")  # -num
+            dir_dots_re = re.compile(start + "cd +[./]+")  # ../..
+            cd_re = re.compile(start + "(cd .+)")
 
             for line in file:
                 history.append({"value": line})
 
-                match = cd_re.match(line.strip())
+                entry = line.strip()
+
+                # exclude:
+                # cd -2, checking the regex 'should' be faster than checking if -num is a dir
+                # cd ../..
+                if dir_dash_re.fullmatch(entry) or dir_dots_re.fullmatch(entry):
+                    continue
+
+                match = cd_re.match(entry)
                 if match:
                     cd = match.group(1)
 
@@ -53,16 +62,11 @@ class CDPaths:
                     dir = dir.strip("'\"").replace("\\ ", " ")
 
                     # exclude:
-                    # cd -2, checking the regex 'should' be faster than checking if -num is a dir
-                    # cd ../..
                     # cd */.venv/*, .git, ...
-                    if dir_dash_re.fullmatch(dir) or dir_dots_re.fullmatch(dir):
-                        continue
-                    else:
-                        if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
-                            paths.append(dir)
-                            # this entry is a 'cd ...' command, this will help with --cleanup
-                            history[-1]["cdpath"] = dir
+                    if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
+                        paths.append(dir)
+                        # this entry is a 'cd ...' command, this will help with --cleanup
+                        history[-1]["cdpath"] = dir
 
         self._paths: list[str] = paths
         self._history: list[dict] = history
