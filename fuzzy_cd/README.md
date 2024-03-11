@@ -11,8 +11,8 @@ deactivate
 
 # Bash setup
 
+In `.bashrc`:
 ```bash
-# in .bashrc
 c() {
     script=/path/to/fuzzy_cd/.venv/bin/fcd
 
@@ -36,12 +36,10 @@ c() {
 HISTIGNORE='c:c *'
 ```
 
-# ZSH autoload setup
+# ZSH setup
 
-[ZSH Autoloading Functions](https://zsh.sourceforge.io/Doc/Release/Functions.html#Autoloading-Functions)
-
+In an [autoload function](https://zsh.sourceforge.io/Doc/Release/Functions.html#Autoloading-Functions):
 ```bash
-# autoload function
 script=/path/to/fuzzy_cd/.venv/bin/fcd
 
 for arg in "$@"
@@ -61,7 +59,7 @@ then
 fi
 ```
 
+In `.zshenv`:
 ```bash
-# in .zshenv
 HISTORY_IGNORE='(c|c *)'
 ```
