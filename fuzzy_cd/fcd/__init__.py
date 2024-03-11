@@ -10,19 +10,11 @@ from os import environ as env
 import re
 from pathlib import Path, PurePath
 from collections import Counter
-from dataclasses import dataclass
 import operator
 from subprocess import run, PIPE
 from tabulate import tabulate
 
 File = str | os.PathLike
-
-
-@dataclass
-class HistoryEntry:
-    value: str = ""
-    # only added if the entry was a 'cd ...' command
-    cdpath: str | None = None
 
 
 class CDPaths:
@@ -37,14 +29,14 @@ class CDPaths:
         """
         with open(histfile) as file:
             paths = []
-            history: list[HistoryEntry] = []
+            history: list[dict] = []
 
             cd_re = re.compile("(?:(?:builtin|command) +)?(cd .+)")
             dir_dash_re = re.compile("-\\d*")  # -num
             dir_dots_re = re.compile("[./]+")  # ../..
 
             for line in file:
-                history.append(HistoryEntry(value=line))
+                history.append({"value": line})
 
                 match = cd_re.match(line.strip())
                 if match:
@@ -70,14 +62,22 @@ class CDPaths:
                         if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
                             paths.append(dir)
                             # this entry is a 'cd ...' command, this will help with --cleanup
-                            history[-1].cdpath = dir
+                            history[-1]["cdpath"] = dir
 
         self._paths: list[str] = paths
-        self._history: list[HistoryEntry] = history
+        self._history: list[dict] = history
 
     @property
     def history(self):
         return self._history
+
+    @property
+    def cds(self):
+        return tabulate(
+            [entry for entry in self._history if "cdpath" in entry],
+            headers={"value": "History entry", "cdpath": "Extracted 'cd' path"},
+            tablefmt="presto",
+        )
 
     def get(self) -> list[tuple[str, int]]:
         """Returns a list of tuples: path, weight.
@@ -164,6 +164,12 @@ def main() -> None:
         help="show locations with their weight (cd frequency)",
     )
     parser.add_argument(
+        "-v",
+        "--view-cds",
+        action="store_true",
+        help="view 'cd' entries in the history",
+    )
+    parser.add_argument(
         "-c", "--cleanup", action="store_true", help="clean invalid paths"
     )
     parser.add_argument(
@@ -178,6 +184,9 @@ def main() -> None:
     if args.stats:
         print(CDPaths(args.histfile).stats)
 
+    elif args.view_cds:
+        print(CDPaths(args.histfile).cds)
+
     elif args.cleanup:
         cdpaths = CDPathsInvalid(args.histfile)
 
@@ -190,8 +199,11 @@ def main() -> None:
                     invalid_paths = [ipath[0] for ipath in ipaths]
 
                     for entry in cdpaths.history:
-                        if not entry.cdpath or not entry.cdpath in invalid_paths:
-                            lines.append(entry.value)
+                        if (
+                            not "cdpath" in entry
+                            or not entry["cdpath"] in invalid_paths
+                        ):
+                            lines.append(entry["value"])
 
                     if len(lines) == len(cdpaths.history) - len(invalid_paths):
                         with open(args.histfile, "w") as file:
