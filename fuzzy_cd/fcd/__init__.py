@@ -18,6 +18,8 @@ File = str | os.PathLike
 
 
 class CDPaths:
+    excluded = [".git", ".venv"]
+
     def __init__(self, histfile: File) -> None:
         """Get 'cd' lines from the shell's history file
 
@@ -31,14 +33,23 @@ class CDPaths:
             paths = []
             history: list[dict] = []
 
-            cd_re = re.compile("(?:(?:builtin|command) +)?(cd .+)")
-            dir_dash_re = re.compile("-\\d*")  # -num
-            dir_dots_re = re.compile("[./]+")  # ../..
+            start = "(?:(?:builtin|command) +)?"
+            dir_dash_re = re.compile(start + "cd +-\\d*")  # -num
+            dir_dots_re = re.compile(start + "cd +[./]+")  # ../..
+            cd_re = re.compile(start + "(cd .+)")
 
             for line in file:
                 history.append({"value": line})
 
-                match = cd_re.match(line.strip())
+                entry = line.strip()
+
+                # exclude:
+                # cd -2, checking the regex 'should' be faster than checking if -num is a dir
+                # cd ../..
+                if dir_dash_re.fullmatch(entry) or dir_dots_re.fullmatch(entry):
+                    continue
+
+                match = cd_re.match(entry)
                 if match:
                     cd = match.group(1)
 
@@ -53,16 +64,11 @@ class CDPaths:
                     dir = dir.strip("'\"").replace("\\ ", " ")
 
                     # exclude:
-                    # cd -2, checking the regex 'should' be faster than checking if -num is a dir
-                    # cd ../..
                     # cd */.venv/*, .git, ...
-                    if dir_dash_re.fullmatch(dir) or dir_dots_re.fullmatch(dir):
-                        continue
-                    else:
-                        if all(not d in PurePath(dir).parts for d in [".git", ".venv"]):
-                            paths.append(dir)
-                            # this entry is a 'cd ...' command, this will help with --cleanup
-                            history[-1]["cdpath"] = dir
+                    if all(not exc in PurePath(dir).parts for exc in self.excluded):
+                        paths.append(dir)
+                        # this entry is a 'cd ...' command, this will help with --cleanup
+                        history[-1]["cdpath"] = dir
 
         self._paths: list[str] = paths
         self._history: list[dict] = history
@@ -97,9 +103,16 @@ class CDPaths:
                     # Since I want to keep them, I use PWD!
                     paths.append(Path(env["PWD"]).joinpath(path))
             elif not path.is_absolute():
-                h_path = Path.home().joinpath(path)
-                if h_path.is_dir():
-                    paths.append(h_path)
+                # cd old new # zsh feature
+                # not checking cases with white spaces
+                old_new = p.split()
+
+                if len(old_new) == 2 and all(Path(_p).is_dir() for _p in old_new):
+                    paths.extend(Path(env["PWD"]).joinpath(_p) for _p in old_new)
+                else:
+                    h_path = Path.home().joinpath(path)
+                    if h_path.is_dir():
+                        paths.append(h_path)
 
         return sorted(
             Counter(
