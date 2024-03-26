@@ -79,8 +79,9 @@ class Search(Command):
         if hidden:
             Search.fd.append("--hidden")
             Search.rg.append("--hidden")
-        self._pattern = pattern
-        if self._pattern:
+
+        if pattern:
+            self._pattern = pattern
             Search.rg.append(self._pattern)
             super().__init__(cmd=Search.rg)
         else:
@@ -92,7 +93,7 @@ class Search(Command):
 
     @property
     def is_grep(self) -> bool:
-        return True if self._pattern else False
+        return bool(self._pattern)
 
 
 class Filter(Command):
@@ -103,9 +104,11 @@ class Filter(Command):
     def __init__(self, exact=False, query=None, pattern=None):
         if exact:
             Filter.fzf.append("--exact")
-        self._query = query
-        if self._query:
+
+        if query:
+            self._query = query
             Filter.fzf.extend(("-q", self._query))
+
         if pattern:
             # TODO: show whole file with lines highlighted: --passthru? doesn't look too good
             Filter.fzf.extend(("--preview", f"rg -S --color=always '{pattern}' {{}}"))
