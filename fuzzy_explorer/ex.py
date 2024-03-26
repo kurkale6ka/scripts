@@ -357,6 +357,7 @@ if __name__ == "__main__":
             args.query = None
         else:
             pattern = args.grep
+
         search_params["pattern"] = pattern
         filter_params["pattern"] = pattern
 
