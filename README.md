@@ -1,4 +1,4 @@
-* h, [Fuzzy File Explorer](ex.py)
+* h, [Fuzzy File Explorer](fuzzy_explorer/ex.py)
 * pg, [Human readable pgrep](pg.pl)
 * www, [Fuzzy search & open of websites loaded from a file](www.py)
 * cert, [Show Certificate/CSR info (openssl helper)](cert.pl)
