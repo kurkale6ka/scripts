@@ -80,9 +80,10 @@ class Search(Command):
             Search.fd.append("--hidden")
             Search.rg.append("--hidden")
 
+        self._pattern = pattern
+
         if pattern:
-            self._pattern = pattern
-            Search.rg.append(self._pattern)
+            Search.rg.append(pattern)
             super().__init__(cmd=Search.rg)
         else:
             super().__init__(cmd=Search.fd)
@@ -105,9 +106,10 @@ class Filter(Command):
         if exact:
             Filter.fzf.append("--exact")
 
+        self._query = query
+
         if query:
-            self._query = query
-            Filter.fzf.extend(("-q", self._query))
+            Filter.fzf.extend(("-q", query))
 
         if pattern:
             # TODO: show whole file with lines highlighted: --passthru? doesn't look too good
