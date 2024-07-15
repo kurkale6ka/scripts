@@ -13,55 +13,14 @@
 """
 
 import argparse
-from dataclasses import dataclass
-from pathlib import Path
-from os import environ as env, execlp, chdir, PathLike
-from subprocess import Popen, PIPE
 import webbrowser as browser
+from dataclasses import dataclass
+from os import PathLike, chdir
+from os import environ as env
+from os import execlp
+from pathlib import Path
 from shutil import which
-
-parser = argparse.ArgumentParser(description="Fuzzy File Explorer")
-parser.add_argument(
-    "-s",
-    "--source-dir",
-    type=str,
-    default=".",
-    nargs="?",
-    help="define source directory",
-)
-parser.add_argument(
-    "--header",
-    action=argparse.BooleanOptionalAction,
-    default=True,
-    help="show file path",
-)
-parser.add_argument(
-    "--hidden",
-    action=argparse.BooleanOptionalAction,
-    default=True,
-    help="show dotfiles",
-)
-grp_view = parser.add_mutually_exclusive_group()
-grp_view.add_argument(
-    "-b", "--view-in-browser", action="store_true", help="view in browser"
-)
-grp_view.add_argument(
-    "-v",
-    "--view-in-editor",
-    action="store_true",
-    help="view in $EDITOR, use alt-v from within fzf",
-)
-grp_grep = parser.add_argument_group("Grep options")
-grp_grep.add_argument("-g", "--grep", type=str, help="list files with matches")
-grp_grep.add_argument(
-    "-o", "--view-grep-results", action="store_true", help="output grepped lines only"
-)
-grp_filter = parser.add_argument_group("FZF options")
-# this option isn't needed for rg. rg ssh will find exact matches even though ssh is a 'regex'
-# same for fd in a future version (add --fd-pattern for VERY big folders?). For now it lists all files
-grp_filter.add_argument("-e", "--exact", action="store_true", help="Enable exact-match")
-grp_filter.add_argument("query", type=str, nargs="?", help="fzf query")
-args = parser.parse_args()
+from subprocess import PIPE, Popen
 
 
 # TODO: @contextmanager? This seems actually clearer
@@ -122,9 +81,11 @@ class Search(Command):
         if hidden:
             Search.fd.append("--hidden")
             Search.rg.append("--hidden")
+
         self._pattern = pattern
-        if self._pattern:
-            Search.rg.append(self._pattern)
+
+        if pattern:
+            Search.rg.append(pattern)
             super().__init__(cmd=Search.rg)
         else:
             super().__init__(cmd=Search.fd)
@@ -135,7 +96,7 @@ class Search(Command):
 
     @property
     def is_grep(self) -> bool:
-        return True if self._pattern else False
+        return bool(self._pattern)
 
 
 class Filter(Command):
@@ -146,9 +107,12 @@ class Filter(Command):
     def __init__(self, exact=False, query=None, pattern=None):
         if exact:
             Filter.fzf.append("--exact")
+
         self._query = query
-        if self._query:
-            Filter.fzf.extend(("-q", self._query))
+
+        if query:
+            Filter.fzf.extend(("-q", query))
+
         if pattern:
             # TODO: show whole file with lines highlighted: --passthru? doesn't look too good
             Filter.fzf.extend(("--preview", f"rg -S --color=always '{pattern}' {{}}"))
@@ -322,6 +286,61 @@ class Documents:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Fuzzy File Explorer")
+    parser.add_argument(
+        "-s",
+        "--source-dir",
+        type=str,
+        default=".",
+        nargs="?",
+        help="define source directory",
+    )
+    parser.add_argument(
+        "--header",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="show file path",
+    )
+    parser.add_argument(
+        "--hidden",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="show dotfiles",
+    )
+    grp_view = parser.add_mutually_exclusive_group()
+    grp_view.add_argument(
+        "-b", "--view-in-browser", action="store_true", help="view in browser"
+    )
+    grp_view.add_argument(
+        "-v",
+        "--view-in-editor",
+        action="store_true",
+        help="view in $EDITOR, use alt-v from within fzf",
+    )
+    grp_grep = parser.add_argument_group("Grep options")
+    grp_grep.add_argument(
+        "-g",
+        "--grep",
+        nargs="?",
+        const="query",
+        type=str,
+        help="list files with matches",
+    )
+    grp_grep.add_argument(
+        "-o",
+        "--view-grep-results",
+        action="store_true",
+        help="output grepped lines only",
+    )
+    grp_filter = parser.add_argument_group("FZF options")
+    # this option isn't needed for rg. rg ssh will find exact matches even though ssh is a 'regex'
+    # same for fd in a future version (add --fd-pattern for VERY big folders?). For now it lists all files
+    grp_filter.add_argument(
+        "-e", "--exact", action="store_true", help="Enable exact-match"
+    )
+    grp_filter.add_argument("query", type=str, nargs="?", help="fzf query")
+    args = parser.parse_args()
+
     viewer = Viewer(header=args.header)
 
     if args.view_in_browser:
@@ -337,8 +356,17 @@ if __name__ == "__main__":
     filter_params = dict()
 
     if args.grep:
-        search_params["pattern"] = args.grep
-        filter_params["pattern"] = args.grep
+        if args.grep == "query":
+            pattern = args.query
+            # use case:
+            # 1. h pattern    => no results
+            # 2. h pattern -g => pattern is now for grep not fzf, thus unset query
+            args.query = None
+        else:
+            pattern = args.grep
+
+        search_params["pattern"] = pattern
+        filter_params["pattern"] = pattern
 
     if args.exact:
         filter_params["exact"] = args.exact
@@ -348,18 +376,3 @@ if __name__ == "__main__":
 
     docs = Documents(src=args.source_dir, viewer=viewer)
     docs.search(Search(**search_params), Filter(**filter_params))
-
-# TODOs:
-# recursive lookup? example:
-#     - ex -g ssh
-#     - delete 'ssh' query, try another one => will most likely fail since only filtering the 'ssh' subset
-#     - try on all files: find (+ grep if no matching filenames)
-#     - loop till we validate a result or ESC
-# => I am not going to bother since I've never needed it in practice
-#
-# pyproject.toml Package: main() ...
-#
-# Multiple args? Not sure about that.
-# - split @ARGV with -e?
-# - rg -Sl patt1 | ... | xargs rg -S pattn
-# - also for fd ... $1
