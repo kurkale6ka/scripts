@@ -13,12 +13,14 @@
 """
 
 import argparse
-from dataclasses import dataclass
-from pathlib import Path
-from os import environ as env, execlp, chdir, PathLike
-from subprocess import Popen, PIPE
 import webbrowser as browser
+from dataclasses import dataclass
+from os import PathLike, chdir
+from os import environ as env
+from os import execlp
+from pathlib import Path
 from shutil import which
+from subprocess import PIPE, Popen
 
 
 # TODO: @contextmanager? This seems actually clearer
