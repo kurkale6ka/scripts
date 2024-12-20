@@ -2,7 +2,6 @@ import argparse
 from enum import StrEnum
 from pathlib import Path
 
-import cryptography
 import pandas as pd
 from cryptography import x509
 from cryptography.x509.base import Certificate
