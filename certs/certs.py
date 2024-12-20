@@ -73,12 +73,16 @@ def main():
     args = parser.parse_args()
 
     # Start
+    # FIX: not chain but bundled certs!
     if args.chain:
         certs = [Cert(cert) for cert in load_certs(args.chain, all=True)]
-        df = pd.DataFrame(
-            [[cert.subject, cert.issuer] for cert in certs],
-            columns=[Headers.SUBJECT, Headers.ISSUER],
+        print(
+            "\n\n".join(
+                f"{Headers.SUBJECT}: {cert.subject}\n {Headers.ISSUER}: {cert.issuer}"
+                for cert in certs
+            )
         )
+        exit()
 
     elif args.folder:
         if args.folder.is_dir():
