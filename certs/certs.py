@@ -12,7 +12,7 @@ from tabulate import tabulate
 
 # TODO: inherit from Certificate?
 class Cert:
-    def __init__(self, cert: x509.Certificate):
+    def __init__(self, cert: Certificate):
         self._cert = cert
 
     def _values(self, attr, oid: x509.ObjectIdentifier):
@@ -39,7 +39,7 @@ class Cert:
         return [self.subject, self.issuer, self.before, self.after]
 
 
-def load_certs(file, all: bool = False) -> x509.Certificate | list[x509.Certificate]:
+def load_certs(file, all: bool = False) -> Certificate | list[Certificate]:
     with open(file, "rb") as f:
         pem = f.read()
 
@@ -60,7 +60,9 @@ def main():
 
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
-    parser.add_argument("-s", "--sort", type=str, choices=Headers, help="")
+    parser.add_argument(
+        "-s", "--sort", type=str, choices=[h.name.lower() for h in Headers], help=""
+    )
     group.add_argument("-c", "--chain", type=Path, help="")
     group.add_argument(
         "folder",
@@ -94,7 +96,8 @@ def main():
         df = pd.DataFrame([cert.attributes for cert in certs], columns=list(Headers))
 
     if args.sort:
-        df = df.sort_values(by=args.sort)
+        sort = [h for h in Headers if h.name == args.sort.upper()]
+        df = df.sort_values(by=sort[0])
 
     if df.shape[0] == 1:
         certs = tabulate(
