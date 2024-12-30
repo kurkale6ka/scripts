@@ -15,7 +15,7 @@ class Cert:
         self._cert = cert
 
     def _values(self, attr, oid: x509.ObjectIdentifier):
-        return "\n".join(a.value for a in attr.get_attributes_for_oid(oid))
+        return '\n'.join(a.value for a in attr.get_attributes_for_oid(oid))
 
     @property
     def subject(self):
@@ -39,7 +39,16 @@ class Cert:
 
 
 def load_certs(file, all: bool = False) -> Certificate | list[Certificate]:
-    with open(file, "rb") as f:
+    """Get a Certificate object from a file
+
+    Args:
+        file: pem
+
+    Returns:
+        the Certificate
+    """
+
+    with open(file, 'rb') as f:
         pem = f.read()
 
     if all:
@@ -49,36 +58,35 @@ def load_certs(file, all: bool = False) -> Certificate | list[Certificate]:
 
 
 class Headers(StrEnum):
-    SUBJECT = "Subject CN"
-    ISSUER = "Issuer CN"
-    BEFORE = "From"
-    AFTER = "To"
+    SUBJECT = 'Subject CN'
+    ISSUER = 'Issuer CN'
+    BEFORE = 'From'
+    AFTER = 'To'
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
     parser.add_argument(
-        "-s", "--sort", type=str, choices=[h.name.lower() for h in Headers], help=""
+        '-s', '--sort', type=str, choices=[h.name.lower() for h in Headers], help=''
     )
-    group.add_argument("-c", "--chain", type=Path, help="")
+    group.add_argument('-c', '--chain', type=Path, help='')
     group.add_argument(
-        "folder",
-        metavar=("FILE|FOLDER"),
+        'folder',
+        metavar=('FILE|FOLDER'),
         type=Path,
-        nargs="?",
-        help="show certificates on the file system",
+        nargs='?',
+        help='show certificates on the file system',
     )
     args = parser.parse_args()
 
     # Start
-    # FIX: not chain but bundled certs!
+    # FIXME: not chain but bundled certs!
     if args.chain:
         certs = [Cert(cert) for cert in load_certs(args.chain, all=True)]
         print(
-            "\n\n".join(
-                f"{Headers.SUBJECT}: {cert.subject}\n {Headers.ISSUER}: {cert.issuer}"
+            '\n\n'.join(
+                f'{Headers.SUBJECT}: {cert.subject}\n {Headers.ISSUER}: {cert.issuer}'
                 for cert in certs
             )
         )
@@ -87,7 +95,7 @@ def main():
     elif args.folder:
         if args.folder.is_dir():
             # TODO: use asyncio multiproc?
-            exts = (".pem", ".crt", ".cer")
+            exts = ('.pem', '.crt', '.cer')
             certs = [
                 Cert(load_certs(file))
                 for file in args.folder.iterdir()
@@ -106,8 +114,8 @@ def main():
         certs = tabulate(
             df.transpose(),
             disable_numparse=True,
-            colalign=("right", "left"),
-            tablefmt="plain",
+            colalign=('right', 'left'),
+            tablefmt='plain',
         )
     else:
         certs = tabulate(df, headers=df.columns, disable_numparse=True, showindex=False)
@@ -115,5 +123,5 @@ def main():
     print(certs)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
