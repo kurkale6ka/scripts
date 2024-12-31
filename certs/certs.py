@@ -83,14 +83,19 @@ class Headers(StrEnum):
     ISSUER = 'Issuer CN'
     BEFORE = 'From'
     AFTER = 'To'
-    INODE = 'Location'
+    DAYS = 'Days Left'
+    FILE = 'Location'
 
 
 def main():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
-        '-s', '--sort', type=str, choices=[h.name.lower() for h in Headers], help=''
+        '-s',
+        '--sort',
+        type=str,
+        choices=[h.name.lower() for h in Headers],
+        help='default: subject',
     )
     group.add_argument('-c', '--chain', action='store_true', help='chain...')
     parser.add_argument(
@@ -103,23 +108,35 @@ def main():
     )
     args = parser.parse_args()
 
-    # Start
-    if args.inode:
-        certs = load_certs(args.inode)
+    # File|FOLDER
+    certs = load_certs(args.inode)
 
-        if args.chain:
-            if args.inode.is_file():
-                print(chain(certs))
-                exit()
-            else:
-                exit(f"{args.inode.name} isn't a file")
+    if args.chain:
+        if args.inode.is_file():
+            print(chain(certs))
+            exit()
+        else:
+            exit(f"{args.inode.name} isn't a file")
 
-        df = pd.DataFrame([cert.attributes for cert in certs], columns=list(Headers))
+    df = pd.DataFrame(
+        [cert.attributes for cert in certs],
+        columns=(h for h in Headers if h.name != 'DAYS'),
+    )
+    df[Headers.DAYS] = df[Headers.AFTER] - df[Headers.BEFORE]
 
+    # --sort
     if args.sort:
-        sort = [h for h in Headers if h.name == args.sort.upper()]
-        df = df.sort_values(by=sort[0])
+        sort = [h for h in Headers if h.name == args.sort.upper()][0]
+    else:
+        sort = Headers.SUBJECT
 
+    if sort not in (Headers.BEFORE, Headers.AFTER, Headers.DAYS):
+        # ignore case: treat uppercase same as lowercase letters
+        df.sort_values(by=sort, inplace=True, key=lambda col: col.str.lower())
+    else:
+        df.sort_values(by=sort, inplace=True)
+
+    # Result
     if not df.empty:
         # For a single certificate, display info vertically, else show a table
         if df.shape[0] == 1:
