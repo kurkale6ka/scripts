@@ -11,8 +11,9 @@ from tabulate import tabulate
 
 # TODO: inherit from Certificate?
 class Cert:
-    def __init__(self, cert: Certificate):
+    def __init__(self, inode: Path, cert: Certificate):
         self._cert = cert
+        self.inode = inode.name
 
     def _values(self, attr, oid: x509.ObjectIdentifier):
         return '\n'.join(a.value for a in attr.get_attributes_for_oid(oid))
@@ -35,7 +36,7 @@ class Cert:
 
     @property
     def attributes(self):
-        return [self.subject, self.issuer, self.before, self.after]
+        return [self.subject, self.issuer, self.before, self.after, self.inode]
 
 
 def load_certs(inode: Path) -> list[Cert]:
@@ -60,12 +61,12 @@ def load_certs(inode: Path) -> list[Cert]:
             if file.suffix in exts:
                 with open(file, 'rb') as f:
                     pem = f.read()
-                certs.append(Cert(x509.load_pem_x509_certificate(pem)))
+                certs.append(Cert(file, x509.load_pem_x509_certificate(pem)))
 
     elif inode.is_file():
         with open(inode, 'rb') as f:
             pem = f.read()
-        certs = [Cert(c) for c in x509.load_pem_x509_certificates(pem)]
+        certs = [Cert(inode, c) for c in x509.load_pem_x509_certificates(pem)]
 
     return certs
 
@@ -82,6 +83,7 @@ class Headers(StrEnum):
     ISSUER = 'Issuer CN'
     BEFORE = 'From'
     AFTER = 'To'
+    INODE = 'Location'
 
 
 def main():
