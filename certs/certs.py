@@ -94,24 +94,25 @@ def main():
     )
     group.add_argument('-c', '--chain', action='store_true', help='chain...')
     parser.add_argument(
-        'folder',
-        metavar=('FILE|FOLDER'),
+        'inode',
+        metavar=('File|FOLDER'),
         type=Path,
         nargs='?',
+        default='.',
         help='show certificates on the file system',
     )
     args = parser.parse_args()
 
     # Start
-    if args.folder:
-        certs = load_certs(args.folder)
+    if args.inode:
+        certs = load_certs(args.inode)
 
         if args.chain:
-            if args.folder.is_file():
+            if args.inode.is_file():
                 print(chain(certs))
                 exit()
             else:
-                exit(f"{args.folder.name} isn't a file")
+                exit(f"{args.inode.name} isn't a file")
 
         df = pd.DataFrame([cert.attributes for cert in certs], columns=list(Headers))
 
@@ -119,18 +120,21 @@ def main():
         sort = [h for h in Headers if h.name == args.sort.upper()]
         df = df.sort_values(by=sort[0])
 
-    # For a single certificate, display info vertically, else show a table
-    if df.shape[0] == 1:
-        certs = tabulate(
-            df.transpose(),
-            disable_numparse=True,
-            colalign=('right', 'left'),
-            tablefmt='plain',
-        )
-    else:
-        certs = tabulate(df, headers=df.columns, disable_numparse=True, showindex=False)
+    if not df.empty:
+        # For a single certificate, display info vertically, else show a table
+        if df.shape[0] == 1:
+            certs = tabulate(
+                df.transpose(),
+                disable_numparse=True,
+                colalign=('right', 'left'),
+                tablefmt='plain',
+            )
+        else:
+            certs = tabulate(
+                df, headers=df.columns, disable_numparse=True, showindex=False
+            )
 
-    print(certs)
+        print(certs)
 
 
 if __name__ == '__main__':
