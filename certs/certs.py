@@ -38,23 +38,43 @@ class Cert:
         return [self.subject, self.issuer, self.before, self.after]
 
 
-def load_certs(file, all: bool = False) -> Certificate | list[Certificate]:
-    """Get a Certificate object from a file
+def load_certs(inode: Path) -> list[Cert]:
+    """Load certificates
+
+    For a file, get all bundled certificates.
+    For a folder/, get all certificates in that folder.
 
     Args:
-        file: pem
+        inode: file or folder/ on the file system
 
     Returns:
-        the Certificate
+        certificates
     """
 
-    with open(file, 'rb') as f:
-        pem = f.read()
+    if inode.is_dir():
+        # TODO: use asyncio multiproc?
+        exts = ('.pem', '.crt', '.cer')
 
-    if all:
-        return x509.load_pem_x509_certificates(pem)
-    else:
-        return x509.load_pem_x509_certificate(pem)
+        certs = []
+        for file in inode.iterdir():
+            if file.suffix in exts:
+                with open(file, 'rb') as f:
+                    pem = f.read()
+                certs.append(Cert(x509.load_pem_x509_certificate(pem)))
+
+    elif inode.is_file():
+        with open(inode, 'rb') as f:
+            pem = f.read()
+        certs = [Cert(c) for c in x509.load_pem_x509_certificates(pem)]
+
+    return certs
+
+
+def chain(certs: list[Cert]) -> str:
+    return '\n\n'.join(
+        f'{Headers.SUBJECT}: {cert.subject}\n {Headers.ISSUER}: {cert.issuer}'
+        for cert in certs
+    )
 
 
 class Headers(StrEnum):
@@ -67,11 +87,11 @@ class Headers(StrEnum):
 def main():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
-    parser.add_argument(
+    group.add_argument(
         '-s', '--sort', type=str, choices=[h.name.lower() for h in Headers], help=''
     )
-    group.add_argument('-c', '--chain', type=Path, help='')
-    group.add_argument(
+    group.add_argument('-c', '--chain', action='store_true', help='chain...')
+    parser.add_argument(
         'folder',
         metavar=('FILE|FOLDER'),
         type=Path,
@@ -81,28 +101,15 @@ def main():
     args = parser.parse_args()
 
     # Start
-    # FIXME: not chain but bundled certs!
-    if args.chain:
-        certs = [Cert(cert) for cert in load_certs(args.chain, all=True)]
-        print(
-            '\n\n'.join(
-                f'{Headers.SUBJECT}: {cert.subject}\n {Headers.ISSUER}: {cert.issuer}'
-                for cert in certs
-            )
-        )
-        exit()
+    if args.folder:
+        certs = load_certs(args.folder)
 
-    elif args.folder:
-        if args.folder.is_dir():
-            # TODO: use asyncio multiproc?
-            exts = ('.pem', '.crt', '.cer')
-            certs = [
-                Cert(load_certs(file))
-                for file in args.folder.iterdir()
-                if file.suffix in exts
-            ]
-        elif args.folder.is_file():
-            certs = [Cert(load_certs(args.folder))]
+        if args.chain:
+            if args.folder.is_file():
+                print(chain(certs))
+                exit()
+            else:
+                exit(f"{args.folder.name} isn't a file")
 
         df = pd.DataFrame([cert.attributes for cert in certs], columns=list(Headers))
 
@@ -110,6 +117,7 @@ def main():
         sort = [h for h in Headers if h.name == args.sort.upper()]
         df = df.sort_values(by=sort[0])
 
+    # For a single certificate, display info vertically, else show a table
     if df.shape[0] == 1:
         certs = tabulate(
             df.transpose(),
