@@ -119,14 +119,12 @@ def main():
 
     if args.chain:
         if args.inode.is_file():
-
-            def chain(certs: list[Cert]) -> str:
-                return '\n\n'.join(
+            print(
+                '\n\n'.join(
                     f'{Headers.SUBJECT}:  {cert.subject}\n {Headers.ISSUER}:  {cert.issuer}'
                     for cert in certs
                 )
-
-            print(chain(certs))
+            )
             exit()
         else:
             exit(f"{args.inode.name} isn't a file")
