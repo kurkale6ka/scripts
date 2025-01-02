@@ -187,10 +187,11 @@ def main():
 
     # Result
     if not df.empty:
-        # dates formatting
+        # DateTime formatting
         dt_fmt = '%-d %b %Y %H:%S'
         df[Headers.BEFORE] = pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt)
         df[Headers.AFTER] = pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt)
+        df[Headers.DAYS] = df[Headers.DAYS].apply(lambda d: str(d) if d > 0 else d)
 
         # For a single certificate, display info vertically, else show a table
         if df.shape[0] == 1:
