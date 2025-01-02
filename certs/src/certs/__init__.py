@@ -11,6 +11,8 @@ from cryptography.x509.oid import NameOID
 from tabulate import tabulate
 from tqdm.asyncio import tqdm
 
+from . import colors as fg
+
 
 # TODO: inherit from Certificate?
 #       in this case, it seems simpler to use composition
@@ -191,7 +193,9 @@ def main():
         dt_fmt = '%-d %b %Y %H:%S'
         df[Headers.BEFORE] = pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt)
         df[Headers.AFTER] = pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt)
-        df[Headers.DAYS] = df[Headers.DAYS].apply(lambda d: str(d) if d > 0 else d)
+        df[Headers.DAYS] = df[Headers.DAYS].apply(
+            lambda d: fg.grn + str(d) + fg.res if d > 0 else fg.grn + str(d) + fg.res
+        )
 
         # For a single certificate, display info vertically, else show a table
         if df.shape[0] == 1:
