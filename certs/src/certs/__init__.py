@@ -163,7 +163,7 @@ def main():
         if args.inode.is_file():
             print(
                 '\n\n'.join(
-                    f'{Headers.SUBJECT}:  {cert.subject}\n {Headers.ISSUER}:  {cert.issuer}'
+                    f'{Headers.SUBJECT}:  {cert.subject}\n {fg.dim}{Headers.ISSUER}:{fg.res}  {cert.issuer}'
                     for cert in certs
                 )
             )
@@ -194,7 +194,7 @@ def main():
         df[Headers.BEFORE] = pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt)
         df[Headers.AFTER] = pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt)
         df[Headers.DAYS] = df[Headers.DAYS].apply(
-            lambda d: fg.grn + str(d) + fg.res if d > 0 else fg.grn + str(d) + fg.res
+            lambda d: fg.grn + str(d) + fg.res if d > -1 else fg.grn + str(d) + fg.res
         )
 
         # For a single certificate, display info vertically, else show a table
