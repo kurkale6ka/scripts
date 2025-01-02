@@ -122,7 +122,7 @@ def main():
         [cert.attributes for cert in certs],
         columns=(h for h in Headers if h.name != 'DAYS'),
     )
-    df[Headers.DAYS] = df[Headers.AFTER] - df[Headers.BEFORE]
+    df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
 
     # --sort
     if args.sort:
@@ -138,6 +138,11 @@ def main():
 
     # Result
     if not df.empty:
+        # dates formatting
+        dt_fmt = '%-d %b %Y %H:%S'
+        df[Headers.BEFORE] = pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt)
+        df[Headers.AFTER] = pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt)
+
         # For a single certificate, display info vertically, else show a table
         if df.shape[0] == 1:
             certs = tabulate(
