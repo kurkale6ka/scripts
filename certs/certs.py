@@ -11,6 +11,12 @@ from tabulate import tabulate
 
 # TODO: inherit from Certificate?
 class Cert:
+    """Certificate wrapper
+
+    Attributes:
+        inode: File or FOLDER/ to gather certificates from
+    """
+
     def __init__(self, inode: Path, cert: Certificate):
         self._cert = cert
         self.inode = inode.name
@@ -36,17 +42,24 @@ class Cert:
 
     @property
     def attributes(self):
-        return [self.subject, self.issuer, self.before, self.after, self.inode]
+        return [
+            self.subject,
+            self.issuer,
+            self.before,
+            self.after,
+            None,  # days left: after - before
+            self.inode,
+        ]
 
 
 def load_certs(inode: Path) -> list[Cert]:
     """Load certificates
 
-    For a file, get all bundled certificates.
-    For a folder/, get all certificates in that folder.
+    For a File, get all bundled certificates.
+    For a FOLDER, get all certificates in that FOLDER.
 
     Args:
-        inode: file or folder/ on the file system
+        inode: File or FOLDER/ on the file system
 
     Returns:
         certificates
@@ -118,10 +131,8 @@ def main():
         else:
             exit(f"{args.inode.name} isn't a file")
 
-    df = pd.DataFrame(
-        [cert.attributes for cert in certs],
-        columns=(h for h in Headers if h.name != 'DAYS'),
-    )
+    # Create pandas' DataFrame
+    df = pd.DataFrame([cert.attributes for cert in certs], columns=list(Headers))
     df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
 
     # --sort
