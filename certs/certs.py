@@ -9,6 +9,7 @@ from cryptography import x509
 from cryptography.x509.base import Certificate
 from cryptography.x509.oid import NameOID
 from tabulate import tabulate
+from tqdm.asyncio import tqdm
 
 
 # TODO: inherit from Certificate?
@@ -84,11 +85,15 @@ async def load_certs(inode: Path) -> list[Cert]:
         exts = ('.pem', '.crt', '.cer')
 
         async with asyncio.TaskGroup() as tg:
-            tasks = [
-                tg.create_task(a_read(file))
-                for file in inode.iterdir()
-                if file.suffix in exts
-            ]
+            tasks = tqdm(
+                [
+                    tg.create_task(a_read(file))
+                    for file in inode.iterdir()
+                    if file.suffix in exts
+                ],
+                bar_format='{l_bar}{bar:90}{r_bar}',
+                leave=False,
+            )
 
         certs = []
         for task in tasks:
@@ -101,6 +106,7 @@ async def load_certs(inode: Path) -> list[Cert]:
     elif inode.is_file():
         with open(inode, 'rb') as f:
             pem = f.read()
+
         try:
             certs = [Cert(inode, c) for c in x509.load_pem_x509_certificates(pem)]
         except ValueError:
