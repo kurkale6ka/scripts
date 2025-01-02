@@ -13,6 +13,13 @@ from tqdm.asyncio import tqdm
 
 from . import colors as fg
 
+# TODO:
+# - dim time fmt in dates
+# - man page + readthedocs sphinx
+# - tests
+# - fields
+# - install with uv vs pipx
+
 
 # TODO: inherit from Certificate?
 #       in this case, it seems simpler to use composition
