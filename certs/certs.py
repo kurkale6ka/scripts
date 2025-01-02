@@ -13,8 +13,11 @@ from tqdm.asyncio import tqdm
 
 
 # TODO: inherit from Certificate?
+#       in this case, it seems simpler to use composition
 class Cert:
-    """Certificate wrapper
+    """Define 'new' properties for Certificate
+
+    Get values of existing properties and expose them with shorter names
 
     Attributes:
         inode: File or FOLDER/ to gather certificates from
@@ -24,7 +27,8 @@ class Cert:
         self._cert = cert
         self.inode = inode.name
 
-    def _values(self, attr, oid: x509.ObjectIdentifier):
+    def _values(self, attr, oid: x509.ObjectIdentifier) -> str:
+        """Get an usable value out of an attribute"""
         return '\n'.join(a.value for a in attr.get_attributes_for_oid(oid))
 
     @property
@@ -43,8 +47,9 @@ class Cert:
     def after(self):
         return self._cert.not_valid_after_utc
 
+    # dir() can't be used as it sorts the result
     @property
-    def attributes(self):
+    def properties(self):
         return [
             self.subject,
             self.issuer,
@@ -125,7 +130,9 @@ class Headers(StrEnum):
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Get certificates's info. Handier than `openssl ...` in a loop."
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         '-s',
@@ -134,14 +141,16 @@ def main():
         choices=[h.name.lower() for h in Headers],
         help='default: subject',
     )
-    group.add_argument('-c', '--chain', action='store_true', help='chain...')
+    group.add_argument(
+        '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
+    )
     parser.add_argument(
         'inode',
         metavar=('File|FOLDER'),
         type=Path,
         nargs='?',
         default='.',
-        help='show certificates on the file system',
+        help='source to gather certificates from (default: .)',
     )
     args = parser.parse_args()
 
@@ -161,7 +170,7 @@ def main():
             exit(f"{args.inode.name} isn't a file")
 
     # Create pandas' DataFrame
-    df = pd.DataFrame([cert.attributes for cert in certs], columns=list(Headers))
+    df = pd.DataFrame([cert.properties for cert in certs], columns=list(Headers))
     df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
 
     # --sort
