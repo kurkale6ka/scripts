@@ -84,13 +84,6 @@ def load_certs(inode: Path) -> list[Cert]:
     return certs
 
 
-def chain(certs: list[Cert]) -> str:
-    return '\n\n'.join(
-        f'{Headers.SUBJECT}: {cert.subject}\n {Headers.ISSUER}: {cert.issuer}'
-        for cert in certs
-    )
-
-
 class Headers(StrEnum):
     SUBJECT = 'Subject CN'
     ISSUER = 'Issuer CN'
@@ -126,6 +119,13 @@ def main():
 
     if args.chain:
         if args.inode.is_file():
+
+            def chain(certs: list[Cert]) -> str:
+                return '\n\n'.join(
+                    f'{Headers.SUBJECT}:  {cert.subject}\n {Headers.ISSUER}:  {cert.issuer}'
+                    for cert in certs
+                )
+
             print(chain(certs))
             exit()
         else:
@@ -156,6 +156,8 @@ def main():
 
         # For a single certificate, display info vertically, else show a table
         if df.shape[0] == 1:
+            df.columns = (f'{col}:' for col in df.columns)  # add a :
+
             certs = tabulate(
                 df.transpose(),
                 disable_numparse=True,
