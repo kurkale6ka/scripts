@@ -1,7 +1,9 @@
 import argparse
+import asyncio
 from enum import StrEnum
 from pathlib import Path
 
+import aiofiles
 import pandas as pd
 from cryptography import x509
 from cryptography.x509.base import Certificate
@@ -52,7 +54,20 @@ class Cert:
         ]
 
 
-def load_certs(inode: Path) -> list[Cert]:
+async def a_read(file: Path) -> tuple[Path, str]:
+    """Asynchronously read file contents
+
+    Returns:
+        (file, contents)
+    """
+
+    async with aiofiles.open(file, 'rb') as f:
+        contents = await f.read()
+
+    return (file, contents)
+
+
+async def load_certs(inode: Path) -> list[Cert]:
     """Load certificates
 
     For a File, get all bundled certificates.
@@ -66,20 +81,30 @@ def load_certs(inode: Path) -> list[Cert]:
     """
 
     if inode.is_dir():
-        # TODO: use asyncio multiproc?
         exts = ('.pem', '.crt', '.cer')
 
+        async with asyncio.TaskGroup() as tg:
+            tasks = [
+                tg.create_task(a_read(file))
+                for file in inode.iterdir()
+                if file.suffix in exts
+            ]
+
         certs = []
-        for file in inode.iterdir():
-            if file.suffix in exts:
-                with open(file, 'rb') as f:
-                    pem = f.read()
+        for task in tasks:
+            file, pem = task.result()
+            try:
                 certs.append(Cert(file, x509.load_pem_x509_certificate(pem)))
+            except ValueError:
+                print('Unable to load PEM file:', file)
 
     elif inode.is_file():
         with open(inode, 'rb') as f:
             pem = f.read()
-        certs = [Cert(inode, c) for c in x509.load_pem_x509_certificates(pem)]
+        try:
+            certs = [Cert(inode, c) for c in x509.load_pem_x509_certificates(pem)]
+        except ValueError:
+            print('Unable to load PEM file:', inode)
 
     return certs
 
@@ -115,7 +140,7 @@ def main():
     args = parser.parse_args()
 
     # File|FOLDER
-    certs = load_certs(args.inode)
+    certs = asyncio.run(load_certs(args.inode)) or exit()
 
     if args.chain:
         if args.inode.is_file():
