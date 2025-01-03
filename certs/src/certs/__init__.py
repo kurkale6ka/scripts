@@ -16,9 +16,10 @@ from . import colors as fg
 # TODO:
 # - man page + readthedocs sphinx
 # - tests
-# - fields
+# - all Cert fields + -f + -p
 # - debug with warn/abort
 # - --sort with 1 letter
+# - -e expyring soon
 
 
 # TODO: inherit from Certificate?
