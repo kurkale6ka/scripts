@@ -18,6 +18,7 @@ from . import colors as fg
 # - man page + readthedocs sphinx
 # - tests
 # - fields
+# - debug with warn/abort
 
 
 # TODO: inherit from Certificate?
@@ -115,7 +116,7 @@ async def load_certs(inode: Path) -> list[Cert]:
             try:
                 certs.append(Cert(file, x509.load_pem_x509_certificate(pem)))
             except ValueError:
-                fg.warn('Unable to load PEM file:', file.name)
+                fg.warn(f'Unable to load PEM file:{fg.res}', file.name)
 
     elif inode.is_file():
         with open(inode, 'rb') as f:
@@ -124,7 +125,7 @@ async def load_certs(inode: Path) -> list[Cert]:
         try:
             certs = [Cert(inode, c) for c in x509.load_pem_x509_certificates(pem)]
         except ValueError:
-            fg.warn('Unable to load PEM file:', inode.name)
+            fg.warn(f'Unable to load PEM file:{fg.res}', inode.name)
 
     return certs
 
@@ -178,7 +179,9 @@ def main():
             )
             exit()
         else:
-            fg.abort(f"-c bad argument: {args.inode.name} isn't a file")
+            fg.abort(
+                f"-c bad argument:{fg.res} {fg.dir}{args.inode.name}{fg.res} isn't a file"
+            )
 
     # Create pandas' DataFrame
     df = pd.DataFrame([cert.properties for cert in certs], columns=list(Headers))

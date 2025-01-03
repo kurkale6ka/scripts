@@ -6,6 +6,7 @@ import sys
 res = '\033[0m'
 bld = '\033[1m'
 dim = '\033[2m'
+dir = '\033[38;5;69m'
 red = '\033[31m'
 grn = '\033[32m'
 yel = '\033[33m'
