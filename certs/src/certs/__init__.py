@@ -18,7 +18,6 @@ from . import colors as fg
 # - man page + readthedocs sphinx
 # - tests
 # - fields
-# - install with uv vs pipx
 
 
 # TODO: inherit from Certificate?
@@ -95,6 +94,8 @@ async def load_certs(inode: Path) -> list[Cert]:
         certificates
     """
 
+    certs = []
+
     if inode.is_dir():
         exts = ('.pem', '.crt', '.cer')
 
@@ -109,13 +110,12 @@ async def load_certs(inode: Path) -> list[Cert]:
                 leave=False,
             )
 
-        certs = []
         for task in tasks:
             file, pem = task.result()
             try:
                 certs.append(Cert(file, x509.load_pem_x509_certificate(pem)))
             except ValueError:
-                print('Unable to load PEM file:', file)
+                fg.warn('Unable to load PEM file:', file.name)
 
     elif inode.is_file():
         with open(inode, 'rb') as f:
@@ -124,7 +124,7 @@ async def load_certs(inode: Path) -> list[Cert]:
         try:
             certs = [Cert(inode, c) for c in x509.load_pem_x509_certificates(pem)]
         except ValueError:
-            print('Unable to load PEM file:', inode)
+            fg.warn('Unable to load PEM file:', inode.name)
 
     return certs
 
@@ -164,6 +164,8 @@ def main():
     args = parser.parse_args()
 
     # File|FOLDER
+    args.inode.exists() or fg.abort('Valid File|FOLDER expected')
+
     certs = asyncio.run(load_certs(args.inode)) or exit()
 
     if args.chain:
@@ -176,7 +178,7 @@ def main():
             )
             exit()
         else:
-            exit(f"{args.inode.name} isn't a file")
+            fg.abort(f"-c bad argument: {args.inode.name} isn't a file")
 
     # Create pandas' DataFrame
     df = pd.DataFrame([cert.properties for cert in certs], columns=list(Headers))
