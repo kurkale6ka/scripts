@@ -14,15 +14,15 @@ from tqdm.asyncio import tqdm
 from . import colors as fg
 
 # TODO:
-# - dim time fmt in dates
 # - man page + readthedocs sphinx
 # - tests
 # - fields
 # - debug with warn/abort
+# - --sort with 1 letter
 
 
 # TODO: inherit from Certificate?
-#       in this case, it seems simpler to use composition
+#       here, it seems simpler to use composition
 class Cert:
     """Define 'new' properties for Certificate
 
@@ -149,6 +149,8 @@ def main():
         '--sort',
         type=str,
         choices=[h.name.lower() for h in Headers],
+        nargs='?',
+        const=Headers.SUBJECT.name.lower(),
         help='default: subject',
     )
     group.add_argument(
@@ -190,31 +192,27 @@ def main():
     # --sort
     if args.sort:
         sort = [h for h in Headers if h.name == args.sort.upper()][0]
+    elif args.inode.is_file():
+        sort = None  # without -s, keep original order of bundled certificates
     else:
         sort = Headers.SUBJECT
 
-    if sort not in (Headers.BEFORE, Headers.AFTER, Headers.DAYS):
-        # ignore case: treat uppercase same as lowercase letters
-        df.sort_values(by=sort, inplace=True, key=lambda col: col.str.lower())
-    else:
-        df.sort_values(by=sort, inplace=True)
+    if sort:
+        if sort in (Headers.BEFORE, Headers.AFTER, Headers.DAYS):
+            df.sort_values(by=sort, inplace=True)
+        else:
+            # ignore case: treat uppercase same as lowercase letters
+            df.sort_values(by=sort, inplace=True, key=lambda col: col.str.lower())
 
     # Result
     if not df.empty:
-        # DateTime formatting
+        # Format nicely before output
         dt_fmt = '%d %b %Y %H:%S'  # dd mmm yyyy hh:ss
 
         def _dt_split(stamp: str) -> str:
             """Normal display for day/month/year, dimmed display for hour:seconds"""
             date, time = stamp.rsplit(None, 1)
             return f'{date}{fg.dim} {time}{fg.res}'
-
-        df[Headers.BEFORE] = (
-            pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt).apply(_dt_split)
-        )
-        df[Headers.AFTER] = (
-            pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt).apply(_dt_split)
-        )
 
         def _days_color(days: int) -> str:
             if days < 0:
@@ -228,6 +226,12 @@ def main():
 
             return color + str(days) + fg.res
 
+        df[Headers.BEFORE] = (
+            pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt).apply(_dt_split)
+        )
+        df[Headers.AFTER] = (
+            pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt).apply(_dt_split)
+        )
         df[Headers.DAYS] = df[Headers.DAYS].apply(_days_color)
         df[Headers.FILE] = df[Headers.FILE].apply(lambda f: fg.cya + f + fg.res)
 
