@@ -7,7 +7,7 @@ res = '\033[0m'
 bld = '\033[1m'
 dim = '\033[2m'
 dir = '\033[38;5;69m'
-red = '\033[31m'
+red = '\033[91m'  # Using bred as it renders better in the terminal; the actual code for red is: \033[31m
 grn = '\033[32m'
 yel = '\033[33m'
 blu = '\033[34m'
@@ -34,7 +34,7 @@ def warn(*args, **kwargs):
 
 # stderr: bright red
 def err(*args, **kwargs):
-    print(bred, file=sys.stderr, end='')
+    print(red, file=sys.stderr, end='')
     print(*args, res, file=sys.stderr, **kwargs)
 
 

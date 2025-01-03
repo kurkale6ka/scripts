@@ -136,7 +136,7 @@ class Headers(StrEnum):
     BEFORE = 'From'
     AFTER = 'To'
     DAYS = 'Days Left'
-    FILE = 'Location'
+    FILE = 'File'
 
 
 def main():
@@ -202,12 +202,34 @@ def main():
     # Result
     if not df.empty:
         # DateTime formatting
-        dt_fmt = '%-d %b %Y %H:%S'
-        df[Headers.BEFORE] = pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt)
-        df[Headers.AFTER] = pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt)
-        df[Headers.DAYS] = df[Headers.DAYS].apply(
-            lambda d: fg.grn + str(d) + fg.res if d > -1 else fg.grn + str(d) + fg.res
+        dt_fmt = '%d %b %Y %H:%S'  # dd mmm yyyy hh:ss
+
+        def _dt_split(stamp: str) -> str:
+            """Normal display for day/month/year, dimmed display for hour:seconds"""
+            date, time = stamp.rsplit(None, 1)
+            return f'{date}{fg.dim} {time}{fg.res}'
+
+        df[Headers.BEFORE] = (
+            pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt).apply(_dt_split)
         )
+        df[Headers.AFTER] = (
+            pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt).apply(_dt_split)
+        )
+
+        def _days_color(days: int) -> str:
+            if days < 0:
+                color = fg.dim  # expired
+            elif days <= 7:
+                color = fg.red  # urgent: expyring very soon
+            elif days <= 14:
+                color = fg.yel  # warning: expyring soon
+            else:
+                color = fg.grn  # valid
+
+            return color + str(days) + fg.res
+
+        df[Headers.DAYS] = df[Headers.DAYS].apply(_days_color)
+        df[Headers.FILE] = df[Headers.FILE].apply(lambda f: fg.cya + f + fg.res)
 
         # For a single certificate, display info vertically, else show a table
         if df.shape[0] == 1:
