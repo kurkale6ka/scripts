@@ -16,7 +16,7 @@ from . import colors as fg
 # TODO:
 # - man page + readthedocs sphinx
 # - tests
-# - all Cert fields + -f + -p
+# - all Cert fields + -f + -l/-a --long for more fields
 # - debug with warn/abort
 # - --sort with 1 letter
 # - -e expyring soon

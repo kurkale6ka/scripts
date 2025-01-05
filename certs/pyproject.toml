@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Get certificates's info. Handier than `openssl ...` in a loop."
 readme = "README.md"
 authors = [
-    { name = "Dimitar Dimitrov", email = "dimitar.dimitrov@version1.com" }
+    { name = "Dimitar Dimitrov", email = "kurkale6ka@gmail.com" }
 ]
 requires-python = ">=3.13"
 dependencies = [

@@ -26,13 +26,13 @@ def print_dim(*args, **kwargs):
     print(*args, res, **kwargs)
 
 
-# stderr: yellow
+# STDERR: yellow
 def warn(*args, **kwargs):
     print(yel, file=sys.stderr, end='')
     print(*args, res, file=sys.stderr, **kwargs)
 
 
-# stderr: bright red
+# STDERR: red
 def err(*args, **kwargs):
     print(red, file=sys.stderr, end='')
     print(*args, res, file=sys.stderr, **kwargs)
