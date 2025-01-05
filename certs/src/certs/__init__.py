@@ -142,7 +142,8 @@ class Headers(StrEnum):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Get certificates's info. Handier than `openssl ...` in a loop."
+        usage='%(prog)s [-h] [-s|-c] [File|FOLDER]',
+        description="Get certificates's info. Handier than `openssl ...` in a loop.",
     )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
