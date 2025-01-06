@@ -1,13 +1,17 @@
 import argparse
 import asyncio
-from enum import StrEnum
+import itertools
+from enum import IntEnum, StrEnum
 from pathlib import Path
+from typing import Sequence
 
 import aiofiles
 import pandas as pd
 from cryptography import x509
+from cryptography.hazmat.primitives import hashes
 from cryptography.x509.base import Certificate
-from cryptography.x509.oid import NameOID
+from cryptography.x509.extensions import ExtensionNotFound
+from cryptography.x509.oid import ExtensionOID, NameOID
 from tabulate import tabulate
 from tqdm.asyncio import tqdm
 
@@ -41,6 +45,13 @@ class Cert:
         """Get an usable value out of an attribute"""
         return '\n'.join(a.value for a in attr.get_attributes_for_oid(oid))
 
+    def _dns_names(self, extension) -> str:
+        try:
+            ext = self._cert.extensions.get_extension_for_oid(extension)
+            return '\n'.join(ext.value.get_values_for_type(x509.DNSName))
+        except ExtensionNotFound:
+            return ''
+
     @property
     def subject(self):
         return self._values(self._cert.subject, NameOID.COMMON_NAME)
@@ -48,6 +59,26 @@ class Cert:
     @property
     def issuer(self):
         return self._values(self._cert.issuer, NameOID.COMMON_NAME)
+
+    @property
+    def san(self):
+        return self._dns_names(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+
+    @property
+    def isan(self):
+        return self._dns_names(ExtensionOID.ISSUER_ALTERNATIVE_NAME)
+
+    @property
+    def iemail(self):
+        return self._values(self._cert.issuer, NameOID.EMAIL_ADDRESS)
+
+    @property
+    def serial(self):
+        return f'{self._cert.serial_number:040X}'
+
+    @property
+    def fingerprint(self):
+        return self._cert.fingerprint(hashes.SHA1()).hex()
 
     @property
     def before(self):
@@ -68,6 +99,12 @@ class Cert:
             None,  # days left: after - before
             self.inode,
         ]
+
+
+class Expiry(IntEnum):
+    EXPIRED = 0
+    ALERT = 7  # one week
+    WARNING = 14  # two weeks
 
 
 async def a_read(file: Path) -> tuple[Path, str]:
@@ -140,9 +177,25 @@ class Headers(StrEnum):
     FILE = 'File'
 
 
+def validate_fields(fields: str) -> Sequence[int]:
+    def _range(fields_range: str):
+        start, end = map(int, fields_range.split('-'))
+        return range(start - 1, end)
+
+    if fields.translate(str.maketrans('', '', ',-')).isnumeric():
+        return list(
+            itertools.chain.from_iterable(
+                _range(f) if '-' in f else [int(f) - 1] for f in fields.split(',')
+            )
+        )
+
+    fg.warn('valid fields specification expected, e.g. 1,7-10 | 5,1-3,7-9 | ...')
+    raise ValueError
+
+
 def main():
     parser = argparse.ArgumentParser(
-        usage='%(prog)s [-h] [-s|-c] [File|FOLDER]',
+        usage='%(prog)s [-s|-c] [File|FOLDER]',
         description="Get certificates's info. Handier than `openssl ...` in a loop.",
     )
     group = parser.add_mutually_exclusive_group()
@@ -158,6 +211,7 @@ def main():
     group.add_argument(
         '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
     )
+    parser.add_argument('-f', '--fields', type=validate_fields, help='...')
     parser.add_argument(
         'inode',
         metavar=('File|FOLDER'),
@@ -191,6 +245,11 @@ def main():
     df = pd.DataFrame([cert.properties for cert in certs], columns=list(Headers))
     df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
 
+    if args.fields:
+        if not all(0 <= f < len(df.columns) for f in args.fields):
+            fg.abort(f'field limits:{fg.res} 1 <= ... <= {len(df.columns)}')
+        df = df.iloc[:, args.fields]
+
     # --sort
     if args.sort:
         sort = [h for h in Headers if h.name == args.sort.upper()][0]
@@ -217,12 +276,12 @@ def main():
             return f'{date}{fg.dim} {time}{fg.res}'
 
         def _days_color(days: int) -> str:
-            if days < 0:
-                color = fg.dim  # expired
-            elif days <= 7:
-                color = fg.red  # urgent: expyring very soon
-            elif days <= 14:
-                color = fg.yel  # warning: expyring soon
+            if days < Expiry.EXPIRED:
+                color = fg.dim
+            elif days <= Expiry.ALERT:
+                color = fg.red
+            elif days <= Expiry.WARNING:
+                color = fg.yel
             else:
                 color = fg.grn  # valid
 
