@@ -188,9 +188,9 @@ class Headers(StrEnum):
     AFTER = 'To'
     DAYS = 'Days Left'
     SAN = 'Subject Alternative Name'
-    ISAN = 'Issuer SAN'
+    ISAN = 'Issuer Alternative Name'
     IEMAIL = 'Issuer Email'
-    SERIAL = 'Serial'
+    SERIAL = 'Serial Number'
     FINGERPRINT = 'SHA1 Fingerprint'
     FILE = 'File'
 
@@ -231,7 +231,7 @@ def main():
         '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
     )
     parser.add_argument('-f', '--fields', type=validate_fields, help='...')
-    parser.add_argument('-a', '--all-fields', action='store_true', help='all fields')
+    parser.add_argument('-a', '--all', action='store_true', help='all fields')
     parser.add_argument(
         'inode',
         metavar=('File|FOLDER'),
@@ -263,7 +263,7 @@ def main():
 
     # Create pandas' DataFrame
     df = pd.DataFrame(
-        [cert.properties(all=args.all_fields) for cert in certs], columns=list(Headers)
+        [cert.properties(args.all) for cert in certs], columns=list(Headers)
     )
     df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
 
