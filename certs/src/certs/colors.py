@@ -21,18 +21,23 @@ bmgn = '\033[95m'
 bcya = '\033[96m'
 
 
+# STDOUT
 def print_dim(*args, **kwargs):
     print(dim, end='')
     print(*args, res, **kwargs)
 
 
-# STDERR: yellow
+def info(*args, **kwargs):
+    print(yel, end='')
+    print(*args, res, **kwargs)
+
+
+# STDERR
 def warn(*args, **kwargs):
     print(yel, file=sys.stderr, end='')
     print(*args, res, file=sys.stderr, **kwargs)
 
 
-# STDERR: red
 def err(*args, **kwargs):
     print(red, file=sys.stderr, end='')
     print(*args, res, file=sys.stderr, **kwargs)
