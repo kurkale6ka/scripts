@@ -89,29 +89,21 @@ class Cert:
         return self._cert.fingerprint(hashes.SHA1()).hex()
 
     # dir() can't be used as it sorts the result
-    def properties(self, all: bool) -> list:
-        props = [
+    @property
+    def properties(self) -> list:
+        return [
             self.subject,
             self.issuer,
             self.before,
             self.after,
             None,  # days left: after - before
+            self.san,
+            self.isan,
+            self.iemail,
+            self.serial,
+            self.fingerprint,
+            self.inode,
         ]
-
-        if all:
-            props.extend(
-                [
-                    self.san,
-                    self.isan,
-                    self.iemail,
-                    self.serial,
-                    self.fingerprint,
-                ]
-            )
-
-        props.append(self.inode)
-
-        return props
 
 
 class Expiry(IntEnum):
@@ -231,7 +223,7 @@ def main():
         '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
     )
     parser.add_argument('-f', '--fields', type=validate_fields, help='...')
-    parser.add_argument('-a', '--all', action='store_true', help='all fields')
+    parser.add_argument('-p', '--pretty', action='store_true', help='not all fields')
     parser.add_argument(
         'inode',
         metavar=('File|FOLDER'),
@@ -262,12 +254,13 @@ def main():
             )
 
     # Create pandas' DataFrame
-    df = pd.DataFrame(
-        [cert.properties(args.all) for cert in certs], columns=list(Headers)
-    )
+    df = pd.DataFrame([cert.properties for cert in certs], columns=list(Headers))
     df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
 
-    if args.fields:
+    if args.pretty:
+        # TODO: improve logic, no indices + pretty by default
+        df = df.iloc[:, list(range(5)) + [10]]
+    elif args.fields:
         if not all(0 <= f < len(df.columns) for f in args.fields):
             fg.abort(f'field limits:{fg.res} 1 <= ... <= {len(df.columns)}')
         df = df.iloc[:, args.fields]
