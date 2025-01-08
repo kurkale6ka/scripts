@@ -61,6 +61,14 @@ class Cert:
         return self._values(self._cert.issuer, NameOID.COMMON_NAME)
 
     @property
+    def before(self):
+        return self._cert.not_valid_before_utc
+
+    @property
+    def after(self):
+        return self._cert.not_valid_after_utc
+
+    @property
     def san(self):
         return self._dns_names(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
 
@@ -80,25 +88,30 @@ class Cert:
     def fingerprint(self):
         return self._cert.fingerprint(hashes.SHA1()).hex()
 
-    @property
-    def before(self):
-        return self._cert.not_valid_before_utc
-
-    @property
-    def after(self):
-        return self._cert.not_valid_after_utc
-
     # dir() can't be used as it sorts the result
-    @property
-    def properties(self):
-        return [
+    def properties(self, all: bool) -> list:
+        props = [
             self.subject,
             self.issuer,
             self.before,
             self.after,
             None,  # days left: after - before
-            self.inode,
         ]
+
+        if all:
+            props.extend(
+                [
+                    self.san,
+                    self.isan,
+                    self.iemail,
+                    self.serial,
+                    self.fingerprint,
+                ]
+            )
+
+        props.append(self.inode)
+
+        return props
 
 
 class Expiry(IntEnum):
@@ -174,9 +187,15 @@ class Headers(StrEnum):
     BEFORE = 'From'
     AFTER = 'To'
     DAYS = 'Days Left'
+    SAN = 'Subject Alternative Name'
+    ISAN = 'Issuer SAN'
+    IEMAIL = 'Issuer Email'
+    SERIAL = 'Serial'
+    FINGERPRINT = 'SHA1 Fingerprint'
     FILE = 'File'
 
 
+# TODO: add help_fields
 def validate_fields(fields: str) -> Sequence[int]:
     def _range(fields_range: str):
         start, end = map(int, fields_range.split('-'))
@@ -212,6 +231,7 @@ def main():
         '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
     )
     parser.add_argument('-f', '--fields', type=validate_fields, help='...')
+    parser.add_argument('-a', '--all-fields', action='store_true', help='all fields')
     parser.add_argument(
         'inode',
         metavar=('File|FOLDER'),
@@ -242,7 +262,9 @@ def main():
             )
 
     # Create pandas' DataFrame
-    df = pd.DataFrame([cert.properties for cert in certs], columns=list(Headers))
+    df = pd.DataFrame(
+        [cert.properties(all=args.all_fields) for cert in certs], columns=list(Headers)
+    )
     df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
 
     if args.fields:
