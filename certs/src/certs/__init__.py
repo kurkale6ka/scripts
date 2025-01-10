@@ -223,7 +223,6 @@ def main():
         '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
     )
     parser.add_argument('-f', '--fields', type=validate_fields, help='...')
-    parser.add_argument('-p', '--pretty', action='store_true', help='not all fields')
     parser.add_argument(
         'inode',
         metavar=('File|FOLDER'),
@@ -235,9 +234,11 @@ def main():
     args = parser.parse_args()
 
     # File|FOLDER
-    args.inode.exists() or fg.abort('Valid File|FOLDER expected')
-
-    certs = asyncio.run(load_certs(args.inode)) or exit()
+    if args.inode.exists():
+        # Load certificates
+        certs = asyncio.run(load_certs(args.inode)) or exit()
+    else:
+        fg.abort('Valid File|FOLDER expected')
 
     if args.chain:
         if args.inode.is_file():
@@ -257,13 +258,22 @@ def main():
     df = pd.DataFrame([cert.properties for cert in certs], columns=list(Headers))
     df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
 
-    if args.pretty:
-        # TODO: improve logic, no indices + pretty by default
-        df = df.iloc[:, list(range(5)) + [10]]
-    elif args.fields:
+    if args.fields:
         if not all(0 <= f < len(df.columns) for f in args.fields):
             fg.abort(f'field limits:{fg.res} 1 <= ... <= {len(df.columns)}')
         df = df.iloc[:, args.fields]
+    else:
+        df = df.loc[
+            :,
+            [
+                Headers.SUBJECT,
+                Headers.ISSUER,
+                Headers.BEFORE,
+                Headers.AFTER,
+                Headers.DAYS,
+                Headers.FILE,
+            ],
+        ]
 
     # --sort
     if args.sort:
@@ -302,14 +312,17 @@ def main():
 
             return color + str(days) + fg.res
 
-        df[Headers.BEFORE] = (
-            pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt).apply(_dt_split)
-        )
-        df[Headers.AFTER] = (
-            pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt).apply(_dt_split)
-        )
-        df[Headers.DAYS] = df[Headers.DAYS].apply(_days_color)
-        df[Headers.FILE] = df[Headers.FILE].apply(lambda f: fg.cya + f + fg.res)
+        try:
+            df[Headers.BEFORE] = (
+                pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt).apply(_dt_split)
+            )
+            df[Headers.AFTER] = (
+                pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt).apply(_dt_split)
+            )
+            df[Headers.DAYS] = df[Headers.DAYS].apply(_days_color)
+            df[Headers.FILE] = df[Headers.FILE].apply(lambda f: fg.cya + f + fg.res)
+        except KeyError:
+            fg.warn('key err')
 
         # For a single certificate, display info vertically, else show a table
         if df.shape[0] == 1:
