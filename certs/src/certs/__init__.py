@@ -159,16 +159,17 @@ async def load_certs(inode: Path) -> list[Cert]:
             try:
                 certs.append(Cert(file, x509.load_pem_x509_certificate(pem)))
             except ValueError:
-                fg.warn(f'Unable to load PEM file:{fg.res}', file.name)
+                fg.warn(f'unable to load PEM file:{fg.res}', file.name)
 
     elif inode.is_file():
         with open(inode, 'rb') as f:
             pem = f.read()
 
-        try:
-            certs = [Cert(inode, c) for c in x509.load_pem_x509_certificates(pem)]
-        except ValueError:
-            fg.warn(f'Unable to load PEM file:{fg.res}', inode.name)
+        for c in x509.load_pem_x509_certificates(pem):
+            try:
+                certs.append(Cert(inode, c))
+            except ValueError:
+                fg.warn(f'unable to load PEM file:{fg.res}', inode.name)
 
     return certs
 
