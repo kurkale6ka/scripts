@@ -82,7 +82,7 @@ class Cert:
 
     @property
     def serial(self):
-        return f'{self._cert.serial_number:040X}'
+        return f'{self._cert.serial_number:X}'
 
     @property
     def fingerprint(self):
