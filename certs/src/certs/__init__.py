@@ -205,10 +205,17 @@ def validate_fields(fields: str) -> Sequence[int]:
     raise ValueError
 
 
+def fields_help():
+    return ', '.join(
+        f'{i}: {v}' for (i, v) in enumerate([h.name.lower() for h in Headers], 1)
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(
         usage='%(prog)s [-s|-c] [File|FOLDER]',
         description="Get certificates's info. Handier than `openssl ...` in a loop.",
+        formatter_class=argparse.RawTextHelpFormatter,
     )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
@@ -223,7 +230,12 @@ def main():
     group.add_argument(
         '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
     )
-    parser.add_argument('-f', '--fields', type=validate_fields, help='...')
+    parser.add_argument(
+        '-f',
+        '--fields',
+        type=validate_fields,
+        help=f'e.g. 5,1-3,7-9 (5th, 1st to 3rd, 7th to 9th)\n{fields_help()}',
+    )
     parser.add_argument(
         'inode',
         metavar=('File|FOLDER'),
@@ -236,8 +248,7 @@ def main():
 
     # File|FOLDER
     if args.inode.exists():
-        # Load certificates
-        certs = asyncio.run(load_certs(args.inode)) or exit()
+        certs = asyncio.run(load_certs(args.inode)) or exit()  # load certificates
     else:
         fg.abort('Valid File|FOLDER expected')
 
@@ -276,20 +287,23 @@ def main():
             ],
         ]
 
+    # Without --sort, if it's a file:
+    #     keep original order of bundled certificates, else:
     # --sort
-    if args.sort:
+    # TODO: fix + -a
+    if args.sort or not args.inode.is_file():
         sort = [h for h in Headers if h.name == args.sort.upper()][0]
-    elif args.inode.is_file():
-        sort = None  # without -s, keep original order of bundled certificates
-    else:
-        sort = Headers.SUBJECT
 
-    if sort:
-        if sort in (Headers.BEFORE, Headers.AFTER, Headers.DAYS):
+        try:
             df.sort_values(by=sort, inplace=True)
-        else:
-            # ignore case: treat uppercase same as lowercase letters
-            df.sort_values(by=sort, inplace=True, key=lambda col: col.str.lower())
+        except KeyError:
+            try:
+                # ignore case: treat uppercase same as lowercase letters
+                df.sort_values(
+                    by=Headers.SUBJECT, inplace=True, key=lambda col: col.str.lower()
+                )
+            except KeyError:
+                fg.warn('no sort fields found')
 
     # Result
     if not df.empty:
@@ -313,17 +327,18 @@ def main():
 
             return color + str(days) + fg.res
 
-        try:
-            df[Headers.BEFORE] = (
-                pd.to_datetime(df[Headers.BEFORE]).dt.strftime(dt_fmt).apply(_dt_split)
-            )
-            df[Headers.AFTER] = (
-                pd.to_datetime(df[Headers.AFTER]).dt.strftime(dt_fmt).apply(_dt_split)
-            )
+        def _format_date(date):
+            if date in df.columns:
+                df[date] = pd.to_datetime(df[date]).dt.strftime(dt_fmt).apply(_dt_split)
+
+        _format_date(Headers.BEFORE)
+        _format_date(Headers.AFTER)
+
+        if Headers.DAYS in df.columns:
             df[Headers.DAYS] = df[Headers.DAYS].apply(_days_color)
+
+        if Headers.FILE in df.columns:
             df[Headers.FILE] = df[Headers.FILE].apply(lambda f: fg.cya + f + fg.res)
-        except KeyError:
-            fg.warn('key err')
 
         # For a single certificate, display info vertically, else show a table
         if df.shape[0] == 1:
