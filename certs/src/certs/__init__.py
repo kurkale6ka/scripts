@@ -271,6 +271,8 @@ def main():
     df = pd.DataFrame([cert.properties for cert in certs], columns=list(Headers))
     df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
 
+    # this needs to come before the --sort section,
+    # in order to not sort by invisible fields
     if args.fields:
         if not all(0 <= f < len(df.columns) for f in args.fields):
             fg.abort(f'field limits:{fg.res} 1 <= ... <= {len(df.columns)}')
@@ -309,7 +311,7 @@ def main():
                 # ignore case: treat uppercase same as lowercase letters
                 df.sort_values(by=sort, inplace=True, key=lambda col: col.str.lower())
         except KeyError:
-            fg.warn('no sort fields found')
+            fg.warn(f'sort field missing:{fg.res} {sort.name.lower()}')
 
     # Result
     if not df.empty:
