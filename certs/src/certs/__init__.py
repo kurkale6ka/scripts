@@ -21,7 +21,7 @@ from . import colors as fg
 # TODO:
 # - man page + readthedocs sphinx
 # - tests
-# - all Cert fields + -f + -l/-a --long for more fields
+# - all Cert fields
 # - debug with warn/abort
 # - --sort with 1 letter
 # - -e expyring soon
@@ -87,7 +87,7 @@ class Cert:
 
     @property
     def fingerprint(self) -> str:
-        return self._cert.fingerprint(hashes.SHA1()).hex()
+        return self._cert.fingerprint(hashes.SHA1()).hex().upper()
 
     # dir() can't be used as it sorts the result
     @property
@@ -189,7 +189,6 @@ class Headers(StrEnum):
     FILE = 'File'
 
 
-# TODO: add help_fields
 def validate_fields(fields: str) -> Sequence[int]:
     def _range(fields_range: str):
         start, end = map(int, fields_range.split('-'))
@@ -206,7 +205,7 @@ def validate_fields(fields: str) -> Sequence[int]:
     raise ValueError
 
 
-def fields_help():
+def help_fields():
     return ', '.join(
         f'{i}: {v}' for (i, v) in enumerate([h.name.lower() for h in Headers], 1)
     )
@@ -235,8 +234,9 @@ def main():
         '-f',
         '--fields',
         type=validate_fields,
-        help=f'e.g. 5,1-3,7-9 (5th, 1st to 3rd, 7th to 9th)\n{fields_help()}',
+        help=f'e.g. 5,1-3,7-9 (5th, 1st to 3rd, 7th to 9th)\n{help_fields()}',
     )
+    parser.add_argument('-a', '--all', action='store_true', help='include all fields')
     parser.add_argument(
         'inode',
         metavar=('File|FOLDER'),
@@ -275,7 +275,7 @@ def main():
         if not all(0 <= f < len(df.columns) for f in args.fields):
             fg.abort(f'field limits:{fg.res} 1 <= ... <= {len(df.columns)}')
         df = df.iloc[:, args.fields]
-    else:
+    elif not args.all:
         df = df.loc[
             :,
             [
@@ -290,6 +290,7 @@ def main():
 
     # Without --sort, if it's a file:
     #     keep original order of bundled certificates, else:
+
     # --sort
     if args.sort or not args.inode.is_file():
         if args.sort:
@@ -300,9 +301,10 @@ def main():
         try:
             if sort in (Headers.BEFORE, Headers.AFTER, Headers.DAYS):
                 df.sort_values(by=sort, inplace=True)
-            # TODO:
-            # elif sort in (Headers.SERIAL, Headers.FINGERPRINT):
-            #     df.sort_values(by=sort, inplace=True, key=lambda h: int(h, 16))
+            elif sort in (Headers.SERIAL, Headers.FINGERPRINT):
+                df.sort_values(
+                    by=sort, inplace=True, key=lambda col: col.apply(int, base=16)
+                )
             else:
                 # ignore case: treat uppercase same as lowercase letters
                 df.sort_values(by=sort, inplace=True, key=lambda col: col.str.lower())
