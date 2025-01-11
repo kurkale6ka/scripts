@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import itertools
+from datetime import datetime
 from enum import IntEnum, StrEnum
 from pathlib import Path
 from typing import Sequence
@@ -53,39 +54,39 @@ class Cert:
             return ''
 
     @property
-    def subject(self):
+    def subject(self) -> str:
         return self._values(self._cert.subject, NameOID.COMMON_NAME)
 
     @property
-    def issuer(self):
+    def issuer(self) -> str:
         return self._values(self._cert.issuer, NameOID.COMMON_NAME)
 
     @property
-    def before(self):
+    def before(self) -> datetime:
         return self._cert.not_valid_before_utc
 
     @property
-    def after(self):
+    def after(self) -> datetime:
         return self._cert.not_valid_after_utc
 
     @property
-    def san(self):
+    def san(self) -> str:
         return self._dns_names(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
 
     @property
-    def isan(self):
+    def isan(self) -> str:
         return self._dns_names(ExtensionOID.ISSUER_ALTERNATIVE_NAME)
 
     @property
-    def iemail(self):
+    def iemail(self) -> str:
         return self._values(self._cert.issuer, NameOID.EMAIL_ADDRESS)
 
     @property
-    def serial(self):
+    def serial(self) -> str:
         return f'{self._cert.serial_number:X}'
 
     @property
-    def fingerprint(self):
+    def fingerprint(self) -> str:
         return self._cert.fingerprint(hashes.SHA1()).hex()
 
     # dir() can't be used as it sorts the result
@@ -290,20 +291,23 @@ def main():
     # Without --sort, if it's a file:
     #     keep original order of bundled certificates, else:
     # --sort
-    # TODO: fix + -a
     if args.sort or not args.inode.is_file():
-        sort = [h for h in Headers if h.name == args.sort.upper()][0]
+        if args.sort:
+            sort = [h for h in Headers if h.name == args.sort.upper()][0]
+        else:
+            sort = Headers.SUBJECT
 
         try:
-            df.sort_values(by=sort, inplace=True)
-        except KeyError:
-            try:
+            if sort in (Headers.BEFORE, Headers.AFTER, Headers.DAYS):
+                df.sort_values(by=sort, inplace=True)
+            # TODO:
+            # elif sort in (Headers.SERIAL, Headers.FINGERPRINT):
+            #     df.sort_values(by=sort, inplace=True, key=lambda h: int(h, 16))
+            else:
                 # ignore case: treat uppercase same as lowercase letters
-                df.sort_values(
-                    by=Headers.SUBJECT, inplace=True, key=lambda col: col.str.lower()
-                )
-            except KeyError:
-                fg.warn('no sort fields found')
+                df.sort_values(by=sort, inplace=True, key=lambda col: col.str.lower())
+        except KeyError:
+            fg.warn('no sort fields found')
 
     # Result
     if not df.empty:
