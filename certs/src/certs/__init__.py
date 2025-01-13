@@ -23,6 +23,7 @@ from . import colors as fg
 # - tests
 # - all Cert fields
 # - debug with warn/abort
+# update 'usage:'
 
 
 # TODO: inherit from Certificate?
@@ -210,12 +211,15 @@ def help_fields() -> str:
 
 
 def validate_sort(sort: str) -> str:
-    cols = [k for k in df.columns if k.startswith(sort)]
+    cols = [h.name.lower() for h in Headers if h.name.lower().startswith(sort)]
     if cols:
-        # check len == 1
-        return cols[0]
-    else:
-        return ''
+        if len(cols) == 1:
+            return cols[0]
+
+    fg.warn(
+        True, f'--sort: more than one match with "{sort}":{fg.res}', ', '.join(cols)
+    )
+    raise ValueError
 
 
 def main():
@@ -353,8 +357,8 @@ def main():
                 color = fg.red
             elif days <= Expiry.WARNING:
                 color = fg.yel
-            else:
-                color = fg.grn  # valid
+            else:  # valid
+                color = fg.grn
 
             return color + str(days) + fg.res
 
