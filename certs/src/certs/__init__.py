@@ -22,7 +22,6 @@ from . import colors as fg
 # - man page + readthedocs sphinx
 # - tests
 # - all Cert fields
-# - debug with warn/abort
 # update 'usage:'
 # -sie even though iemail not present in fields
 
@@ -126,7 +125,7 @@ async def a_read(file: Path) -> tuple[Path, str]:
     return (file, contents)
 
 
-async def load_certs(inode: Path) -> list[Cert]:
+async def load_certs(inode: Path, debug: bool) -> list[Cert]:
     """Load certificates
 
     For a File, get all bundled certificates.
@@ -160,7 +159,7 @@ async def load_certs(inode: Path) -> list[Cert]:
             try:
                 certs.append(Cert(file, x509.load_pem_x509_certificate(pem)))
             except ValueError:
-                fg.warn(f'unable to load PEM file:{fg.res}', file.name)
+                fg.info(debug, f'unable to load PEM file:{fg.res}', file.name)
 
     elif inode.is_file():
         with open(inode, 'rb') as f:
@@ -170,7 +169,7 @@ async def load_certs(inode: Path) -> list[Cert]:
             try:
                 certs.append(Cert(inode, c))
             except ValueError:
-                fg.warn(f'unable to load PEM file:{fg.res}', inode.name)
+                fg.info(debug, f'unable to load PEM file:{fg.res}', inode.name)
 
     return certs
 
@@ -201,7 +200,7 @@ def validate_fields(fields: str) -> Sequence[int]:
             )
         )
 
-    fg.warn('valid fields specification expected, e.g. 1,7-10 | 5,1-3,7-9 | ...')
+    fg.warn(True, 'valid fields specification expected, e.g. 1,7-10 | 5,1-3,7-9 | ...')
     raise ValueError
 
 
@@ -230,6 +229,9 @@ def main():
         formatter_class=argparse.RawTextHelpFormatter,
     )
     group = parser.add_mutually_exclusive_group()
+    parser.add_argument(
+        '-d', '--debug', action='store_true', help='output all warnings'
+    )
     group.add_argument(
         '-s',
         '--sort',
@@ -267,7 +269,10 @@ def main():
 
     # File|FOLDER
     if args.inode.exists():
-        certs = asyncio.run(load_certs(args.inode)) or exit()  # load certificates
+        certs = (
+            # load certificates
+            asyncio.run(load_certs(args.inode, args.debug)) or exit()
+        )
     else:
         fg.abort('Valid File|FOLDER expected')
 
@@ -339,7 +344,7 @@ def main():
                 # ignore case: treat uppercase same as lowercase letters
                 df.sort_values(by=sort, inplace=True, key=lambda col: col.str.lower())
         except KeyError:
-            fg.warn(f'sort field missing:{fg.res} {sort.name.lower()}')
+            fg.info(args.debug, f'sort field missing:{fg.res} {sort.name.lower()}')
 
     # Result
     if not df.empty:

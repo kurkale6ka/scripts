@@ -28,9 +28,10 @@ def print_dim(*args, **kwargs):
     print(*args, res, **kwargs)
 
 
-def info(*args, **kwargs):
-    print(yel, end='')
-    print(*args, res, **kwargs)
+def info(debug: bool, *args, **kwargs):
+    if debug:
+        print(yel, end='')
+        print(*args, res, **kwargs)
 
 
 # STDERR
