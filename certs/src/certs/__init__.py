@@ -23,7 +23,6 @@ from . import colors as fg
 # - tests
 # - all Cert fields
 # - debug with warn/abort
-# - --sort with 1 letter
 
 
 # TODO: inherit from Certificate?
@@ -204,10 +203,19 @@ def validate_fields(fields: str) -> Sequence[int]:
     raise ValueError
 
 
-def help_fields():
+def help_fields() -> str:
     return ', '.join(
         f'{i}: {v}' for (i, v) in enumerate([h.name.lower() for h in Headers], 1)
     )
+
+
+def validate_sort(sort: str) -> str:
+    cols = [k for k in df.columns if k.startswith(sort)]
+    if cols:
+        # check len == 1
+        return cols[0]
+    else:
+        return ''
 
 
 def main():
@@ -220,7 +228,7 @@ def main():
     group.add_argument(
         '-s',
         '--sort',
-        type=str,
+        type=validate_sort,
         choices=[h.name.lower() for h in Headers],
         nargs='?',
         const=Headers.SUBJECT.name.lower(),

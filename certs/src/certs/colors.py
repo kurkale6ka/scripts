@@ -34,9 +34,10 @@ def info(*args, **kwargs):
 
 
 # STDERR
-def warn(*args, **kwargs):
-    print(yel, file=sys.stderr, end='')
-    print(*args, res, file=sys.stderr, **kwargs)
+def warn(debug: bool, *args, **kwargs):
+    if debug:
+        print(yel, file=sys.stderr, end='')
+        print(*args, res, file=sys.stderr, **kwargs)
 
 
 def err(*args, **kwargs):
