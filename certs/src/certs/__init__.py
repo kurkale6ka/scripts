@@ -24,7 +24,6 @@ from . import colors as fg
 # - all Cert fields
 # - debug with warn/abort
 # - --sort with 1 letter
-# - -e expyring soon
 
 
 # TODO: inherit from Certificate?
@@ -227,6 +226,12 @@ def main():
         const=Headers.SUBJECT.name.lower(),
         help='default: subject',
     )
+    parser.add_argument(
+        '-e',
+        '--expiring-soon',
+        action='store_true',
+        help=f'limit to certificates nearing expiry\n{fg.ita}yellow{fg.res}: expiry in 2 weeks\n{fg.ita}red{fg.res}: expiry in a week',
+    )
     group.add_argument(
         '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
     )
@@ -289,6 +294,16 @@ def main():
                 Headers.FILE,
             ],
         ]
+
+    # --expiring-soon
+    if args.expiring_soon:
+        try:
+            df = df[
+                (Expiry.EXPIRED <= df[Headers.DAYS])
+                & (df[Headers.DAYS] <= Expiry.WARNING)
+            ]
+        except KeyError:
+            fg.abort('"days" field missing')
 
     # Without --sort, if it's a file:
     #     keep original order of bundled certificates, else:
