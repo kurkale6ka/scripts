@@ -19,11 +19,9 @@ from tqdm.asyncio import tqdm
 from . import colors as fg
 
 # TODO:
-# - man page + readthedocs sphinx
 # - tests
+# - man page + readthedocs sphinx
 # - all Cert fields
-# update 'usage:'
-# -sie even though iemail not present in fields
 
 
 # TODO: inherit from Certificate?
@@ -224,31 +222,12 @@ def validate_sort(sort: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        usage='%(prog)s [-s|-c] [File|FOLDER]',
+        usage='%(prog)s [-d] [-f FIELDS] [-a] [-c|-s] [-e] [File|FOLDER]',
         description="Get certificates's info. Handier than `openssl ...` in a loop.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    group = parser.add_mutually_exclusive_group()
     parser.add_argument(
         '-d', '--debug', action='store_true', help='output all warnings'
-    )
-    group.add_argument(
-        '-s',
-        '--sort',
-        type=validate_sort,
-        choices=[h.name.lower() for h in Headers],
-        nargs='?',
-        const=Headers.SUBJECT.name.lower(),
-        help='default: subject',
-    )
-    parser.add_argument(
-        '-e',
-        '--expiring-soon',
-        action='store_true',
-        help=f'limit to certificates nearing expiry\n{fg.ita}yellow:{fg.res} expiry in 2 weeks\n{fg.ita}red:{fg.res} expiry in a week',
-    )
-    group.add_argument(
-        '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
     )
     parser.add_argument(
         '-f',
@@ -257,6 +236,27 @@ def main():
         help=f'e.g. 5,1-3,7-9 (5th, 1st to 3rd, 7th to 9th)\n{help_fields()}',
     )
     parser.add_argument('-a', '--all', action='store_true', help='include all fields')
+
+    e_group = parser.add_mutually_exclusive_group()
+    e_group.add_argument(
+        '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
+    )
+    e_group.add_argument(
+        '-s',
+        '--sort',
+        type=validate_sort,
+        choices=[h.name.lower() for h in Headers],
+        nargs='?',
+        const=Headers.SUBJECT.name.lower(),
+        help='default: subject',
+    )
+
+    parser.add_argument(
+        '-e',
+        '--expiring-soon',
+        action='store_true',
+        help=f'limit to certificates nearing expiry\n{fg.ita}yellow:{fg.res} expiry in 2 weeks\n{fg.ita}red:{fg.res} expiry in a week',
+    )
     parser.add_argument(
         'inode',
         metavar=('File|FOLDER'),
@@ -294,8 +294,8 @@ def main():
     df = pd.DataFrame([cert.properties for cert in certs], columns=list(Headers))
     df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
 
-    # this needs to come before the --sort section,
-    # in order to not sort by invisible fields
+    # this needs to come before --sort,
+    # in order not to sort by fields we decide to omit with -f
     if args.fields:
         if not all(0 <= f < len(df.columns) for f in args.fields):
             fg.abort(f'field limits:{fg.res} 1 <= ... <= {len(df.columns)}')
