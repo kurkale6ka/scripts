@@ -223,7 +223,7 @@ def validate_sort(sort: str) -> str:
 def main():
     parser = argparse.ArgumentParser(
         usage='%(prog)s [-d] [-f FIELDS] [-a] [-c|-s] [-e] [File|FOLDER]',
-        description="Get certificates's info. Handier than `openssl ...` in a loop.",
+        description="Extract info from certificates. Handier than `openssl ...` in a loop.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
