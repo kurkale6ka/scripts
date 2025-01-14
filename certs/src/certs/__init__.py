@@ -393,7 +393,13 @@ def main():
             )
         else:
             certs = tabulate(
-                df, headers=df.columns, disable_numparse=True, showindex=False
+                df,
+                headers=df.columns,
+                disable_numparse=True,
+                showindex=False,
+                tablefmt='grid'
+                if any(h in df.columns for h in (Headers.SAN, Headers.ISAN))
+                else 'simple',
             )
 
         print(certs)
