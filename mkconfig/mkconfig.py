@@ -373,6 +373,7 @@ repos = (
             Link("ctags/.ctags", env['HOME'], "-r"),
             Link("tmux/.tmux.conf", env['HOME'], "-r"),
             Link("XDG/bat_config", f"{env['XDG_CONFIG_HOME']}/bat/config"),
+            Link("XDG/ruff.toml", env['XDG_CONFIG_HOME']),
             Link("XDG/starship.toml", env['XDG_CONFIG_HOME']),
         ),
     ),
