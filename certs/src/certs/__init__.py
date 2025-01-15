@@ -223,7 +223,7 @@ def validate_sort(sort: str) -> str:
 def main():
     parser = argparse.ArgumentParser(
         usage='%(prog)s [-d] [-f FIELDS] [-a] [-c|-s] [-e] [File|FOLDER]',
-        description="Extract info from certificates. Handier than `openssl ...` in a loop.",
+        description='Extract info from certificates. Handier than `openssl ...` in a loop.',
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
@@ -239,7 +239,7 @@ def main():
 
     e_group = parser.add_mutually_exclusive_group()
     e_group.add_argument(
-        '-c', '--chain', action='store_true', help='show bundled subject/issuer CNs'
+        '-c', '--chain', action='store_true', help='show bundled Subject/Issuer CNs'
     )
     e_group.add_argument(
         '-s',

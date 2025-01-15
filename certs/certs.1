@@ -8,3 +8,63 @@ certs \- Extract info from certificates. Handier than `openssl ...` in a loop.
 .OP \-d
 .OP \-f FIELDS
 .OP \-a
+.RB [ \-c | \-s ]
+.OP \-e
+.RB [ File | FOLDER ]
+
+.SH POSITIONAL ARGUMENTS
+
+.TP
+.BR File | FOLDER
+.RS
+source to gather certificates from (default: \fB.\fR)
+.RE
+
+.SH OPTIONS
+
+.TP
+.B \-d
+.TQ
+.B \-\-debug
+output all warnings
+
+.TP
+\fB\-f\fR \fIFIELDS\fR
+.TQ
+\fB\-\-fields\fR \fIFIELDS\fR
+e.g. 5,1\-3,7\-9 (5\fBth\fR, 1\fBst\fR to 3\fBrd\fR, 7\fBth\fR to 9\fBth\fR)
+
+.TP
+.B \-a
+.TQ
+.B \-\-all
+include all fields
+
+.TP
+.B \-c
+.TQ
+.B \-\-chain
+show bundled Subject/Issuer CNs
+
+.TP
+.B \-s
+.TQ
+.B \-\-sort
+default: subject
+
+\" FIXME: doesn't work
+.PD 0
+
+.TP
+.B \-e
+.TQ
+.B \-\-expiring\-soon
+limit to certificates nearing expiry
+
+\fIyellow\fR: expiry in 2 weeks
+
+\fIred\fR: expiry in a week
+
+.PD
+
+.SH EXAMPLES
