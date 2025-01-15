@@ -223,7 +223,7 @@ def validate_sort(sort: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        usage='%(prog)s [-d] [-f FIELDS] [-a] [-c|-s] [-e] [File|FOLDER]',
+        usage='%(prog)s [-d] [-f FIELDS] [-a] [-c|-s] [-e] [--search [CN]] [File|FOLDER]',
         description='Extract info from certificates. Handier than `openssl ...` in a loop.',
         formatter_class=argparse.RawTextHelpFormatter,
     )
@@ -249,7 +249,7 @@ def main():
         choices=[h.name.lower() for h in Headers],
         nargs='?',
         const=Headers.SUBJECT.name.lower(),
-        help='default: subject',
+        help='the shortest match can be used: -sd (sort by d[a[y[s]]]\ndefault: subject',
     )
 
     parser.add_argument(

@@ -10,6 +10,8 @@ certs \- Extract info from certificates. Handier than `openssl ...` in a loop.
 .OP \-a
 .RB [ \-c | \-s ]
 .OP \-e
+.RB [ \-\-search
+.RI [ CN ]]
 .RB [ File | FOLDER ]
 
 .SH POSITIONAL ARGUMENTS
@@ -65,6 +67,33 @@ limit to certificates nearing expiry
 
 \fIred\fR: expiry in a week
 
+\" FIXME: doesn't work
 .PD
 
+.TP
+\fB\-\-search\fR [\fIstring\fR]
+Limit to certificates matching the string
+
+.TP
+\fB\-\-search\fR
+Filter a single certificate out using FZF
+
+.UR https://github.com/junegunn/fzf#search\-syntax
+fzf search syntax
+.UE
+
 .SH EXAMPLES
+
+.SS Extract info from certificates in the current folder
+.B certs
+
+.SS Limit to Subject CNs matching 'quo', sort by days
+.B certs /etc/ssl/certs/ \-\-search
+.I quo
+.BI -s d
+
+.SS Select a few fields only
+.B certs /etc/ssl/certs/ \-\-search
+.I vadis
+.B \-\-fields
+.IR 11 , 3\-5 , 9
