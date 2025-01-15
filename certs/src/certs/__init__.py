@@ -21,8 +21,11 @@ from . import colors as fg
 
 # TODO:
 # - tests
-# - man page + readthedocs sphinx
-# - all Cert fields
+# - readthedocs sphinx
+# - add more Certificate fields
+# -o openssl generated cmds
+# --no-grid
+# fix ln -s certs.1 ...
 
 
 # TODO: inherit from Certificate?
