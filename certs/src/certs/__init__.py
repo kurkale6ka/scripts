@@ -4,6 +4,7 @@ import itertools
 from datetime import datetime
 from enum import IntEnum, StrEnum
 from pathlib import Path
+from subprocess import PIPE, run
 from typing import Sequence
 
 import aiofiles
@@ -258,6 +259,14 @@ def main():
         help=f'limit to certificates nearing expiry\n{fg.ita}yellow:{fg.res} expiry in 2 weeks\n{fg.ita}red:{fg.res} expiry in a week',
     )
     parser.add_argument(
+        '--search',
+        metavar='CN',
+        type=str,
+        nargs='?',
+        const=True,
+        help='filter certificates by Subject CN\nhttps://github.com/junegunn/fzf#search-syntax',
+    )
+    parser.add_argument(
         'inode',
         metavar=('File|FOLDER'),
         type=Path,
@@ -293,6 +302,38 @@ def main():
     # Create pandas' DataFrame
     df = pd.DataFrame([cert.properties for cert in certs], columns=list(Headers))
     df[Headers.DAYS] = (df[Headers.AFTER] - df[Headers.BEFORE]).dt.days
+
+    if args.search:
+        # Limit to certificates matching the search string
+        if isinstance(args.search, str):
+            df = df[df[Headers.SUBJECT].str.contains(args.search, case=False)]
+        # Filter a single certificate out using fzf
+        else:
+            fzf = (
+                'fzf',
+                '--no-bold',
+                '-0',
+                '-1',
+                '--cycle',
+                '--height=40%',
+                '--layout=reverse',
+            )
+
+            try:
+                proc = run(
+                    fzf,
+                    input='\n'.join(df[Headers.SUBJECT].unique()),
+                    stdout=PIPE,
+                    text=True,
+                )
+            except FileNotFoundError:
+                fg.abort('fzf missing')
+
+            if proc.returncode == 0:
+                res = proc.stdout.strip()
+                df = df[df[Headers.SUBJECT] == res]
+            else:
+                exit(proc.returncode)
 
     # this needs to come before --sort,
     # in order not to sort by fields we decide to omit with -f
