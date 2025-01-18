@@ -25,7 +25,6 @@ from . import colors as fg
 # - add more Certificate fields
 # -o openssl generated cmds
 # --no-grid
-# fix ln -s certs.1 ...
 
 
 # TODO: inherit from Certificate?
