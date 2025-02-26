@@ -61,26 +61,26 @@ class Search(Command):
 
     # TODO: both should find the same amount files, but this is not the case when tested in ~
     fd = [
-        "fd",
-        "--strip-cwd-prefix",
-        "-tf",
-        "-p",
-        "--ignore-file",  # needed since I want ignored files to be also ignored in non .git folders
-        f"{env['XDG_CONFIG_HOME']}/git/ignore",
+        'fd',
+        '--strip-cwd-prefix',
+        '-tf',
+        '-p',
+        '--ignore-file',  # needed since I want ignored files to be also ignored in non .git folders
+        f'{env["XDG_CONFIG_HOME"]}/git/ignore',
     ]
     rg = [
-        "rg",
-        "-S",
+        'rg',
+        '-S',
         # "--binary",  # TODO: enable? I've almost never needed it
-        "-l",
-        "--ignore-file",
-        f"{env['XDG_CONFIG_HOME']}/git/ignore",
+        '-l',
+        '--ignore-file',
+        f'{env["XDG_CONFIG_HOME"]}/git/ignore',
     ]
 
     def __init__(self, hidden=True, pattern=None):
         if hidden:
-            Search.fd.append("--hidden")
-            Search.rg.append("--hidden")
+            Search.fd.append('--hidden')
+            Search.rg.append('--hidden')
 
         self._pattern = pattern
 
@@ -102,27 +102,27 @@ class Search(Command):
 class Filter(Command):
     """A fuzzy content filter: FZF"""
 
-    fzf = ["fzf", "-0", "-1", "--cycle", "--print-query", "--expect=alt-v"]
+    fzf = ['fzf', '-0', '-1', '--cycle', '--print-query', '--expect=alt-v']
 
     def __init__(self, exact=False, query=None, pattern=None):
         if exact:
-            Filter.fzf.append("--exact")
+            Filter.fzf.append('--exact')
 
         self._query = query
 
         if query:
-            Filter.fzf.extend(("-q", query))
+            Filter.fzf.extend(('-q', query))
 
         if pattern:
             # TODO: show whole file with lines highlighted: --passthru? doesn't look too good
-            Filter.fzf.extend(("--preview", f"rg -S --color=always '{pattern}' {{}}"))
+            Filter.fzf.extend(('--preview', f"rg -S --color=always '{pattern}' {{}}"))
         else:
-            if which("bat") is not None:
-                Filter.fzf.extend(("--preview", "bat --color always {}"))
+            if which('bat') is not None:
+                Filter.fzf.extend(('--preview', 'bat --color always {}'))
             else:
                 Filter.fzf.extend(
                     (
-                        "--preview",
+                        '--preview',
                         "if file --mime {} | grep -q binary; then echo 'No preview available' 1>&2; else cat {}; fi",
                     )
                 )
@@ -141,18 +141,18 @@ class FilterResults:
     document: str | None | PathLike = None
 
     def __post_init__(self):
-        if self.filter_query == "":
+        if self.filter_query == '':
             self.filter_query = None
-        if self.pressed_keys == "":
+        if self.pressed_keys == '':
             self.pressed_keys = None
-        if self.document == "":
+        if self.document == '':
             self.document = None
 
 
 class Viewer(Command):
     """A system viewing command. Vim, cat, ..."""
 
-    def __init__(self, prog: str = "cat", header: bool = True):
+    def __init__(self, prog: str = 'cat', header: bool = True):
         self._prog = prog
         self._header = header
 
@@ -180,7 +180,7 @@ class Viewer(Command):
 class Documents:
     """An archive of documents (a folder)"""
 
-    def __init__(self, src: str | PathLike = ".", viewer=Viewer()):
+    def __init__(self, src: str | PathLike = '.', viewer=Viewer()):
         self._src = src
         self._viewer = viewer
 
@@ -195,7 +195,7 @@ class Documents:
             #     --print-query\n
             #     --expect\n
             #     document
-            results = results.split("\n")
+            results = results.split('\n')
             data = FilterResults(command, *results)
 
             if data.document:
@@ -203,8 +203,8 @@ class Documents:
             elif data.filter_query:
                 # trim any fzf extended search mode characters
                 data.filter_query = data.filter_query.lstrip("^'")
-                data.filter_query = data.filter_query.rstrip("$")
-                data.filter_query = data.filter_query.replace("\\", "")
+                data.filter_query = data.filter_query.rstrip('$')
+                data.filter_query = data.filter_query.replace('\\', '')
 
                 if not command.is_grep:
                     self.search(
@@ -217,19 +217,19 @@ class Documents:
     def _open(self, data):
         """Open the document we found"""
 
-        if self._viewer == "editor" or data.pressed_keys:
-            editor = env.get("EDITOR", "vi")
+        if self._viewer == 'editor' or data.pressed_keys:
+            editor = env.get('EDITOR', 'vi')
             self._viewer.cmd = [editor, editor, data.document]
 
             # open with nvim (send to running instance)?
-            if data.search_cmd.is_grep and "vim" in editor:
+            if data.search_cmd.is_grep and 'vim' in editor:
                 self._viewer.cmd = [
                     editor,
                     editor,
-                    "-c",
-                    f"0/{data.search_cmd.pattern}",
-                    "-c",
-                    "noh|norm zz<cr>",
+                    '-c',
+                    f'0/{data.search_cmd.pattern}',
+                    '-c',
+                    'noh|norm zz<cr>',
                     data.document,
                 ]
             self._viewer.run()
@@ -237,23 +237,23 @@ class Documents:
         extension = Path(data.document).suffix
 
         # Personal help files
-        if Path(f"{env['REPOS_BASE']}/github/help/{data.document}").is_file():
-            if self._viewer == "browser":
-                extensions = (".adoc", ".md", ".rst")
+        if Path(f'{env["REPOS_BASE"]}/github/help/{data.document}').is_file():
+            if self._viewer == 'browser':
+                extensions = ('.adoc', '.md', '.rst')
 
                 if extension in extensions:
                     browser.open(
                         # TODO: git branch --show-current
-                        f"https://github.com/kurkale6ka/help/blob/master/{data.document}"
+                        f'https://github.com/kurkale6ka/help/blob/master/{data.document}'
                     )
                     exit()
                 else:
                     exit(
-                        f"Unsupported extension. Supported extensions are: {', '.join(extensions)}"
+                        f'Unsupported extension. Supported extensions are: {", ".join(extensions)}'
                     )
 
-            if Path(data.document).name == "printf.pl":
-                self._viewer.cmd = ["perl", "perl", data.document]
+            if Path(data.document).name == 'printf.pl':
+                self._viewer.cmd = ['perl', 'perl', data.document]
                 self._viewer.run()
 
         # TODO: enable? I haven't found a good binary file test
@@ -263,100 +263,100 @@ class Documents:
 
         # Header: print the filename
         if self._viewer.header:
-            filename = str(Path(data.document).resolve()).replace(env["HOME"], "~")
+            filename = str(Path(data.document).resolve()).replace(env['HOME'], '~')
             print(filename)
-            print("-" * len(filename))
+            print('-' * len(filename))
 
-        if self._viewer == "grep":
+        if self._viewer == 'grep':
             self._viewer.cmd = [
-                "rg",
-                "rg",
-                "-S",
+                'rg',
+                'rg',
+                '-S',
                 data.search_cmd.pattern,
                 data.document,
             ]
 
-        if self._viewer == "cat":
-            if which("bat") is not None and extension not in (".txt", ".text"):
-                self._viewer.cmd = ["bat", "bat", data.document]
+        if self._viewer == 'cat':
+            if which('bat') is not None and extension not in ('.txt', '.text'):
+                self._viewer.cmd = ['bat', 'bat', data.document]
             else:
-                self._viewer.cmd = ["cat", "cat", data.document]
+                self._viewer.cmd = ['cat', 'cat', data.document]
 
         self._viewer.run()
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Fuzzy File Explorer")
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Fuzzy File Explorer')
     parser.add_argument(
-        "-s",
-        "--source-dir",
+        '-s',
+        '--source-dir',
         type=str,
-        default=".",
-        nargs="?",
-        help="define source directory",
+        default='.',
+        nargs='?',
+        help='define source directory',
     )
     parser.add_argument(
-        "--header",
+        '--header',
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="show file path",
+        help='show file path',
     )
     parser.add_argument(
-        "--hidden",
+        '--hidden',
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="show dotfiles",
+        help='show dotfiles',
     )
     grp_view = parser.add_mutually_exclusive_group()
     grp_view.add_argument(
-        "-b", "--view-in-browser", action="store_true", help="view in browser"
+        '-b', '--view-in-browser', action='store_true', help='view in browser'
     )
     grp_view.add_argument(
-        "-v",
-        "--view-in-editor",
-        action="store_true",
-        help="view in $EDITOR, use alt-v from within fzf",
+        '-v',
+        '--view-in-editor',
+        action='store_true',
+        help='view in $EDITOR, use alt-v from within fzf',
     )
-    grp_grep = parser.add_argument_group("Grep options")
+    grp_grep = parser.add_argument_group('Grep options')
     grp_grep.add_argument(
-        "-g",
-        "--grep",
-        nargs="?",
-        const="query",
+        '-g',
+        '--grep',
+        nargs='?',
+        const='query',
         type=str,
-        help="list files with matches",
+        help='list files with matches',
     )
     grp_grep.add_argument(
-        "-o",
-        "--view-grep-results",
-        action="store_true",
-        help="output grepped lines only",
+        '-o',
+        '--view-grep-results',
+        action='store_true',
+        help='output grepped lines only',
     )
-    grp_filter = parser.add_argument_group("FZF options")
+    grp_filter = parser.add_argument_group('FZF options')
     # this option isn't needed for rg. rg ssh will find exact matches even though ssh is a 'regex'
     # same for fd in a future version (add --fd-pattern for VERY big folders?). For now it lists all files
     grp_filter.add_argument(
-        "-e", "--exact", action="store_true", help="Enable exact-match"
+        '-e', '--exact', action='store_true', help='Enable exact-match'
     )
-    grp_filter.add_argument("query", type=str, nargs="?", help="fzf query")
+    grp_filter.add_argument('query', type=str, nargs='?', help='fzf query')
     args = parser.parse_args()
 
     viewer = Viewer(header=args.header)
 
     if args.view_in_browser:
-        viewer.prog = "browser"
+        viewer.prog = 'browser'
 
     if args.view_in_editor:
-        viewer.prog = "editor"
+        viewer.prog = 'editor'
 
     if args.view_grep_results:
-        viewer.prog = "grep"
+        viewer.prog = 'grep'
 
     search_params = dict(hidden=args.hidden)
     filter_params = dict()
 
     if args.grep:
-        if args.grep == "query":
+        if args.grep == 'query':
             pattern = args.query
             # use case:
             # 1. h pattern    => no results
@@ -365,14 +365,14 @@ if __name__ == "__main__":
         else:
             pattern = args.grep
 
-        search_params["pattern"] = pattern
-        filter_params["pattern"] = pattern
+        search_params['pattern'] = pattern
+        filter_params['pattern'] = pattern
 
     if args.exact:
-        filter_params["exact"] = args.exact
+        filter_params['exact'] = args.exact
 
     if args.query:
-        filter_params["query"] = args.query
+        filter_params['query'] = args.query
 
     docs = Documents(src=args.source_dir, viewer=viewer)
     docs.search(Search(**search_params), Filter(**filter_params))
