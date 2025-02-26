@@ -1,0 +1,99 @@
+.TH certs 1 "Python utils" kurkale6ka "Extract info from certificates"
+
+.SH NAME
+certs \- Extract info from certificates. Handier than `openssl ...` in a loop.
+
+.SH SYNOPSIS
+.SY certs
+.OP \-d
+.OP \-f FIELDS
+.OP \-a
+.RB [ \-c | \-s ]
+.OP \-e
+.RB [ \-\-search
+.RI [ CN ]]
+.RB [ File | FOLDER ]
+
+.SH POSITIONAL ARGUMENTS
+
+.TP
+.BR File | FOLDER
+.RS
+source to gather certificates from (default: \fB.\fR)
+.RE
+
+.SH OPTIONS
+
+.TP
+.B \-d
+.TQ
+.B \-\-debug
+output all warnings
+
+.TP
+\fB\-f\fR \fIFIELDS\fR
+.TQ
+\fB\-\-fields\fR \fIFIELDS\fR
+e.g. 5,1\-3,7\-9 (5\fBth\fR, 1\fBst\fR to 3\fBrd\fR, 7\fBth\fR to 9\fBth\fR)
+
+.TP
+.B \-a
+.TQ
+.B \-\-all
+include all fields
+
+.TP
+.B \-c
+.TQ
+.B \-\-chain
+show bundled Subject/Issuer CNs
+
+.TP
+.B \-s
+.TQ
+.B \-\-sort
+default: subject
+
+\" FIXME: doesn't work
+.PD 0
+
+.TP
+.B \-e
+.TQ
+.B \-\-expiring\-soon
+limit to certificates nearing expiry
+
+\fIyellow\fR: expiry in 2 weeks
+
+\fIred\fR: expiry in a week
+
+\" FIXME: doesn't work
+.PD
+
+.TP
+\fB\-\-search\fR [\fIstring\fR]
+Limit to certificates matching the string
+
+.TP
+\fB\-\-search\fR
+Filter a single certificate out using FZF
+
+.UR https://github.com/junegunn/fzf#search\-syntax
+fzf search syntax
+.UE
+
+.SH EXAMPLES
+
+.SS Extract info from certificates in the current folder
+.B certs
+
+.SS Limit to Subject CNs matching 'quo', sort by days
+.B certs /etc/ssl/certs/ \-\-search
+.I quo
+.BI -s d
+
+.SS Select a few fields only
+.B certs /etc/ssl/certs/ \-\-search
+.I vadis
+.B \-\-fields
+.IR 11 , 3\-5 , 9
