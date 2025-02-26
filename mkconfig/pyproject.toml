@@ -1,28 +1,19 @@
-# Reinstall after changing this file!
-#   source .venv/bin/activate
-#   pip install -e .
-#   TODO: pip install --upgrade pip, how to achieve this?
 [project]
 name = "mkconfig"
-version = "1.1.0"
+version = "0.1.0"
 description = "Dotfiles setup"
 readme = "README.md"
+requires-python = ">=3.11"
 dependencies = [
-    "gitpython",
-    # "decorate", # this would install a package from PyPI, afaic I can't specify local dependencies.
+    "gitpython>=3.1.44",
 ]
 authors = [
     {name = "Dimitar Dimitrov", email = "kurkale6ka@gmail.com"},
 ]
 
-[project.urls]
-repository = "https://github.com/kurkale6ka/scripts/tree/master/mkconfig"
-
 [project.scripts]
-# 3 parts: [package.]module:function
-# here I don't have a package and my module is the script bar the extension
 mkconfig = "mkconfig:main"
 
-[tool.pyright]
-venv = ".venv"
-venvPath = "."
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
