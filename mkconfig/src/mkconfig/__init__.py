@@ -73,12 +73,6 @@ parser.add_argument(
 parser.add_argument(
     '-i', '--init', action='store_true', help='Initial setup'
 )  # TODO: make mutually exclusive with the rest
-parser.add_argument(
-    '-d',
-    '--cd-db-create',
-    action='store_true',
-    help='Create fuzzy cd database (needs sqlite3)',
-)
 parser.add_argument('-g', '--git-config', action='store_true', help='git config')
 parser.add_argument(
     '-t',
@@ -224,7 +218,6 @@ class Repo:
         ):
             if verbose:
                 fg.info(
-                    True,
                     f'{self._name}{fg.res}:',
                     self._repo.git(P=True).diff('--color=always', '-w') or 'no diffs',
                 )
@@ -336,7 +329,7 @@ repos = (
             Link('ctags/.ctags', env['HOME'], '-r'),
             Link('tmux/.tmux.conf', env['HOME'], '-r'),
             Link('XDG/bat_config', f'{env["XDG_CONFIG_HOME"]}/bat/config'),
-            Link('XDG/ruff.toml', env['XDG_CONFIG_HOME']),
+            Link('XDG/ruff.toml', f'{env["XDG_CONFIG_HOME"]}/ruff'),
             Link('XDG/starship.toml', env['XDG_CONFIG_HOME']),
         ),
     ),
@@ -415,9 +408,6 @@ def init(args):
     fg.info(f'-{fg.res}', 'Generating tags')
     ctags(args.verbose)
 
-    fg.info(f'-{fg.res}', 'Creating fuzzy cd database')
-    cd_db_create(args.verbose)
-
     # macOS
     if platform == 'darwin':
         fg.info(f'-{fg.res}', 'Installing Homebrew formulae...')
@@ -440,7 +430,6 @@ def init(args):
             'grep',
             'ripgrep',
             'mariadb',
-            'sqlite',
             'colordiff',
             'bat',
             'git',
@@ -582,20 +571,6 @@ def ctags(verbose: bool = False) -> None:
         fg.err('universal ctags missing')
 
 
-def cd_db_create(verbose: bool = False) -> None:
-    script = f'{base}/github/scripts/db-create'
-    cmd = ('bash', script)
-
-    if verbose:
-        print(' '.join(cmd).replace(env['HOME'], '~'))
-        print()
-        run(('bat', '--language=bash', script))
-
-    process = run(cmd)
-    if process.returncode != 0:
-        fg.err('sqlite3 missing')
-
-
 async def git_status(verbose: bool = False) -> None:
     if version_info[0] == 3 and version_info[1] >= 11:
         async with asyncio.TaskGroup() as tg:  # pyright: ignore reportGeneralTypeIssues
@@ -650,9 +625,6 @@ def main() -> None:
 
     if args.tags:
         ctags(args.verbose)
-
-    if args.cd_db_create:
-        cd_db_create(args.verbose)
 
     if args.status:
         asyncio.run(git_status(args.verbose))

@@ -2,7 +2,6 @@
 
 import sys
 
-
 # foreground, 4-bit
 res = '\033[0m'
 bld = '\033[1m'
@@ -35,10 +34,9 @@ def print_dim(*args, **kwargs):
     print(*args, res, **kwargs)
 
 
-def info(debug: bool, *args, **kwargs):
-    if debug:
-        print(cya, end='')
-        print(*args, res, **kwargs)
+def info(*args, **kwargs):
+    print(cya, end='')
+    print(*args, res, **kwargs)
 
 
 # STDERR
