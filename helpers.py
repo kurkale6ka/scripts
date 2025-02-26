@@ -27,14 +27,14 @@ def ls(obj=None, screen_lines: int | None = None):
     """
 
     # build the list from dir()
-    if obj in ["builtins", "b"]:
+    if obj in ['builtins', 'b']:
         dirs = [d for d in dir(__builtins__) if d.islower()]
-    elif obj != None:
+    elif obj is not None:
         dirs = dir(obj)
     else:
         dirs = sorted(globals())
 
-    lst = [d for d in dirs if not d.startswith("_")]
+    lst = [d for d in dirs if not d.startswith('_')]
 
     # Setup the display grid
     length = len(lst)
@@ -63,7 +63,7 @@ def ls(obj=None, screen_lines: int | None = None):
 
     # Output in formatted columns
     width = max(map(len, lst), default=1) + 2
-    for columns in zip_longest(*rows, fillvalue=""):
-        fmt = ("{:" + str(width) + "}") * (len(columns) - 1)
-        fmt += "{}"
+    for columns in zip_longest(*rows, fillvalue=''):
+        fmt = ('{:' + str(width) + '}') * (len(columns) - 1)
+        fmt += '{}'
         print(fmt.format(*columns))
