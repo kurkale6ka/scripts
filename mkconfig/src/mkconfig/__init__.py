@@ -14,7 +14,6 @@ INSTALL:
 
 # TODO:
 # ssh -T git@github.com to accept IP
-# migrate `scripts/db-create` to python
 # add more type hints
 # mkconfig -L issue on macOS: delete last with Path(argv[0])?
 # Remove hard-coded reference of ~/repos in help messages + README file
@@ -29,83 +28,22 @@ from pathlib import Path
 from pprint import pprint
 from signal import SIGINT, signal
 from subprocess import run
-from sys import argv, platform, stderr, version_info
+from sys import argv, platform, version_info
 from textwrap import dedent
+from venv import EnvBuilder
 
 from git.exc import GitCommandError, InvalidGitRepositoryError, NoSuchPathError
 from git.repo import Repo as GitRepo
 
 from . import colors as fg
 
+base = env['REPOS_BASE']
+user = 'kurkale6ka'
+
 
 def interrupt_handler(sig, frame):  # pyright: ignore reportUnusedVariable
     print('\nBye')
     exit()
-
-
-signal(SIGINT, interrupt_handler)
-
-# NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
-if 'REPOS_BASE' not in env:
-    fg.err('exporting REPOS_BASE to', f'{fg.dir}~/repos{fg.res}')
-    env['REPOS_BASE'] = env['HOME'] + '/repos'
-    Path(env['REPOS_BASE']).mkdir(exist_ok=True)
-
-base = env['REPOS_BASE']
-user = 'kurkale6ka'
-
-# XDG Variables
-if 'XDG_CONFIG_HOME' not in env:
-    fg.err('setting XDG Variables to their default values')
-    env['XDG_CONFIG_HOME'] = f'{env["HOME"]}/.config'
-    env['XDG_DATA_HOME'] = f'{env["HOME"]}/.local/share'
-    Path(env['XDG_CONFIG_HOME']).mkdir(exist_ok=True)
-    Path(env['XDG_DATA_HOME']).mkdir(parents=True, exist_ok=True)
-
-# TODO: --dry-run?
-parser = argparse.ArgumentParser(prog='mkconfig', description='Dotfiles setup')
-parser.add_argument(
-    '-N',
-    '--install-nvim-python-client',
-    action='store_true',
-    help="Install/Upgrade Neovim's Python client, plus other `venv`s in `~/py-envs` and their packages",
-)
-parser.add_argument(
-    '-i', '--init', action='store_true', help='Initial setup'
-)  # TODO: make mutually exclusive with the rest
-parser.add_argument('-g', '--git-config', action='store_true', help='git config')
-parser.add_argument(
-    '-t',
-    '--tags',
-    action='store_true',
-    help='Generate ~/repos/tags (needs universal ctags)',
-)
-parser.add_argument('-v', '--verbose', action='store_true')
-grp_ln = parser.add_mutually_exclusive_group()
-grp_ln.add_argument('-l', '--links', action='store_true', help='Make links')
-grp_ln.add_argument('-L', '--delete-links', action='store_true', help='Remove links')
-grp_git = parser.add_mutually_exclusive_group()
-grp_git.add_argument('-s', '--status', action='store_true', help='git status')
-grp_git.add_argument('-u', '--update', action='store_true', help='Update repositories')
-grp_cln = parser.add_argument_group('Clone repositories')
-grp_cln.add_argument('-c', '--clone', action='store_true', help='git clone')
-grp_cln.add_argument(
-    '-p',
-    '--clone-protocol',
-    type=str,
-    choices=['git', 'https'],
-    default='git',
-    help="'git clone' protocol",
-)
-grp_cln.add_argument(
-    '-C', dest='clone_dst', type=str, help='cd to this directory before cloning'
-)
-grp_extra = parser.add_argument_group('Extra')
-grp_extra.add_argument(
-    '--vim-plug-help', action='store_true', help='https://github.com/junegunn/vim-plug'
-)
-grp_extra.add_argument('--perl-cpan-help', action='store_true', help='CPAN modules')
-args = parser.parse_args()
 
 
 class Link:
@@ -339,15 +277,10 @@ repos = (
     RepoData('vim-pairs', enabled=False),
 )
 
-# Don't use a tuple here!
-# We loop over this variable in many functions, which means we can't have it
-# exhausted after a single pass through
 repos = [repo for repo in repos if repo.enabled]
 
 
 def upgrade_venvs(msg='Installing pip modules (pynvim, ...)', clear=False):
-    from venv import EnvBuilder
-
     class Venv(EnvBuilder):
         def __init__(self, packages=()):
             super().__init__(with_pip=True, upgrade_deps=True, clear=clear)
@@ -412,7 +345,6 @@ def init(args):
     if platform == 'darwin':
         fg.info(f'-{fg.res}', 'Installing Homebrew formulae...')
         formulae = (
-            'cpanminus',
             'bash',
             'zsh',
             'shellcheck',
@@ -433,7 +365,7 @@ def init(args):
             'colordiff',
             'bat',
             'git',
-            # 'ctags', # make sure this is universal ctags!
+            # 'ctags', # make sure this is 'universal-ctags'!
             'gnu-tar',
             'ipcalc',
             'iproute2mac',
@@ -605,6 +537,73 @@ async def git_pull() -> None:
 
 
 def main() -> None:
+    signal(SIGINT, interrupt_handler)
+
+    # NB: can't be commented out. REPOS_BASE is used in other parts (e.g. zsh)
+    if 'REPOS_BASE' not in env:
+        fg.err('exporting REPOS_BASE to', f'{fg.dir}~/repos{fg.res}')
+        env['REPOS_BASE'] = env['HOME'] + '/repos'
+        Path(env['REPOS_BASE']).mkdir(exist_ok=True)
+
+    # XDG Variables
+    if 'XDG_CONFIG_HOME' not in env:
+        fg.err('setting XDG Variables to their default values')
+        env['XDG_CONFIG_HOME'] = f'{env["HOME"]}/.config'
+        env['XDG_DATA_HOME'] = f'{env["HOME"]}/.local/share'
+        Path(env['XDG_CONFIG_HOME']).mkdir(exist_ok=True)
+        Path(env['XDG_DATA_HOME']).mkdir(parents=True, exist_ok=True)
+
+    # TODO: --dry-run?
+    parser = argparse.ArgumentParser(prog='mkconfig', description='Dotfiles setup')
+    parser.add_argument(
+        '-N',
+        '--install-nvim-python-client',
+        action='store_true',
+        help="Install/Upgrade Neovim's Python client, plus other `venv`s in `~/py-envs` and their packages",
+    )
+    parser.add_argument(
+        '-i', '--init', action='store_true', help='Initial setup'
+    )  # TODO: make mutually exclusive with the rest
+    parser.add_argument('-g', '--git-config', action='store_true', help='git config')
+    parser.add_argument(
+        '-t',
+        '--tags',
+        action='store_true',
+        help='Generate ~/repos/tags (needs universal ctags)',
+    )
+    parser.add_argument('-v', '--verbose', action='store_true')
+    grp_ln = parser.add_mutually_exclusive_group()
+    grp_ln.add_argument('-l', '--links', action='store_true', help='Make links')
+    grp_ln.add_argument(
+        '-L', '--delete-links', action='store_true', help='Remove links'
+    )
+    grp_git = parser.add_mutually_exclusive_group()
+    grp_git.add_argument('-s', '--status', action='store_true', help='git status')
+    grp_git.add_argument(
+        '-u', '--update', action='store_true', help='Update repositories'
+    )
+    grp_cln = parser.add_argument_group('Clone repositories')
+    grp_cln.add_argument('-c', '--clone', action='store_true', help='git clone')
+    grp_cln.add_argument(
+        '-p',
+        '--clone-protocol',
+        type=str,
+        choices=['git', 'https'],
+        default='git',
+        help="'git clone' protocol",
+    )
+    grp_cln.add_argument(
+        '-C', dest='clone_dst', type=str, help='cd to this directory before cloning'
+    )
+    grp_extra = parser.add_argument_group('Extra')
+    grp_extra.add_argument(
+        '--vim-plug-help',
+        action='store_true',
+        help='https://github.com/junegunn/vim-plug',
+    )
+    args = parser.parse_args()
+
+    # Start
     if args.install_nvim_python_client:
         upgrade_venvs(msg='Upgrading pip modules (pynvim, ...)')
 
@@ -638,16 +637,6 @@ def main() -> None:
                 """
                 curl -fLo /home/mitko/repos/github/vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
                 REPOS_BASE=/home/mitko/repos vim -c PlugInstall
-                """
-            ).strip()
-        )
-
-    if args.perl_cpan_help:
-        print(
-            dedent(
-                """
-                cpanm -l ~/perl5 local::lib # see .zshrc for explanations, needs cpanminus
-                cpanm Term::ReadLine::Gnu
                 """
             ).strip()
         )
