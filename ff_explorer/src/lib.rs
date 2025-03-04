@@ -5,24 +5,28 @@ pub struct DocsRepo {
 }
 
 impl DocsRepo {
-    pub fn search_titles() {}
-    pub fn search_contents() {}
+    pub fn new(location: String) -> Self {
+        Self { location }
+    }
+
+    pub fn search_titles(&self) {}
+    pub fn search_contents(&self) {}
 }
 
 pub struct DocSet;
 
 impl DocSet {
     fn filter() {}
-    pub fn get_doc() {}
-    pub fn get_docs() {}
+    pub fn get_doc(&self) {}
+    pub fn get_docs(&self) {}
 }
 
 pub struct Doc;
 
 impl Doc {
-    pub fn view() {}
-    pub fn edit() {}
-    pub fn run() {}
+    pub fn view(&self) {}
+    pub fn edit(&self) {}
+    pub fn run(&self) {}
 }
 
 // pub fn get_help_files() -> Vec<String> {
