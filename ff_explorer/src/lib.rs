@@ -1,3 +1,6 @@
+use std::error::Error;
+
+// TODO: why repeat, not an include, check docs
 mod args;
 
 pub struct DocsRepo {
@@ -27,6 +30,11 @@ impl Doc {
     pub fn view(&self) {}
     pub fn edit(&self) {}
     pub fn run(&self) {}
+}
+
+pub fn run(args: impl clap::Parser) -> Result<(), Box<dyn Error>> {
+    // println!(args::parse());
+    Ok(())
 }
 
 // pub fn get_help_files() -> Vec<String> {
