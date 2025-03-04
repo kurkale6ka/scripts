@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::path::Path;
 
 // TODO: why repeat, not an include, check docs
 mod args;
@@ -33,6 +34,8 @@ impl Doc {
 }
 
 pub fn run(args: impl clap::Parser) -> Result<(), Box<dyn Error>> {
+    let repo = DocsRepo::new(String::from("~/github/help"));
+    println!("{}", repo.location);
     // println!(args::parse());
     Ok(())
 }
