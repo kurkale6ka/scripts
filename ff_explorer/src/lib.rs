@@ -4,12 +4,13 @@ use std::path::Path;
 // TODO: why repeat, not an include, check docs
 mod args;
 
-pub struct DocsRepo {
-    pub location: String, // use File
+pub struct DocsRepo<'a> {
+    pub location: &'a Path, // TODO: use <generic> Source
 }
 
-impl DocsRepo {
-    pub fn new(location: String) -> Self {
+// TODO: use '_
+impl<'a> DocsRepo<'a> {
+    pub fn new(location: &'a Path) -> Self {
         Self { location }
     }
 
@@ -34,8 +35,12 @@ impl Doc {
 }
 
 pub fn run(args: impl clap::Parser) -> Result<(), Box<dyn Error>> {
-    let repo = DocsRepo::new(String::from("~/github/help"));
-    println!("{}", repo.location);
+    let repo = DocsRepo::new(Path::new("~/repos/github/help"));
+    println!(
+        "Is {} a dir? {}",
+        repo.location.display(),
+        repo.location.is_dir() // TODO: add test
+    );
     // println!(args::parse());
     Ok(())
 }
