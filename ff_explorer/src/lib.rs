@@ -1,5 +1,30 @@
 mod args;
 
+pub struct DocsRepo {
+    pub location: String, // use File
+}
+
+impl DocsRepo {
+    pub fn search_titles() {}
+    pub fn search_contents() {}
+}
+
+pub struct DocSet;
+
+impl DocSet {
+    fn filter() {}
+    pub fn get_doc() {}
+    pub fn get_docs() {}
+}
+
+pub struct Doc;
+
+impl Doc {
+    pub fn view() {}
+    pub fn edit() {}
+    pub fn run() {}
+}
+
 // pub fn get_help_files() -> Vec<String> {
 //     return ()
 // }
