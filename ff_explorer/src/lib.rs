@@ -35,7 +35,7 @@ impl Doc {
 }
 
 pub fn run(args: impl clap::Parser) -> Result<(), Box<dyn Error>> {
-    let repo = DocsRepo::new(Path::new("~/repos/github/help"));
+    let repo = DocsRepo::new(Path::new("/home/mitko/repos/github/help")); // TODO: use ~
     println!(
         "Is {} a dir? {}",
         repo.location.display(),
@@ -45,17 +45,17 @@ pub fn run(args: impl clap::Parser) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// pub fn get_help_files() -> Vec<String> {
-//     return ()
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+    fn setup<'a>() -> DocsRepo<'a> {
+        return DocsRepo::new(Path::new("/home/mitko/repos/github/help"));
+    }
 
-//     #[test]
-//     fn help_dir_has_got_markdown_files() {
-//         let result = get_help_files();
-//         assert_ne!(result, ());
-//     }
-// }
+    #[test]
+    fn markdown_files_present_in_help_folder() {
+        let repo = setup();
+        assert!(repo.location.is_dir());
+    }
+}
