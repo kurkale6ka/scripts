@@ -1,4 +1,6 @@
 use std::error::Error;
+use std::fs;
+use std::io;
 use std::path::Path;
 
 // TODO: why repeat, not an include, check docs
@@ -49,13 +51,23 @@ pub fn run(args: impl clap::Parser) -> Result<(), Box<dyn Error>> {
 mod tests {
     use super::*;
 
-    fn setup<'a>() -> DocsRepo<'a> {
-        return DocsRepo::new(Path::new("/home/mitko/repos/github/help"));
+    fn create_folders() -> Result<(), io::Error> {
+        fs::create_dir_all(Path::new("/home/mitko/ff/help"))?;
+        fs::create_dir_all(Path::new("/home/mitko/ff/prog"))?;
+        Ok(())
+    }
+
+    fn get_repo<'a>() -> DocsRepo<'a> {
+        if let Err(_) = create_folders() {
+            panic!("Couldn't create fixture folders");
+        }
+
+        DocsRepo::new(Path::new("/home/mitko/repos/github/help"))
     }
 
     #[test]
     fn markdown_files_present_in_help_folder() {
-        let repo = setup();
+        let repo = get_repo();
         assert!(repo.location.is_dir());
     }
 }
