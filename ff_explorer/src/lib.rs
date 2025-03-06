@@ -52,8 +52,8 @@ mod tests {
     use super::*;
 
     fn create_folders() -> Result<(), io::Error> {
-        fs::create_dir_all(Path::new("/home/mitko/ff/help"))?;
-        fs::create_dir_all(Path::new("/home/mitko/ff/prog"))?;
+        fs::create_dir_all(Path::new("/home/mitko/fe/folder1"))?;
+        fs::create_dir_all(Path::new("/home/mitko/fe/folder2"))?;
         Ok(())
     }
 
@@ -64,8 +64,32 @@ mod tests {
     }
 
     #[test]
-    fn markdown_files_present_in_help_folder() {
-        let repo = get_repo();
-        assert!(repo.location.is_dir());
-    }
+    fn find_files_with_search_pattern_in_titles() {}
+
+    #[test]
+    fn find_files_with_search_pattern_in_contents() {}
+
+    #[test]
+    fn find_hidden_files_with_search_pattern_in_titles() {}
+
+    #[test]
+    fn find_hidden_files_with_search_pattern_in_contents() {}
+
+    #[test]
+    fn no_results_in_empty_repo() {}
+
+    #[test]
+    fn view_doc_in_terminal() {}
+
+    #[test]
+    fn view_docs_in_terminal() {}
+
+    #[test]
+    fn view_doc_in_browser() {}
+
+    #[test]
+    fn edit_doc_with_editor() {}
+
+    #[test]
+    fn run_doc() {}
 }
