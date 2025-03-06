@@ -58,9 +58,7 @@ mod tests {
     }
 
     fn get_repo<'a>() -> DocsRepo<'a> {
-        if let Err(_) = create_folders() {
-            panic!("Couldn't create fixture folders");
-        }
+        create_folders().expect("Folder fixtures should've been created");
 
         DocsRepo::new(Path::new("/home/mitko/repos/github/help"))
     }
