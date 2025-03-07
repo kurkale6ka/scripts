@@ -64,32 +64,52 @@ mod tests {
     }
 
     #[test]
-    fn find_files_with_search_pattern_in_titles() {}
+    fn find_files_with_search_pattern_in_titles() {
+        assert!(false)
+    }
 
     #[test]
-    fn find_files_with_search_pattern_in_contents() {}
+    fn find_files_with_search_pattern_in_contents() {
+        assert!(false)
+    }
 
     #[test]
-    fn find_hidden_files_with_search_pattern_in_titles() {}
+    fn find_hidden_files_with_search_pattern_in_titles() {
+        assert!(false)
+    }
 
     #[test]
-    fn find_hidden_files_with_search_pattern_in_contents() {}
+    fn find_hidden_files_with_search_pattern_in_contents() {
+        assert!(false)
+    }
 
     #[test]
-    fn no_results_in_empty_repo() {}
+    fn no_results_in_empty_repo() {
+        assert!(false)
+    }
 
     #[test]
-    fn view_doc_in_terminal() {}
+    fn view_doc_in_terminal() {
+        assert!(false)
+    }
 
     #[test]
-    fn view_docs_in_terminal() {}
+    fn view_docs_in_terminal() {
+        assert!(false)
+    }
 
     #[test]
-    fn view_doc_in_browser() {}
+    fn view_doc_in_browser() {
+        assert!(false)
+    }
 
     #[test]
-    fn edit_doc_with_editor() {}
+    fn edit_doc_with_editor() {
+        assert!(false)
+    }
 
     #[test]
-    fn run_doc() {}
+    fn run_doc() {
+        assert!(false)
+    }
 }
