@@ -16,7 +16,18 @@ impl<'a> DocsRepo<'a> {
         Self { location }
     }
 
-    pub fn search_titles(&self) {}
+    pub fn search_titles(&self, pattern: &str) -> Vec<String> {
+        let results = vec![];
+        for entry in self.location.read_dir().expect("read_dir call failed") {
+            if let Ok(entry) = entry {
+                if entry.path().file_name()?.contains(pattern) {
+                    results.push(pattern);
+                }
+            }
+        }
+        results
+    }
+
     pub fn search_contents(&self) {}
 }
 
@@ -37,13 +48,7 @@ impl Doc {
 }
 
 pub fn run(args: impl clap::Parser) -> Result<(), Box<dyn Error>> {
-    let repo = DocsRepo::new(Path::new("/home/mitko/repos/github/help")); // TODO: use ~
-    println!(
-        "Is {} a dir? {}",
-        repo.location.display(),
-        repo.location.is_dir() // TODO: add test
-    );
-    // println!(args::parse());
+    // TODO: parse args
     Ok(())
 }
 
@@ -51,21 +56,25 @@ pub fn run(args: impl clap::Parser) -> Result<(), Box<dyn Error>> {
 mod tests {
     use super::*;
 
-    fn create_folders() -> Result<(), io::Error> {
-        fs::create_dir_all(Path::new("/home/mitko/fe/folder1"))?;
-        fs::create_dir_all(Path::new("/home/mitko/fe/folder2"))?;
-        Ok(())
+    fn create_folders<'a>() -> Result<&'a Path, io::Error> {
+        let base = Path::new("/home/mitko/fe/");
+        fs::create_dir_all(base.join("folder1"))?;
+        fs::create_dir_all(base.join("folder1/subf1"))?;
+        fs::create_dir_all(base.join("folder2"))?;
+        Ok(base)
     }
 
     fn get_repo<'a>() -> DocsRepo<'a> {
-        create_folders().expect("Folder fixtures should've been created");
+        let base = create_folders().expect("Folder fixtures should've been created");
 
-        DocsRepo::new(Path::new("/home/mitko/repos/github/help"))
+        DocsRepo::new(base)
     }
 
     #[test]
     fn find_files_with_search_pattern_in_titles() {
-        assert!(false)
+        let repo = get_repo();
+        let results = repo.search_titles("ssh");
+        assert!(results.len() > 1)
     }
 
     #[test]
