@@ -16,12 +16,15 @@ impl<'a> DocsRepo<'a> {
         Self { location }
     }
 
-    pub fn search_titles(&self, pattern: &str) -> Vec<String> {
-        let results = vec![];
+    pub fn search_titles(&self, pattern: String) -> Vec<String> {
+        let mut results: Vec<String> = Vec::new();
+
         for entry in self.location.read_dir().expect("read_dir call failed") {
             if let Ok(entry) = entry {
-                if entry.path().file_name()?.contains(pattern) {
-                    results.push(pattern);
+                let path = entry.path();
+                let title = path.file_name().unwrap().to_str().unwrap();
+                if title.contains(&pattern) {
+                    results.push(title.to_string());
                 }
             }
         }
@@ -73,7 +76,7 @@ mod tests {
     #[test]
     fn find_files_with_search_pattern_in_titles() {
         let repo = get_repo();
-        let results = repo.search_titles("ssh");
+        let results = repo.search_titles("ssh".to_string());
         assert!(results.len() > 1)
     }
 
