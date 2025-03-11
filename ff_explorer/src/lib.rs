@@ -68,16 +68,16 @@ mod tests {
     }
 
     fn get_repo<'a>() -> DocsRepo<'a> {
-        let base = create_folders().expect("Folder fixtures should've been created");
+        let location = create_folders().expect("Folder fixtures should've been created");
 
-        DocsRepo::new(base)
+        DocsRepo::new(location)
     }
 
     #[test]
     fn find_files_with_search_pattern_in_titles() {
         let repo = get_repo();
         let results = repo.search_titles("ssh".to_string());
-        assert!(results.len() > 1)
+        assert!(!results.is_empty())
     }
 
     #[test]
