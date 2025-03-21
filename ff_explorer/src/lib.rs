@@ -64,6 +64,10 @@ mod tests {
         fs::create_dir_all(base.join("folder1"))?;
         fs::create_dir_all(base.join("folder1/subf1"))?;
         fs::create_dir_all(base.join("folder2"))?;
+        fs::write(
+            base.join("folder1/subf1/how to generate ssh keys"),
+            "ssh-keygen -ted25519 -C'My Laptop key'\n",
+        )?;
         Ok(base)
     }
 
