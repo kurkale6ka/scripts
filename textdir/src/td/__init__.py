@@ -51,12 +51,12 @@ class Inode:
 
     def from_text(self, handle: Path) -> None:
         with open(handle) as file:
-            files = file.read().rstrip().split(self._sep)
-
-        print('Parent:', files.pop(0))
-        # Path(files.pop(0)).mkdir(exist_ok=True)
+            parent, rest = file.read().rstrip().split(maxsplit=1)
+            files = rest.split(self._sep)
+            # Path(parent).mkdir(exist_ok=True)
 
         for file in files:
+            # TODO: deal with empty files
             path, contents = file.split(maxsplit=1)
             print('Path:', path)
 
