@@ -15,7 +15,7 @@ class File(NamedTuple):
 
 
 class Inode:
-    _sep = '\n@@@ File @@@\n'
+    _sep = '\n----------------------- File -----------------------\n'
 
     def __init__(self, location):
         self._location: Path = location
@@ -26,21 +26,24 @@ class Inode:
             '--strip-cwd-prefix',
             '-tf',
             '-p',
-            '--ignore-file',  # needed since I want ignored files to be also ignored in non .git folders
-            f'{env["XDG_CONFIG_HOME"]}/git/ignore',
+            f'--ignore-file={env["XDG_CONFIG_HOME"]}/git/ignore',
         ]
 
+        # run fd or fdfind
         try:
-            res = run(fd, capture_output=True, text=True)
+            proc = run(fd, capture_output=True, text=True)
         except FileNotFoundError:
             fd[0] = 'fdfind'
-            res = run(fd, capture_output=True, text=True)
+            proc = run(fd, capture_output=True, text=True)
 
-        files = []
-        for path in res.stdout.splitlines():
-            with open(path) as file:
-                contents = file.read().rstrip()
-            files.append(File(Path(path), contents))
+        if proc.returncode == 0:
+            files: list[File] = []
+            for path in proc.stdout.splitlines():
+                with open(path) as file:
+                    contents = file.read().rstrip()
+                files.append(File(Path(path), contents))
+        else:
+            exit(proc.stderr.rstrip())
 
         return f'{self._location.absolute().name}\n' + self._sep.join(
             f'{file.path}\n{file.contents}' for file in files
@@ -59,7 +62,7 @@ class Inode:
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         '-d', '--dir', type=Path, default=Path('.'), help='source directory'
     )
@@ -74,6 +77,7 @@ def main():
     )
     args = parser.parse_args()
 
+    # Main
     if args.to_text:
         dir = Inode(args.dir)
         print(dir.to_text())
