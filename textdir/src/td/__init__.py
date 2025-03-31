@@ -20,14 +20,14 @@ class Files:
 
     def to_folder(self, sep: str) -> None:
         with open(self._src) as file:
-            parent, rest = file.read().rstrip().split(maxsplit=1)
-            files = rest.split(sep)
-            # Path(parent).mkdir(exist_ok=True)
+            files = file.read().rstrip().split(sep)
 
         for file in files:
-            # TODO: deal with empty files
             path, contents = file.split(maxsplit=1)
-            print('Path:', path)
+
+            Path(path).parent.mkdir(parents=True, exist_ok=True)
+            with open(Path(path), 'w') as file:
+                file.write(contents)
 
 
 class Folder:
@@ -37,10 +37,11 @@ class Folder:
     def to_files(self, sep: str) -> str:
         fd = [
             'fd',
-            '--strip-cwd-prefix',
             '-tf',
+            '-a',
             '-p',
             f'--ignore-file={env["XDG_CONFIG_HOME"]}/git/ignore',
+            str(self._path),
         ]
 
         # run fd or fdfind
@@ -58,13 +59,16 @@ class Folder:
 
                 # skip empty files
                 if contents:
-                    files.append(File(Path(path), contents))
+                    files.append(
+                        File(
+                            Path(path).relative_to(self._path.resolve().parent),
+                            contents,
+                        )
+                    )
         else:
             exit(proc.stderr.rstrip())
 
-        return f'{self._path.absolute().name}\n' + sep.join(
-            f'{file.path}\n{file.contents}' for file in files
-        )
+        return sep.join(f'{file.path}\n{file.contents}' for file in files)
 
 
 def main():
