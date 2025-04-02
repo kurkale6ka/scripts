@@ -1,7 +1,7 @@
 [project]
 name = "td"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0.0"
+description = "Export a directory to a single text document"
 readme = "README.md"
 authors = [
     { name = "Dimitar Dimitrov", email = "kurkale6ka@gmail.com" }

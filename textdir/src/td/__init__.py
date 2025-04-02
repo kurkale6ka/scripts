@@ -86,7 +86,7 @@ def main():
         '-e',
         '--export',
         action='store_true',
-        help='export directory as a single stream',
+        help='export directory (default .) as a single stream',
     )
     parser.add_argument(
         '-i',
