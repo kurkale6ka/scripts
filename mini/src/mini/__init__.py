@@ -15,24 +15,12 @@ from platform import release, system
 from subprocess import PIPE, run
 from sys import stderr
 
-parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
-parser.add_argument('-a', '--all', action='store_true', help='choose from all configs')
-parser.add_argument(
-    'config',
-    type=str,
-    default='bash',
-    nargs='?',
-    help='get config(s), fuzzy pattern allowed\ndefault: bash (inputrc/bashrc/vimrc)\nspecial: ksh (profile/kshrc/vimrc)',
-)
-args = parser.parse_args()
-
 
 @dataclass
 class MiniConfig:
-    name: str
-    info: str = ''
     path: PathLike = Path('.')
-    comments: str = '#'
+    description: str = ''
+    content:str=''
 
     # prepend base
     def __post_init__(self):
@@ -51,7 +39,9 @@ inputrc = MiniConfig(
     'inputrc', info='readline', path=Path('config/dotfiles/.inputrc.mini')
 )
 bashrc = MiniConfig('bashrc', path=Path('bash/.bashrc.mini'))
-vimrc = MiniConfig('vimrc', path=Path('vim/.vimrc.mini'), comments='"')
+vimrc = MiniConfig(Path('~/.vimrc'),
+                   'set bla'
+                   )
 profile = MiniConfig(
     'profile', info='ksh profile', path=Path('config/ksh/.profile.mini')
 )
@@ -65,7 +55,21 @@ mini_configs = {
     kshrc.name: kshrc,
 }
 
-if __name__ == '__main__':
+
+def main():
+    parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
+    parser.add_argument(
+        '-a', '--all', action='store_true', help='choose from all configs'
+    )
+    parser.add_argument(
+        'config',
+        type=str,
+        default='bash',
+        nargs='?',
+        help='get config(s), fuzzy pattern allowed\ndefault: bash (inputrc/bashrc/vimrc)\nspecial: ksh (profile/kshrc/vimrc)',
+    )
+    args = parser.parse_args()
+
     # Select clipboard
     if 'microsoft-standard' in release():  # WSL2
         cb_tool = 'clip.exe'
@@ -110,3 +114,7 @@ if __name__ == '__main__':
     else:
         print(mini_config, '\n')
         print('failed to copy config', file=stderr)
+
+
+if __name__ == '__main__':
+    main()
