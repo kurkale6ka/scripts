@@ -7,56 +7,16 @@
 """
 
 from argparse import ArgumentParser, RawTextHelpFormatter
-from dataclasses import dataclass
-from os import PathLike
-from os import environ as env
-from pathlib import Path
 from platform import release, system
 from subprocess import PIPE, run
 from sys import stderr
 
-
-@dataclass
-class MiniConfig:
-    path: PathLike = Path('.')
-    description: str = ''
-    content:str=''
-
-    # prepend base
-    def __post_init__(self):
-        self.path = Path(f'{env["REPOS_BASE"]}/github/{self.path}')
-
-    def get(self):
-        with open(self.path) as config:
-            out = f"cat >> ~/.{self.name} << '{self.name.upper()}'\n"
-            out += f'{self.comments} {"-" * 78}\n'
-            out += config.read()
-            out += self.name.upper()
-        return out
-
-
-inputrc = MiniConfig(
-    'inputrc', info='readline', path=Path('config/dotfiles/.inputrc.mini')
-)
-bashrc = MiniConfig('bashrc', path=Path('bash/.bashrc.mini'))
-vimrc = MiniConfig(Path('~/.vimrc'),
-                   'set bla'
-                   )
-profile = MiniConfig(
-    'profile', info='ksh profile', path=Path('config/ksh/.profile.mini')
-)
-kshrc = MiniConfig('kshrc', path=Path('config/ksh/.kshrc.mini'))
-
-mini_configs = {
-    inputrc.name: inputrc,
-    bashrc.name: bashrc,
-    vimrc.name: vimrc,
-    profile.name: profile,
-    kshrc.name: kshrc,
-}
+from . import cfg
 
 
 def main():
+    miniconfigs = cfg.miniconfigs
+
     parser = ArgumentParser(description=__doc__, formatter_class=RawTextHelpFormatter)
     parser.add_argument(
         '-a', '--all', action='store_true', help='choose from all configs'
