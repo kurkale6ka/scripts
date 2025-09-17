@@ -1,0 +1,7010 @@
+nvim/README.adoc
+== Plugin manager
+https://github.com/folke/lazy.nvim[lazy.nvim: 󰒲 A modern plugin manager for Neovim]
+
+== Sensible defaults
+* https://github.com/tpope/vim-sensible[sensible.vim: defaults everyone can agree on]
+* https://github.com/nvim-lua/kickstart.nvim[kickstart.nvim: a launch point for your personal nvim configuration]
+
+== Neovim plugins
+- https://github.com/dstein64/vim-startuptime[vim-startuptime: A plugin for profiling Vim and Neovim startup time]
+- https://github.com/neovim/nvim-lspconfig[nvim-lspconfig: Quickstart configs for Nvim LSP]
+- https://github.com/jose-elias-alvarez/null-ls.nvim[null-ls.nvim: Use Neovim as a language server to inject LSP diagnostics, code actions, and more via Lua]
+- https://github.com/folke/trouble.nvim[trouble.nvim: 󱠪A pretty diagnostics, references, telescope results, quickfix and location list to help you solve all the trouble your code is causing]
+- https://github.com/nvim-tree/nvim-tree.lua[nvim-tree.lua: A file explorer tree for neovim written in lua]
+- https://github.com/mbbill/undotree[The undo history visualizer for VIM]
+- https://github.com/nvim-treesitter/nvim-treesitter[nvim-treesitter: Nvim Treesitter configurations and abstraction layer]
+- https://github.com/nvim-treesitter/nvim-treesitter-textobjects[nvim-treesitter-textobjects: Tree-sitter text objects]
+- https://github.com/nvim-treesitter/playground[playground: Treesitter playground integrated into Neovim]
+- https://github.com/hrsh7th/nvim-cmp[nvim-cmp: A completion plugin for Neovim coded in Lua]
+- https://github.com/navarasu/onedark.nvim[onedark.nvim: light colorscheme for Neovim written in lua, based on Atom's one dark and light theme]
+- https://github.com/norcalli/nvim-colorizer.lua[nvim-colorizer.lua: The fastest Neovim colorizer]
+- https://github.com/lewis6991/gitsigns.nvim[gitsigns.nvim: Git integration for buffers]
+- https://github.com/lukas-reineke/indent-blankline.nvim[indent-blankline.nvim: Indent guides for Neovim]
+- https://github.com/phaazon/hop.nvim[hop.nvim: Neovim motions on speed]
+- https://github.com/nvim-lualine/lualine.nvim[lualine.nvim: A blazing fast and easy to configure Neovim statusline plugin written in pure lua]
+
+== Tree-sitter
+https://tree-sitter.github.io/tree-sitter/
+----------------------- File -----------------------
+nvim/TODO.adoc
+== Broken
+- unicode char top left corner, dockerimage icon in NvimTree
+- `^xn ^xn` complete 2/3 words seems to be \~broken
+- `^p` completion without any visible menu doesn't work
+- python indentation broken because of TS highlight
+- after `ciw` confirm with enter from completion, `.` won't repeat
+- `Session.vim` went into wrong folder
+- duplicate symbols in cmdline, e.g. `:h''spr` => raise issue?
+- fzf install issues (lazy.nvim) !!! (`unset https_proxy` fixes it?)
+- `gf` doesn't work on `plugins/...`
+- Client 1 quit with exit code 1 and signal 0: LSP issue with Dockerfile
+- Change all RESET color to Text(...)
+
+== Workarounds
+- zsh snippets ft wrong because # defines a zsh shebang, https://github.com/SirVer/ultisnips/issues/1520
+- `se dg` still no luck: problem caused by both nvim cmp and lualine plugins, got `yok` now
+- `:term` doesn't split window, now I've got the `^w^t` map
+
+== New features + ideas
+- `EHelp`, `ELocalHelp`, `EScript`, ...
+- `Quotes` with `!` or argument to change surround delimiter (e.g. use backticks)
+- `goX`, `coc`, `=oc`, `db`..., use in mappings + find all free mappings:
+- add `alt-.` in cmdline and `c-y` to paste
+- redefine command `G` with `:vert Git -p`
+- TS info in statusline
+- ulti, show my snippets only
+- undo, redo without jumping
+- no whitespace removing if not my file?
+- `\w` -> `:w` if no path
+- `ls!` unlisted help buffers, include in `<leader>b`?
+- `gK` for help, test it still works with `'wrap`
+- `Trouble` references?
+- perl lsp
+- gitsigns in lualine
+- `yof` to set manual folding
+
+== Plugins
+
+== Test
+- TS text objects: test selections
+- check new fold logic
+
+== Questions
+- install dictionaries?
+- jinja2 syntax? TS inject in ansible buffers?
+- ask in weechat - disable map for one go
+----------------------- File -----------------------
+nvim/UltiSnips/all.snippets
+snippet l
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+culpa qui officia deserunt mollit anim id est laborum.
+endsnippet
+
+snippet mode "No eol colon version"
+${1:#} vim: ${2:foldmethod=marker} ${3:foldmarker={{{,}}}}
+endsnippet
+
+snippet mode "eol colon version"
+${1:#} vim: set ${2:foldmethod=marker} ${3:foldmarker={{{,}}}}:
+endsnippet
+
+snippet fold "Based on comments"
+# Don't forget to double slashes (\\d\\.). >1 means 'a fold of level 1 starts here'
+# vim: fdm=expr fde=getline(v\:lnum)=~'^\\\\s*${1:#}$1'?'>'.(len(matchstr(getline(v\:lnum),'$1$1$1*'))-1)\:'='
+endsnippet
+
+snippet fold "Based on xml tag"
+# vim: fdm=expr fde=getline(v\:lnum)=~'<$1'?'>1'\:'='
+endsnippet
+
+snippet tree
+│
+├─
+└─
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/ansible.snippets
+snippet #
+---
+- name: ${1:Playbook}
+  hosts: ${2:localhost}
+  tasks:
+
+  - name: $3
+endsnippet
+
+snippet '##|play' "Playbook" r
+---
+- name: ${1:Role description}
+  hosts: $2
+  roles:
+  `!p snip.shift(); snip.rv = snip.mkline()`- $3
+endsnippet
+
+snippet 'debug|msg|print' "Debug" r
+- name: $1
+  debug:
+  `!p snip.shift(); snip.rv = snip.mkline()`msg: "$2"
+endsnippet
+
+snippet task
+- name: $1
+  ansible.builtin.${2:module}:
+  `!p snip.shift(); snip.rv = snip.mkline()`name: $3
+endsnippet
+
+snippet service
+service: name=$1 state=${2:started} enabled=${3:yes}
+endsnippet
+
+snippet 'su(?:do)?' "su or sudo" r
+become: true
+become_method: `!p snip.p`
+endsnippet
+
+## packages
+snippet 'update|upgrade|latest' "Update all packages" r
+- name: Upgrade all packages
+  ansible.builtin.package: # noqa package-latest
+  `!p snip.shift(); snip.rv = snip.mkline()`name: '*'
+  `!p snip.shift(); snip.rv = snip.mkline()`state: latest
+endsnippet
+
+snippet yum
+yum: name=$1 state=$2
+endsnippet
+
+## files
+snippet template
+template: src=$1.j2 dest=$2
+endsnippet
+
+snippet dir
+- file:
+  `!p snip.shift(); snip.rv = snip.mkline()`path: $1
+  `!p snip.shift(); snip.rv = snip.mkline()`state: directory
+endsnippet
+
+snippet ln
+- file:
+  `!p snip.shift(); snip.rv = snip.mkline()`src: $1
+  `!p snip.shift(); snip.rv = snip.mkline()`dest: $2
+  `!p snip.shift(); snip.rv = snip.mkline()`state: link
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/asciidoc.snippets
+snippet #
+:toc: left
+:toc-title: $1
+
+= ${2:Title}
+endsnippet
+
+snippet toc "levels"
+:toclevels: ${1:3}
+endsnippet
+
+snippet table
+|===
+| ${1:header1} | ${2:header2}
+
+| ${3:col1}
+| ${4:col2}
+|===
+endsnippet
+
+snippet code
+[source,${1:python}]
+....
+$2
+....
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/awk.snippets
+snippet #
+#! /usr/bin/gawk --file
+
+function ${1:name} (${2:param1}, ${3:param2}, ${4:local var1}, ${5:local var2})
+\{
+}
+
+BEGIN \{
+
+	if (ARGV[1] !~ /$6/)
+	\{
+		print "Usage: $7"
+		exit
+	}
+
+	# Field separator
+	FS="~"
+}
+
+\{
+	# Number of fields: only parse records containing data
+	if (NF != 0)
+	\{
+		/${8:pattern1}/ {${9:actions}}
+		/${10:pattern2}/ {${11:actions}}
+	}
+}
+
+END {$12}
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/c.snippets
+snippet #
+#include <stdio.h>
+
+int main()
+{
+	$1
+	return 0;
+}
+endsnippet
+
+snippet ##
+#include <stdio.h>
+
+int main (int argc, char* argv[])
+{
+	$1
+	return 0;
+}
+endsnippet
+
+# includes
+snippet 'inc(lude)?|std' "string.h" r
+#include <string.h>
+endsnippet
+
+snippet 'inc(lude)?|std' "ctype.h - tolower, isalnum" r
+#include <ctype.h>
+endsnippet
+
+snippet 'inc(lude)?|std' "stdlib.h - atoi" r
+#include <stdlib.h>
+endsnippet
+
+snippet 'inc(lude)?|std' "stdbool.h" r
+#include <stdbool.h>
+endsnippet
+
+# loops
+snippet for
+for (int ${1:i} = ${2:1}; $1 <= $3; $1++)
+	$4;
+endsnippet
+
+# 'heredoc'
+snippet doc
+char ${1:msg}[] =
+	"$2\n"
+	"$3";
+endsnippet
+
+snippet 'switch|case' "Switch" r
+switch($1)
+{
+	case $2:
+		$3;
+		break;
+
+	default:
+		$4;
+}
+endsnippet
+
+# print and read
+snippet p
+printf("$1\n");
+endsnippet
+
+snippet pf
+printf("$1%\n", $2);
+endsnippet
+
+snippet 'read|sf' "Read" r
+scanf("%${1:s}", &$2);
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/cpp.snippets
+snippet #
+/*
+ * ${1:Description}
+ */
+
+#include <iostream>
+
+using namespace std;
+
+int main(int argc, char *argv[])
+\{
+	$2
+	return 0;
+}
+endsnippet
+
+snippet \p
+cout << '$1' << endl;
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/crontab.snippets
+snippet *
+* * * * *
+endsnippet
+
+snippet cron
+#   *       *       *            *               *
+# 0-59m | 0-23h | 1-31d | 1-12 (Jan-Dec) | 1-6 (Mon-Sat) | user /path/to/command
+
+* * * * *
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/css.snippets
+snippet {
+${1:selector} \{
+
+	${2:property}:${3:value};
+}
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/eruby.snippets
+snippet if
+<% if @${1:hostname} =~ /$2/ -%>
+$3
+<% end -%>
+endsnippet
+
+snippet else "Else"
+<% else -%>
+$1
+endsnippet
+
+snippet else "Elsif"
+<% elsif @${1:hostname} =~ /$2/ -%>
+$3
+endsnippet
+
+snippet end
+<% end -%>
+$1
+endsnippet
+
+snippet p
+<%= $1 %>
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/foswiki.snippets
+snippet `
+=$1=
+endsnippet
+
+snippet ```
+<verbatim class="$1">
+$2
+</verbatim>
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/haskell.snippets
+snippet #
+main = $1
+endsnippet
+
+snippet f
+${1:function} :: $2 -> $3
+endsnippet
+
+snippet fun
+${1:function} :: ($2 $3) => $3 -> $4
+endsnippet
+
+snippet p
+putStrLn "$1"
+endsnippet
+
+snippet r
+$$1 <- getLine
+endsnippet
+
+snippet [
+[$1,$2,$3]
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/hcl.snippets
+## terraform
+snippet #
+terraform {
+	required_providers {
+		aws = {
+			source  = "hashicorp/aws"
+			version = "~> 3.27"
+		}
+	}
+
+	required_version = ">= 0.14.9"
+}
+
+provider "aws" {
+	profile = "default"
+	region  = "eu-west-2"
+}
+endsnippet
+
+snippet ec2
+resource "aws_instance" "${1:name}" {
+	ami           = "$2"
+	instance_type = "$3"
+}
+endsnippet
+
+snippet out
+output "${1:resource_id}" {
+	description = "$2"
+	value       = ${3:obj.property}
+}
+endsnippet
+
+snippet for "List"
+[for $1 in $2 : $3]
+endsnippet
+
+snippet for "Map"
+{for $1, $2 in $3 : $1 => $2}
+endsnippet
+
+snippet for "Dynamic block"
+dynamic "${1:name}" {
+	for_each = $2
+	content {
+		$3 = $1.value$4
+	}
+}
+endsnippet
+
+snippet for "Template"
+%{for $1 in $2~}
+$3${$1}
+%{endfor~}
+endsnippet
+
+snippet if
+%{if $1~}
+$2
+%{else~}
+$3
+%{endif~}
+endsnippet
+
+snippet doc
+<<${1:EOT}
+$2
+$1
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/html.snippets
+snippet #
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+
+<head>
+
+	<title>${1:}</title>
+
+	<meta http-equiv="content-type" content="application/xhtml+xml; charset=utf-8" />
+	<meta name="Description" content="desc" />
+	<meta name="Keywords" content="keywords" />
+	<meta name="`g:snips_author`" content="author" />
+
+	<!-- <link rel="Shortcut Icon" href="/favicon.ico" type="image/x-icon" /> -->
+
+	<!-- <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen, projection" /> -->
+	<!-- <link rel="stylesheet" href="/css/print.css" type="text/css" media="print" /> -->
+
+	<!-- if IE, !IE, IE 6, gt IE 5, gte IE 7, lt IE 9 ... -->
+	<!--[if lte IE 8]>
+		<link rel="stylesheet" type="text/css" href="ie8-and-down.css" />
+	<![endif]-->
+
+	<style type="text/css">
+	/*
+	p \{
+		margin-left : 20px;
+	}
+	*/
+	</style>
+
+	<!-- <link href="load_your_javascript.js" type="text/javascript" /> -->
+
+	<script type="text/javascript">
+	<!--
+	// -->
+	</script>
+
+</head>
+
+<body>
+
+	<h1>$1</h1>
+
+	$2
+
+</body>
+
+</html>
+endsnippet
+
+# Titles
+snippet 1
+<h1> $1 </h1>
+endsnippet
+
+snippet 2
+<h2> $1 </h2>
+endsnippet
+
+snippet 3
+<h3> $1 </h3>
+endsnippet
+
+snippet 4
+<h4> $1 </h4>
+endsnippet
+
+snippet 5
+<h5> $1 </h5>
+endsnippet
+
+snippet 6
+<h6> $1 </h6>
+endsnippet
+
+# Paragraph
+snippet \p
+<p>
+$1
+</p>
+endsnippet
+
+snippet \P
+<p class="$1">
+$2
+</p>
+endsnippet
+
+# Span
+snippet \s
+<span> $1 </span>
+endsnippet
+
+snippet \S
+<span class="$1"> $2 </span>
+endsnippet
+
+# Division
+snippet \d
+<div>
+$1
+</div>
+endsnippet
+
+snippet \D
+<div class="$1">
+$2
+</div>
+endsnippet
+
+# Link
+snippet \a
+<a href="http://www.${1:google}.co.uk" title="${2:}"> $2 </a>
+endsnippet
+
+snippet \A
+<a href="http://www.${1:google}.co.uk" title="${2:}" class="$3"> $2 </a>
+endsnippet
+
+# Weights
+snippet \em "Emphasized"
+<em> $1 </em>
+endsnippet
+
+snippet \em "Strong"
+<strong> $1 </strong>
+endsnippet
+
+snippet \i
+<img src="$1" alt="$2" title="$2" />
+endsnippet
+
+snippet \j
+<script type="${1:text/javascript}">
+<!--
+$2
+// -->
+</script>
+endsnippet
+
+snippet \n
+<noscript>
+$1
+</noscript>
+endsnippet
+
+# Lists
+snippet \li
+<li>$1</li>
+endsnippet
+
+snippet \ll "Unordered list"
+<ul>
+	<li>$1</li>
+	<li>$2</li>
+	<li>$3</li>
+</ul>
+endsnippet
+
+snippet \ll "Ordered list"
+<ul>
+	<li>$1</li>
+	<li>$2</li>
+	<li>$3</li>
+</ul>
+endsnippet
+
+snippet \ll "Definition list"
+<dl>
+	<dt>$1</dt>
+	<dd>
+	$2
+	</dd>
+	<dt>$3</dt>
+	<dd>
+	$4
+	</dd>
+	<dt>$5</dt>
+	<dd>
+	$6
+	</dd>
+</dl>
+endsnippet
+
+snippet \f
+<form action="${1:parser.php}" method="${2:post}">
+	<fieldset>
+		<legend>$3</legend>
+		<dl>
+			<dt><label for="$5">$4</label></dt>
+			<dd>
+				<input id="${5:}" name="$5" type="${6:text}" value="${7:}" />
+
+				<ul class="errors">
+
+					<li>${8:$7 error}</li>
+				</ul>
+
+				<p class="description">
+
+					${9:Element description}
+				</p>
+			</dd>
+		</dl>
+	</fieldset>
+</form>
+endsnippet
+
+snippet \t
+<table>
+	<caption>$1</caption>
+	<thead>
+		<tr>
+			<th>$2</th><th>$3</th><th>$4</th>
+		</tr>
+	</thead>
+	<tfoot>
+		<tr>
+			<td>$5</td><td>$6</td><td>$7</td>
+		</tr>
+	</tfoot>
+	<tbody>
+		<tr>
+			<td>$8</td><td>$9</td><td>$10</td>
+		</tr>
+		<tr>
+			<td>$11</td><td>$12</td><td>$13</td>
+		</tr>
+		<tr>
+			<td>$14</td><td>$15</td><td>$16</td>
+		</tr>
+	</tbody>
+</table>
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/iptables.snippets
+snippet #
+*filter
+
+:INPUT   DROP   [0:0]
+:FORWARD DROP   [0:0]
+:OUTPUT  ACCEPT [0:0]
+
+-A INPUT  -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+-A INPUT  -i lo -j ACCEPT
+-A OUTPUT -o lo -j ACCEPT
+
+## Drop fragmented or null packets
+-A INPUT -f -j DROP
+-A INPUT -p tcp --tcp-flags ALL NONE -j DROP
+
+$1
+# -----------------------------------
+# Multiport + comment modules example
+-A OUTPUT -d 10.0.1.21 -p tcp -m multiport --dports 3306,6379 -m comment --comment "Host1: MySQL + Redis" -j ACCEPT
+-A INPUT  -s 10.0.1.21 -p tcp -m multiport --sports 3306,6379 -m comment --comment "Host1: MySQL + Redis" -j ACCEPT
+
+# Logging example
+-A OUTPUT -p tcp --sport 22 -j LOG --log-prefix "[NF]: ssh " --log-level 4
+
+## icmp example using a source ipset
+-A INPUT -m set --set lbs src -p icmp --icmp-type any -m comment --comment "LBs: ping" -j ACCEPT
+# -----------------------------------
+
+## DNS
+# udp
+-A OUTPUT -p udp --dport 53 -j ACCEPT
+-A INPUT  -p udp --sport 53 -j ACCEPT
+
+# tcp
+-A OUTPUT -p tcp --dport 53 -j ACCEPT
+-A INPUT  -p tcp --sport 53 -j ACCEPT
+
+## Debug logging
+-A INPUT  -m limit --limit 2/min -j LOG --log-prefix "[NF] DROP IN: "  --log-level 4
+-A OUTPUT -m limit --limit 2/min -j LOG --log-prefix "[NF] DROP OUT: " --log-level 4
+
+# vim: fde=getline(v\:lnum)=~'^##'?'>'.(matchend(getline(v\:lnum),'##\\+')-1)\:'='
+
+COMMIT
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/java.snippets
+snippet #
+/**
+ * ${1:Description}
+ */
+class HelloWorldApp \{
+
+	public static void main(String[] args) \{
+
+		$2
+	}
+}
+endsnippet
+
+snippet \p
+System.out.println('$1');
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/javascript.snippets
+snippet # "Glow"
+gloader.load(['glow', '1', 'glow.dom'], \{
+	async: true,
+	onLoad: function(glow) \{
+		glow.ready(function() \{
+
+			$1
+		});
+	}
+});
+endsnippet
+
+snippet # "jQuery"
+\$(document).ready(function() \{
+
+	$1
+});
+endsnippet
+
+snippet $ "Glow"
+glow.dom.get('${1:.}')
+endsnippet
+
+snippet $ "jQuery"
+\$('${1:.}')
+endsnippet
+
+snippet $ "jQuery this"
+\$(this)${1:.}
+endsnippet
+
+snippet $ "Dojo id"
+dojo.byId('$1')
+endsnippet
+
+snippet hover "jQuery"
+
+\$('${1:.}').hover(
+
+	function () \{
+
+		$2
+	},
+	function () \{
+
+		$3
+	}
+);
+endsnippet
+
+snippet \d
+console.info($1);
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/jira.snippets
+# Jira monospace
+snippet `j
+{{$1}}
+endsnippet
+
+# Jira code snippets
+snippet ``j "Code"
+{code:$1}
+$2
+{code}
+endsnippet
+
+snippet ``j "No format"
+{noformat}
+$1
+{noformat}
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/perl.snippets
+snippet #
+#! /usr/bin/env perl
+
+use v5.22;
+use warnings;
+use re '/aa';
+
+
+endsnippet
+
+snippet ##
+#! /usr/bin/env perl
+
+use v5.22;
+use warnings;
+use re '/aa';
+use Term::ANSIColor qw/color :constants/;
+use Getopt::Long qw/GetOptions :config bundling/;
+use File::Basename 'basename';
+use File::Path 'make_path';
+use List::Util 'any';
+
+my $script = basename \$0;
+$script = -f $script ? "./$script" : \$0 =~ s/$ENV{HOME}/~/r unless -l \$0;
+
+# Help
+my $help = << "-------";
+$script [options]
+-------
+
+# Options
+GetOptions (
+	'h|help' => sub { print $help; exit }
+) or die RED.'Error in command line arguments'.RESET, "\n";
+
+
+endsnippet
+
+snippet 'perl|!' "perl" r
+#! /usr/bin/env perl
+
+endsnippet
+
+snippet script
+my $script = basename \$0;
+$script = -f $script ? "./$script" : \$0 =~ s/$ENV{HOME}/~/r unless -l \$0;
+endsnippet
+
+snippet args "Loop the command line args"
+foreach (@ARGV)
+{
+	$1
+}
+endsnippet
+
+# Use
+snippet 'use|glob' "File::Glob" r
+use File::Glob ':bsd_glob';
+endsnippet
+
+snippet 'use|color' "Term::ANSIColor" r
+use Term::ANSIColor qw/color :constants/;
+endsnippet
+
+snippet 'use|colors' "Term::ANSIColor custom" r
+use Term::ANSIColor qw/color :constants/;
+
+my $BLUE = color 'ansi69';
+my $CYAN = color 'ansi45';
+my $GRAY = color 'ansi242';
+my $PINK = color 'ansi205';
+my $S = color 'bold';
+my $R = color 'reset';
+endsnippet
+
+snippet 'use|base(name)?' "File::Basename" r
+use File::Basename 'basename';
+endsnippet
+
+snippet 'use|mkdir' "File::Path" r
+use File::Path 'make_path';
+endsnippet
+
+snippet 'use|list' "List::Util" r
+use List::Util '${1:any}';
+endsnippet
+
+snippet 'use|opt(ion)?s' "Getopt::Long" r
+use Getopt::Long qw/GetOptions :config bundling/;
+
+# Help
+my $help = << "-------";
+-------
+
+# Options
+GetOptions (
+	'`!p snip.rv = t[1][0:1]`|`!p snip.rv = t[1]`' => \\my $$1,
+	'h|help' => sub { print $help; exit }
+) or die RED.'Error in command line arguments'.RESET, "\n";
+endsnippet
+
+snippet opt
+'`!p snip.rv = t[1][0:1]`|$1' => \\my $$1,
+endsnippet
+
+# Print
+snippet '(die|warn)' "err" r
+`!p snip.rv = match.group(1)` RED.${1:$!}.RESET, "\n";
+endsnippet
+
+snippet dump
+use Data::Dumper;
+print Dumper $1;
+endsnippet
+
+snippet doc "Print heredoc"
+	print <<~ '${1:-------}';
+	$2
+	$1
+endsnippet
+
+snippet doc "Assign heredoc"
+<< '';
+$1
+endsnippet
+
+# Open
+snippet 'open|read' "File" r
+open my $${1:FH}, '${2:<}', '${3:file}' or die RED.$!.RESET, "\n";
+
+while (<$$1>)
+{
+	chomp;
+	$4
+}
+endsnippet
+
+snippet 'open|pipe|read' "Pipe: read from" r
+open my $${1:FH}, '-|', '${2:command}' or die RED.$!.RESET, "\n";
+
+while (<$$1>)
+{
+	chomp;
+	$3
+}
+endsnippet
+
+snippet 'open|pipe' "Pipe: write to" r
+open my $${1:FH}, '|-', '${2:command}' or die RED.$!.RESET, "\n";
+print $$1 $3
+endsnippet
+
+snippet 'open|read|stdin' "STDIN" r
+print '$1: ';
+chomp (${2:$_} = <STDIN>);
+
+
+endsnippet
+
+snippet 'open|read|<>' "DATA or files" r
+while (<${1:DATA}>)
+{
+	chomp;
+	$2
+}
+endsnippet
+
+snippet yes
+<STDIN> =~ /y(?:es)?/i;
+endsnippet
+
+snippet cd
+chdir or die "$!\n";
+endsnippet
+
+snippet '(open|read)?dir' "Read a folder into an Array" r
+opendir my $${1:DIR}, ${2:'.'} or die RED.$!.RESET, "\n";
+my @$3 = grep /$4/, readdir $$1;
+endsnippet
+
+snippet '(open|read)?dir' "Read a folder in a Loop" r
+opendir my $${1:DIR}, ${2:'.'} or die RED.$!.RESET, "\n";
+while (readdir $$1)
+{
+	$3
+}
+endsnippet
+
+snippet hot "Piping hot filehandle"
+select +(select($$1), $|=1)[0];
+endsnippet
+
+# Array/Hash
+snippet '\[|@' "array" r
+my @${1:array} = qw/${2:word1} ${3:word2} ${4:word3}/;
+endsnippet
+
+snippet %
+my %$1 =
+(
+	$2 => '$3',
+	$4 => '$5',
+);
+endsnippet
+
+snippet each
+while (my ($${1:key}, $${2:val}) = each %$3)
+{
+	$4;
+}
+endsnippet
+
+# Env
+snippet env "env" i
+$ENV{$1}
+endsnippet
+
+snippet xdg "~/.config"
+$ENV{XDG_CONFIG_HOME}
+endsnippet
+
+snippet xdg "~/.local"
+$ENV{XDG_DATA_HOME}
+endsnippet
+
+# Regex lookaround
+snippet /> "Lookahead" i
+(?=$1)
+endsnippet
+
+snippet /< "Lookbehind" i
+(?<=$1)
+endsnippet
+
+# Misc
+# todo: stopinsert...
+snippet '}|else' "Else" r
+} else {
+}
+endsnippet
+
+snippet 'els(?:e\s*)?if' "Else if" r
+} elsif ($1) {
+}
+endsnippet
+
+snippet for
+foreach $1
+endsnippet
+
+snippet len
+length $1
+endsnippet
+
+snippet ?
+${1:cond} ? ${2:true} : ${3:false}
+endsnippet
+
+snippet my
+my ($$1, $$2) = $3;
+endsnippet
+
+snippet root
+$> == 0
+endsnippet
+
+snippet sig "Signal handler"
+$SIG{${1:INT}} = sub { die "$2\n"; };
+endsnippet
+
+snippet 'sys(tem)?' "System" r
+system qw/$1/
+endsnippet
+
+snippet 'exec?' "Exec" r
+exec qw/$1/
+endsnippet
+
+snippet fork "One"
+use POSIX ":sys_wait_h";
+
+my $pid = fork // die "failed to fork: $!\n";
+
+# kid
+if ($pid == 0)
+{
+	$1;
+	exit;
+}
+
+waitpid $pid, WNOHANG;
+endsnippet
+
+snippet fork "Many"
+my @children;
+
+foreach ($1)
+{
+	# parent
+	my $pid = fork // die "failed to fork: $!\n";
+
+	if ($pid)
+	{
+		push @children, $pid;
+		next;
+	}
+
+	# kid
+	$2;
+	exit;
+}
+
+waitpid $_, 0 foreach @children;
+endsnippet
+
+snippet 'e?mail' "Email" r
+my $to_addr = '$1';
+open my $SEND, '|-', qw/mail -s/, '${2:subject}', $to_addr
+	or die RED.$!.RESET, "\n";
+say $SEND 'body';
+endsnippet
+
+snippet 'now|time|date' "Time" r
+use Time::Piece;
+
+my $now = Time::Piece->new;
+my $timestamp = $now->strftime('%e-%b-%Y');
+endsnippet
+
+snippet os
+$^O eq '${1:linux}'
+endsnippet
+
+snippet '(begin|end)' "BEGIN/END" r
+`!p snip.rv = match.group(1).upper()` {
+	$1
+}
+endsnippet
+
+# __END__
+snippet '(data|end)' "DATA" r
+__`!p snip.rv = match.group(1).upper()`__
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/pgn.snippets
+snippet #
+[Event "${1:??}"]
+[Site "${2:Watford}, ${3:Hertfordshire} ${4:UK}"]
+[Date "${5:`strftime("%Y.%m.%d")`}"]
+[Round "${6:??}"]
+[White "${7:Dimitrov, Dimitar}"]
+[Black "${8:Dimitrov, Dimitar}"]
+[WhiteElo "${9:??}"]
+[BlackElo "${10:??}"]
+[Result "${11:1/2-1/2}"]
+
+1. $12
+endsnippet
+
+snippet ##
+[Event "${1:??}"]
+[Site "${2:Watford}, ${3:Hertfordshire} ${4:UK}"]
+[Date "${5:`strftime("%Y.%m.%d")`}"]
+[Round "${6:??}"]
+[White "${7:Dimitrov, Dimitar}"]
+[Black "${8:Dimitrov, Dimitar}"]
+[Result "${9:1/2-1/2}"]
+[Annotator "${10:??}"]
+[PlyCount "${11:number of half-moves played}"]
+[TimeControl "${12:moves per seconds}"]
+[Time "${13:`strftime("%T")`}"]
+[Termination "${14:details}"]
+[Mode "${15:OTB/ICS}"]
+[FEN "${16:initial position of the chess board}"]
+
+1. $17
+endsnippet
+
+snippet >
+1-0
+endsnippet
+
+snippet <
+0-1
+endsnippet
+
+snippet =
+1/2-1/2
+endsnippet
+
+snippet ==
+1/2-1/2
+endsnippet
+
+snippet 1/2
+½
+endsnippet
+
+snippet 12
+½
+endsnippet
+
+# todo: change to iabbrevs instead
+snippet \pw
+♙
+endsnippet
+
+snippet \pb
+♟
+endsnippet
+
+snippet \rw
+♖
+endsnippet
+
+snippet \rb
+♜
+endsnippet
+
+snippet \nw
+♘
+endsnippet
+
+snippet \nb
+♞
+endsnippet
+
+snippet \bw
+♗
+endsnippet
+
+snippet \bb
+♝
+endsnippet
+
+snippet \qw
+♕
+endsnippet
+
+snippet \qb
+♛
+endsnippet
+
+snippet \kw
+♔
+endsnippet
+
+snippet \kb
+♚
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/php.snippets
+snippet #
+<?php
+
+$1
+endsnippet
+
+snippet {
+<?php
+
+$1
+endsnippet
+
+snippet \e
+<?php echo \$${1:this->} ?>
+endsnippet
+
+snippet \E
+<?php echo $1 ?>
+endsnippet
+
+snippet '
+<?php echo '$1' ?>
+endsnippet
+
+snippet php
+<?php $1 ?>
+endsnippet
+
+snippet \v
+var_dump(\$${1:this->}$2);
+endsnippet
+
+snippet $
+\$this->$1
+endsnippet
+
+# Control structures
+snippet if
+if ($1) \{
+
+	$2;
+}
+
+$3
+endsnippet
+
+snippet ife
+if ($1) \{
+
+	$2;
+
+} else \{
+
+	$3;
+}
+
+$4
+endsnippet
+
+snippet ifee
+if ($1) \{
+
+	$2;
+
+} elseif ($3) \{
+
+	$4;
+
+} else \{
+
+	$5;
+}
+
+$6
+endsnippet
+
+snippet while
+while ($1) \{
+
+	$2;
+}
+
+$3
+endsnippet
+
+snippet do
+do \{
+	$1;
+
+} while ($2);
+
+$3
+endsnippet
+
+snippet for "foreach: value"
+foreach (\$${1:this->array} as \$${2:value}) \{
+
+	${3:\$$2};
+}
+
+$4
+endsnippet
+
+snippet for "foreach: key, value"
+foreach (\$${1:this->array} as \$${2:key} => \$${3:value}) \{
+
+	${4:\$$2};
+}
+
+$5
+endsnippet
+
+snippet for "for"
+for (\$${1:i} = ${2:0}; \$$1 <= ${3:11}; \$$1++) \{
+
+	${4:\$$1};
+}
+
+$5
+endsnippet
+
+snippet case
+switch ($1) \{
+
+	case ${2:0}:
+		$3;
+		break;
+
+	case ${4:1}:
+		$5;
+		break;
+
+	case ${6:2}:
+		$7;
+		break;
+
+	default:
+		$8;
+}
+
+$9
+endsnippet
+
+snippet class
+<?php
+/**
+ * @package ${1:name}
+ */
+/**
+ * ${2:Short Description}
+ *
+ * @package ${3:$1}
+ * @author `g:snips_author` <${4:fname}.${5:lname}@${6:company}>
+ */
+class ${7:Name} \{
+
+	$8
+}
+endsnippet
+
+snippet prop
+${1:private} \$${2:_property} = ${3:value};
+
+$4
+endsnippet
+
+snippet fun
+/**
+ * ${1:Description}
+ *
+ * ${2:@param type \$varname description}
+ * ${3:@return type description}
+ */
+${4:private }function ${5:_name}(${6:\$arg1}) \{
+
+	$7;
+}
+
+$8
+endsnippet
+
+snippet cons
+function __construct(${1:\$arg1}) \{
+
+	$2;
+}
+
+$3
+endsnippet
+
+snippet try
+try \{
+	$1;
+
+} catch (${2:Exception} \$${3:e}) \{
+
+	${4:\$$3->getMessage()};
+}
+
+$5
+endsnippet
+
+snippet [ "Values"
+array('${1:val1}', '${2:val2}', '${3:val3}');
+endsnippet
+
+snippet [ "Key => Value pairs"
+array(
+	'${1:key1}' => '${2:val1}',
+	'${3:key2}' => '${4:val2}',
+	'${5:key3}' => '${6:val3}'
+);
+endsnippet
+
+snippet ?
+${1:condition} ? ${2:true} : ${3:false};
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/puppet.snippets
+snippet 'source|///' "Static" r
+source => 'puppet:///modules/${1:module}/$2',
+endsnippet
+
+snippet 'content|template|epp' "Embedded puppet template" r
+content => epp('${1:module}/$2.epp'),
+endsnippet
+
+snippet 'content|template|epp' "Embedded ruby template" r
+content => template('${1:module}/$2.erb'),
+endsnippet
+
+snippet case "Case"
+case \$${1:fact} {
+	${2:attr1}: {$3}
+	${4:attr2}: {$5}
+	default: { fail("$6") }
+}
+endsnippet
+
+snippet case "Selector"
+\$${1:var} = \$${2:fact} ? {
+	${3:attr1} => ${4:val1},
+	${5:attr2} => ${6:val2},
+	default => $7,
+}
+endsnippet
+
+snippet if
+if $1 {
+	$2
+}
+endsnippet
+
+snippet p
+package { '$1':
+	$2
+}
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/python.snippets
+snippet #
+#! /usr/bin/env python3
+
+"""$1
+"""
+
+if __name__ == "__main__":
+	pass
+endsnippet
+
+snippet '(here)?doc' "In the 1st column" r
+"""$1"""
+endsnippet
+
+snippet '(here)?doc' "Indented" r
+from textwrap import dedent
+dedent(
+	"""
+	$1
+	"""
+).strip()
+endsnippet
+
+# Imports
+snippet colors
+from styles.styles import Text
+endsnippet
+
+snippet env "Use" i
+env["${1:XDG_CONFIG_HOME}`!p t[1] = t[1].upper()`"]
+endsnippet
+
+snippet env "Import"
+from os import environ as env
+endsnippet
+
+snippet run
+from subprocess import run
+cmd = ($1)
+proc = run(cmd, capture_output=True, text=True)
+if proc.returncode == 0:
+	$2proc.stdout.rstrip()
+else:
+	exit(proc.returncode)
+endsnippet
+
+snippet pp
+from pprint import pprint as p
+p($1)
+endsnippet
+
+# Functional
+snippet count
+from collections import Counter
+$1 = Counter($2)
+endsnippet
+
+snippet 'reduce|mul|op' "Reduce" r
+from functools import reduce
+from operator import ${1:mul}
+reduce($1, ${2:list})
+endsnippet
+
+snippet comb
+from itertools import combinations
+for comb in combinations(${1:list}, ${2:n-length}):
+	$3
+endsnippet
+
+# Options
+snippet 'arg(ument)?s|opt(ion)?s' "Options" r
+import argparse
+parser = argparse.ArgumentParser()
+arg$1
+args = parser.parse_args()$2
+endsnippet
+
+snippet 'gr(ou)?p' "Group" r
+${1:group} = parser.add_argument_group("$2")
+$1.add_argument("-`!p snip.rv = t[3][0:1]`", "--$3", action="store_true", help="$4")
+endsnippet
+
+snippet 'gr(ou)?p' "Exclusive Group" r
+${1:group}  = parser.add_mutually_exclusive_group()
+$1.add_argument("-`!p snip.rv = t[2][0:1]`", "--$2", action="store_true", help="$3")
+endsnippet
+
+snippet 'arg|opt' "--optional" r
+parser.add_argument("-`!p snip.rv = t[1][0:1]`", "--$1", action="store_true", help="$2")
+endsnippet
+
+snippet 'arg|opt' "--optional with value" r
+parser.add_argument("-`!p snip.rv = t[1][0:1]`", "--$1", type=$2, help="$3")
+endsnippet
+
+snippet 'arg|opt' "positional" r
+parser.add_argument("${1:name}", type=$2, help="$3")
+endsnippet
+
+# File open
+snippet open
+with open("$1") as file:
+	for line in file:
+endsnippet
+
+# Read from STDIN
+snippet 'input|read' "input" r
+$1 = input("$2? ")
+endsnippet
+
+snippet 'input|read' "input (Y/n)?" r
+${1:answer} = input("$2 (Y/n)? ")
+if not $1.lower() in ("", "y", "yes"):
+    exit(130)
+endsnippet
+
+snippet 'init?|new' "__init__" r
+def __init__(self, $1):
+	`!p snip.rv = '\n\t'.expandtabs(4).join(f"self._{arg.lstrip()} = {arg.lstrip()}" for arg in t[1].split(','))`
+endsnippet
+
+snippet ?
+$1 if $2 else $3
+endsnippet
+
+# TODO: fix str<tab>
+snippet tr "transliterate" i
+translate(str.maketrans("${1:set1}", "${2:set2}"))
+endsnippet
+
+snippet basename
+Path("${1:dir}").name
+endsnippet
+
+snippet dirname
+Path("${1:dir}").parent
+endsnippet
+
+snippet mkdir
+Path("${1:dir}").mkdir(parents=True, exist_ok=True)
+endsnippet
+
+snippet cd
+from contextlib import chdir
+with chdir(pathlib.Path($1)):
+	$2
+endsnippet
+
+snippet warn
+print($1, file=sys.stderr)
+endsnippet
+
+snippet 'bench|perf|time' "Time some code" r
+import time
+tic = time.perf_counter()
+toc = time.perf_counter()
+print(f"Time elapsed: {toc - tic:0.4f} seconds")
+endsnippet
+
+snippet 'multi(proc(essing)?)?' "Multiprocessing" r
+from multiprocessing import Process
+p = Process(target=$1, args=(${2:cmd},))
+p.start()
+p.join()
+endsnippet
+
+snippet 'async(io)?' "Asyncio" r
+async def main():
+	async with asyncio.TaskGroup() as tg:
+		tg.create_task(${1:func}(${2:parameters}))
+
+asyncio.run(main())
+endsnippet
+
+snippet with
+from contextlib import contextmanager
+
+@contextmanager
+def $1($2):
+	try:
+		$3
+		yield $2
+	finally:
+		$4
+endsnippet
+
+snippet '(all|any)' "all/any" r
+`!p snip.rv = match.group(1)`(${1:bool} for ${2:i} in $3)
+endsnippet
+
+snippet uniq
+groupby(${1:iterable})
+endsnippet
+
+snippet os
+sys.platform == "${1:linux}"
+endsnippet
+
+snippet cpu
+os.cpu_count()
+endsnippet
+
+snippet //
+re.compile(r"$1")
+endsnippet
+
+snippet ++ "increment" i
+ += 1
+endsnippet
+
+snippet main
+if __name__ == "__main__":
+	$1
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/ruby.snippets
+snippet #
+#! /usr/bin/env ${1:ruby}
+endsnippet
+
+snippet ##
+#! /usr/bin/env ruby
+
+$1
+endsnippet
+
+snippet \p
+puts '$1'
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/scheme.snippets
+snippet last
+(define (last l)
+	(cond ((null? (cdr l)) (car l))
+	(else (last (cdr l)))))
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/sh.snippets
+snippet #
+#! /usr/bin/env ${1:bash}
+endsnippet
+
+snippet ##
+#! /usr/bin/env bash
+
+# ${1:Short Description}
+#
+# Author: `g:snips_author` <kurkale6ka@gmail.com>
+# -------------------------------------------
+
+${2:shopt -s extglob}
+endsnippet
+
+snippet read
+read -p '${1:Enter value}: ' ${2:var}
+endsnippet
+
+snippet p "Color message"
+printf "${_${1:ylw}}$2${_res}\n"
+endsnippet
+
+snippet p "Variables"
+printf '%s\n' "\$$1"
+endsnippet
+
+snippet p "Variables with color"
+printf '%s\n' "${_${1:ylw}}$2${_res}\n"
+endsnippet
+
+snippet doc
+cat << '${1:EOM}'
+$2
+$1
+endsnippet
+
+snippet doc-
+	cat <<- '${1:EOM}'
+`!v nr2char(9)`${2:Usage:}
+`!v nr2char(9)``!p snip.shift(); snip.rv = snip.mkline()`$3
+`!v nr2char(9)`$1
+endsnippet
+
+snippet fun
+${1:name}() {
+	${2:commands}
+}
+endsnippet
+
+snippet alias
+alias ${1:name}='$2'
+endsnippet
+
+snippet _
+/dev/null
+endsnippet
+
+snippet trap
+trap '${1:exit 0}' ${2:INT TERM}
+endsnippet
+
+snippet \\
+# same as xargs -P30
+# Run batches of up to 30 (read explanation below) jobs in parallel
+# When you reach a certain number of bg processes, bash starts disowning
+# the oldest processes, meaning you lose control over them
+cmd &
+((i++)); ((i % 30 == 0)) && wait
+endsnippet
+
+snippet join
+printf -v ${1:var} "%s${2:|}" "${${3:array}[@]}"
+$1="${$1%$2}"
+endsnippet
+
+## Colors
+snippet colors "Simple"
+_${1:ylw}="$(tput setaf ${2:3} || tput AF $2)"
+_res="$(tput sgr0 || tput me)"
+endsnippet
+
+snippet colors "Complete"
+_bld="$(tput bold || tput md)"
+_udl="$(tput smul || tput us)" # underline
+_blk="$(tput setaf 0 || tput AF 0)"
+_red="$(tput setaf 1 || tput AF 1)"
+_grn="$(tput setaf 2 || tput AF 2)"
+_ylw="$(tput setaf 3 || tput AF 3)"
+_blu="$(tput setaf 4 || tput AF 4)"
+_pur="$(tput setaf 5 || tput AF 5)"
+_cya="$(tput setaf 6 || tput AF 6)"
+_whi="$(tput setaf 7 || tput AF 7)"
+_res="$(tput sgr0 || tput me)" # reset
+
+# setaf -> foreground
+# setab -> background
+_${1:ylw}="$_bld$(tput setaf ${2:3} || tput AF $2)$(tput setab ${3:4} || tput AB $3)"
+endsnippet
+
+## Loops
+snippet for "for variable in words" !
+for ${1:i} in ${2:"\$@"}
+do
+	${3:echo} "\$$1"
+done
+endsnippet
+
+snippet for "for variable in range"
+for ${1:i} in \{${2:start}..${3:end}}
+do
+	${4:echo} "\$$1"
+done
+endsnippet
+
+snippet for "C-like for"
+for ((${1:i} = ${2:0}; $1 < ${3:10}; $1++))
+do
+	${4:commands}
+done
+endsnippet
+
+snippet while
+while ${1:command}
+do
+	${2:commands}
+done
+endsnippet
+
+snippet until
+until ${1:command}
+do
+	${2:commands}
+done
+endsnippet
+
+## Switch / select
+snippet case "Case" !
+case "\$${1:variable}" in
+	${2:glob1}) ${3:command};;
+	${4:glob2}) ${5:command};;
+	${6:glob3}) ${7:command};;
+	*) ${8:default_command};;
+esac
+endsnippet
+
+snippet case "Select"
+options[0]='$1'
+options[1]='$2'
+options[2]='$3'
+
+select choice in "${options[@]}"
+do
+	case "$choice" in
+		"${options[0]}") $4; break;;
+		"${options[1]}") $5; break;;
+		"${options[2]}") $6; break;;
+	esac
+	echo '*** Wrong choice ***'
+done
+endsnippet
+
+snippet opts
+OPTIND=1
+
+local opt
+while getopts :$1 opt
+do
+	case "$opt" in
+		 $2) $3 ;;
+		\?) echo "Invalid option: -$OPTARG" 1>&2
+			 return 1 ;;
+		 :) echo "Option -$OPTARG requires an argument" 1>&2
+			 return 2 ;;
+	esac
+	[[ $OPTARG == -* ]] && { echo "No dashes allowed in -$opt's argument" 1>&2; return 3; }
+done
+
+shift "$((OPTIND-1))"
+endsnippet
+
+## if
+snippet if "Commands" !
+if ${1:commands}
+then
+	${2:commands}
+fi
+endsnippet
+
+snippet if "String comparison"
+if [[ ${1:'test'} ${2:==} ${3:\$right_operand} ]]
+then
+	${4:commands}
+fi
+endsnippet
+
+snippet if "Digit comparison"
+if (( ${1:0} ${2:<} ${3:j} ))
+then
+	${4:commands}
+fi
+endsnippet
+
+## Arrays
+snippet [ "Create an array"
+${1:array}=(${2:words})
+endsnippet
+
+snippet [ "Use an array"
+"${${1:array}[@]}"
+endsnippet
+
+## help
+snippet h
+shopt -s extglob
+
+_help() {
+	local info='Usage: $1'
+	if ((\$1 == 0))
+	then echo "$info"
+	else echo "$info" >&2
+	fi
+	exit "\$1"
+}
+
+[[ \$1 == @(-h|--help) ]] && _help 0
+endsnippet
+
+snippet help
+shopt -s extglob
+
+## Colors
+_red="$(tput setaf 1 || tput AF 1)"
+_res="$(tput sgr0 || tput me)"
+
+## Help
+_help() {
+local info
+read -r -d $'\0' info << 'HELP'
+Usage:
+	$1
+HELP
+if ((\$1 == 0))
+then echo "$info"
+else echo "$info" >&2
+fi
+exit "\$1"
+}
+
+## Checks
+[[ \$1 == @(-h|--help) ]] && _help 0
+
+# Arguments
+if (($# != 2))
+then
+	echo "${_red}Wrong number of arguments$_res!" >&2
+	_help 1
+fi
+endsnippet
+
+## read a 'file'
+snippet <> "Read command's output"
+while IFS= read -r
+do
+	${1:"\$REPLY"}
+done < <($2)
+endsnippet
+
+snippet <> "Read find's output"
+while IFS= read -r -d \$'\0'
+do
+	${1:"\$REPLY"}
+done < <(find ${2:/} -xdev $3 -print0)
+endsnippet
+
+snippet <> "Read a heredoc"
+while IFS= read -r ${1:line}
+do
+	[[ $$1 = \#* ]] && continue
+	echo "$$1"
+done << EOF
+$2
+EOF
+endsnippet
+
+## Extended globs
+snippet * "Enable extended globs"
+shopt -s extglob
+endsnippet
+
+snippet * "Use extended globs"
+${1:@?*+!}(${2:item1}|${3:item2})
+endsnippet
+
+## $1 $2 $3 $4 $5 $6 $7 $8 $9
+snippet 0
+"\$\{${1:0}\}"
+endsnippet
+
+snippet 1
+"\$\{${1:1}\}"
+endsnippet
+
+snippet 2
+"\$\{${1:2}\}"
+endsnippet
+
+snippet 3
+"\$\{${1:3}\}"
+endsnippet
+
+snippet 4
+"\$\{${1:4}\}"
+endsnippet
+
+snippet 5
+"\$\{${1:5}\}"
+endsnippet
+
+snippet 6
+"\$\{${1:6}\}"
+endsnippet
+
+snippet 7
+"\$\{${1:7}\}"
+endsnippet
+
+snippet 8
+"\$\{${1:8}\}"
+endsnippet
+
+snippet 9
+"\$\{${1:9}\}"
+endsnippet
+
+## Parameter expansion
+snippet $ "# remove from start"
+"\$\{${1:var}#$2}"
+endsnippet
+
+snippet $ "% remove from end"
+"\$\{${1:var}%$2}"
+endsnippet
+
+snippet $ "/ replace"
+"\$\{${1:var}/${2:old}/${3:new}}"
+endsnippet
+
+snippet $ ": substring"
+"\$\{${1:var}:${2:start}:${3:length}}"
+endsnippet
+
+snippet $ "length"
+"\$\{#${1:var}}"
+endsnippet
+
+snippet $ "Parameter expansion on arrays"
+"\$\{${1:array}[@]$2#%:/}"
+endsnippet
+
+## Multiline variable
+snippet var
+read -r -d $'\0' ${1:var} << '${2:VALUE}'
+$3
+$2
+endsnippet
+
+## Error
+snippet e
+1>&2
+endsnippet
+
+snippet E
+cat 1>&2 << 'HELP'
+$1
+HELP
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/snippets.snippets
+snippet s
+snippet $1
+endsnippet
+
+snippet 1
+\$\{${1:1}}
+endsnippet
+
+snippet 11
+\$\{${1:1}:${2:text}}
+endsnippet
+
+snippet 2
+\$\{${1:2}}
+endsnippet
+
+snippet 22
+\$\{${1:2}:${2:text}}
+endsnippet
+
+snippet 3
+\$\{${1:3}}
+endsnippet
+
+snippet 33
+\$\{${1:3}:${2:text}}
+endsnippet
+
+snippet 4
+\$\{${1:4}}
+endsnippet
+
+snippet 44
+\$\{${1:4}:${2:text}}
+endsnippet
+
+snippet 5
+\$\{${1:5}}
+endsnippet
+
+snippet 55
+\$\{${1:5}:${2:text}}
+endsnippet
+
+snippet 6
+\$\{${1:6}}
+endsnippet
+
+snippet 66
+\$\{${1:6}:${2:text}}
+endsnippet
+
+snippet 7
+\$\{${1:7}}
+endsnippet
+
+snippet 77
+\$\{${1:7}:${2:text}}
+endsnippet
+
+snippet 8
+\$\{${1:8}}
+endsnippet
+
+snippet 88
+\$\{${1:8}:${2:text}}
+endsnippet
+
+snippet 9
+\$\{${1:9}}
+endsnippet
+
+snippet 99
+\$\{${1:9}:${2:text}}
+endsnippet
+
+snippet 0
+\$\{${1:10}}
+endsnippet
+
+snippet 00
+\$\{${1:10}:${2:text}}
+endsnippet
+
+snippet a
+'g:snips_author'$1
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/sql.snippets
+snippet sel
+select ${1:*} from $2 limit 3\G
+endsnippet
+
+# columns
+# from
+# join
+# where
+snippet select
+select ${1:*}
+from ${2:table1} as ${3:t1}
+inner join ${4:table2} as ${5:t2} on $3.${6:id} = $5.${7:id}
+where $8;
+endsnippet
+
+snippet join
+from ${1:table1} as ${2:t1}
+inner join ${3:table2} as ${4:t2} on $2.${5:id} = $4.${6:id}
+endsnippet
+
+# INSERT values for all fields
+snippet ins
+insert into ${1:table}
+values ($2, $3, $4);
+endsnippet
+
+# INSERT values for some fields
+snippet insert
+insert into ${1:table} (${2:col1}, ${3:col2}, ${4:col3})
+values ($5, $6, $7);
+endsnippet
+
+snippet show
+show full tables like '%$1%';
+endsnippet
+
+# purge mysql logs to <latest log>
+snippet purge
+purge binary logs to 'mysql-bin.$1';
+endsnippet
+
+snippet ;
+\G
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/sshconfig.snippets
+snippet #
+## $1
+Host $2
+	HostName ${3:ip}
+
+Host github.com
+	Hostname github.com
+	User git
+	IdentityFile ~/.ssh/id_rsa
+
+Host *
+	ForwardAgent yes
+	User ${4:mitko}
+	IdentityFile ~/.ssh/${5:id_rsa}
+
+# ex: fdl=0 fdm=expr fde=getline(v\:lnum)=~'^##'?'>'.(matchend(getline(v\:lnum),'##\\+')-1)\:'='
+endsnippet
+
+snippet h
+Host ${1:name}
+	HostName ${2:ip|fqdn}
+endsnippet
+
+snippet p "Proxy Command with -W"
+ProxyCommand ssh -q ${1:jumphost} -W %h:%p
+endsnippet
+
+snippet p "Proxy Command with nc"
+ProxyCommand ssh -q ${1:jumphost} exec nc ${2:host} 22
+endsnippet
+
+snippet p "Proxy Jump"
+ProxyJump ${1:jumphost}
+endsnippet
+
+snippet key
+IdentityFile ~/.ssh/${1:id_ed25519}
+endsnippet
+
+snippet l
+LocalForward $1 ${2:localhost}:$1
+endsnippet
+
+snippet 0
+127.0.0.1
+endsnippet
+
+snippet 1
+192.168.0.$1
+endsnippet
+
+snippet 2
+10.0.0.$1
+endsnippet
+
+snippet 3
+172.16.0.$1
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/tex.snippets
+snippet #
+% 10pt, 11pt, 12pt
+% letterpaper, a5paper, b5paper, executivepaper, legalpaper
+% fleqn, leqno
+% titlepage, notitlepage
+% onecolumn, twocolumn
+% twoside, oneside
+% landscape
+% openright, openany
+% draft (for debugging)
+% article, proc, minimal, report, book, slides, memoir, beamer
+\documentclass[12pt,a4paper]{${1:article}}
+
+% \usepackage[francais]{babel}
+% \usepackage{ucs}
+% \usepackage[utf8x]{inputenc}
+
+% \usepackage{amsmath}
+
+% \usepackage[official]{eurosym}
+
+% \usepackage{tocloft}
+% \renewcommand{\cftsecdotsep}{\cftdotsep}
+
+% Must be the last used package
+\usepackage{hyperref}
+\hypersetup{
+	bookmarks=true,         % show bookmarks bar?
+	unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+	pdftoolbar=true,        % show Acrobat’s toolbar?
+	pdfmenubar=true,        % show Acrobat’s menu?
+	pdffitwindow=false,     % window fit to page when opened
+	pdfstartview={FitH},    % fits the width of the page to the window
+	pdftitle={$2},          % title
+	pdfauthor={`g:snips_author`}, % author
+	pdfsubject={},                % subject of the document
+	pdfcreator={pdflatex},        % creator of the document
+	pdfproducer={},               % producer of the document
+	pdfkeywords={} {} {},   % list of keywords
+	pdfnewwindow=true,      % links in new window
+	colorlinks=true,        % false: boxed links; true: colored links
+	linkcolor=red,          % color of internal links
+	citecolor=green,        % color of links to bibliography
+	filecolor=magenta,      % color of file links
+	urlcolor=blue           % color of external links
+}
+
+\title{$2}
+\author{
+	`g:snips_author`\\
+	\href{mailto:kurkale6ka@gmail.com}{\texttt{kurkale6ka@gmail.com}}\\
+	% \LaTeXe\footnote%
+	% {\href{http://www.latex-project.org/}%
+	% {\LaTeX{} -- A document preparation system}}
+}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+% plain, headings, empty
+% \pagestyle{plain}
+\thispagestyle{${3:empty}}
+
+% \tableofcontents
+
+% part, chapter, section, subsection, subsubsection, paragraph, subparagraph
+\section{$4}
+
+$5
+
+\end{document}
+endsnippet
+
+snippet letter "English"
+\documentclass{letter}
+
+\signature{`g:snips_author`}
+\address{
+${1:Address}\\
+${2:City}\\
+${3:Post Code}\\
+}
+
+\begin{document}
+
+\begin{letter}{
+${4:Company}\\
+${5:Address}\\
+${6:Post Code}\\
+}
+
+\opening{${7:Dear Sir or Madam:}}
+
+$8
+
+\closing{${9:Yours Faithfully,}}
+
+% \ps{P.S. $10}
+% \encl{${11:Copyright permission form}}
+
+\end{letter}
+
+\end{document}
+endsnippet
+
+snippet letter "French"
+\documentclass{letter}
+
+\signature{M\up{r}~Dimitar~\bsc{Dimitrov}}
+\address{
+${1:Address}\\
+${2:City}\\
+${3:Post Code}\\
+}
+
+\usepackage[francais]{babel}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+
+\usepackage[official]{eurosym}
+
+\begin{document}
+
+\begin{letter}{
+${4:Company}\\
+${5:Address}\\
+${6:Post Code}\\
+}
+
+\opening{${7:Madame, Monsieur,}}
+
+$8
+
+\closing{${9:Je vous prie d'agréer, Madame, Monsieur, l'expression de ma respectueuse considération.}}
+
+% \ps{P.S. $10}
+% \encl{${11:Pièce jointe}}
+
+\end{letter}
+
+\end{document}
+endsnippet
+
+snippet li "Unordered list"
+\begin{itemize}
+\item $1
+\item $2
+\item $3
+\end{itemize}
+endsnippet
+
+snippet li "Ordered list"
+\begin{enumerate}
+\item $1
+\item $2
+\item $3
+\end{enumerate}
+endsnippet
+
+snippet li "Description"
+\begin{description}
+\item[$1] \hfill \\
+$2
+\item[$3] \hfill \\
+$4
+\item[$5] \hfill \\
+$6
+\end{description}
+# flushleft, flushright, center, quote, verse, ...
+endsnippet
+
+snippet {
+\begin{${1:environment}}
+	$2
+\end{$1}
+# Maths
+endsnippet
+
+snippet {m "Maths - newline"
+\begin{displaymath}
+	$1
+\end{displaymath}
+endsnippet
+
+snippet {m "Maths - newline, equation (numbers)"
+\begin{equation}
+	$1
+\end{equation}
+endsnippet
+
+snippet {m "Maths - newline, subequation"
+\begin{subequations}
+	$1
+\end{subequations}
+endsnippet
+
+snippet {m "Maths - newline, aligned"
+\begin{align*}
+	$1 & $2 \\
+	$3 & $4
+\end{align*}
+endsnippet
+
+snippet {m "Maths - inline"
+\begin{math} $1 \end{math}
+endsnippet
+
+snippet {m "Maths - inline displaystyle"
+\begin{math}\displaystyle $1 \end{math}
+endsnippet
+
+snippet ^
+${1:x}^{$2}
+endsnippet
+
+snippet _
+${1:x}_{$2}
+endsnippet
+
+snippet |
+|_{${1:n}=${2:11}}
+endsnippet
+
+snippet / "Horizontal fraction"
+\frac{${1:numerator}}{${2:denominator}}
+endsnippet
+
+snippet / "Slanted fraction"
+\sfrac{${1:left}}{${2:right}}
+endsnippet
+
+snippet / "Continued fraction"
+\cfrac{${1:numerator}}{${2:denominator}
+endsnippet
+
+snippet !
+\binom{${1:n}}{${2:k}} = \frac{$1!}{$2!($1-$2)!}
+endsnippet
+
+snippet \ "Nth root"
+\sqrt[${1:Nth}]{${2:number}}
+endsnippet
+
+snippet \ "...with adjustments"
+\sqrt[\leftroot{${1:-2}}\uproot{${2:2}}${3:Nth}]{${4:number}}
+endsnippet
+
+snippet (
+\left${1:(} $2 \right${3:)}
+endsnippet
+
+# Table
+snippet [ "Table"
+\begin{tabular}{ ${1:| c | c | c |} }
+${2:\hline}
+${3:l1c1} & ${4:l1c2} & ${5:l1c3} \\ ${6:\hline}
+${7:l2c1} & ${8:l2c2} & ${9:l2c3} \\ ${10:\hline}
+${11:l3c1} & ${12:l3c2} & ${13:l3c3} \\
+${14:\hline}
+\end{tabular}
+# Matrix p:(), b:[], v:||, V:||||, smallmatrix
+endsnippet
+
+snippet [ "Matrix"
+\begin{${1:p}matrix}
+${2:11} & ${3:12} & ${4:13} \\
+${5:21} & ${6:22} & ${7:23} \\
+${8:31} & ${9:32} & ${10:33}
+\end{$1matrix}
+# Sets & Logic
+endsnippet
+
+snippet for
+\forall ${1:x} \in ${2:X}, \quad ${3:\exists y}
+endsnippet
+
+snippet ->
+\rightarrow
+endsnippet
+
+snippet =>
+\implies
+endsnippet
+
+snippet <=>
+\iff
+endsnippet
+
+snippet 0/ "Var nothing"
+\varnothing
+endsnippet
+
+snippet 0/ "Empty set"
+\emptyset
+endsnippet
+
+snippet 8
+\infty
+endsnippet
+
+snippet \a
+\alpha
+endsnippet
+
+snippet \A
+A
+endsnippet
+
+snippet \b
+\beta
+endsnippet
+
+snippet \B
+B
+endsnippet
+
+snippet \g
+\gamma
+endsnippet
+
+snippet \G
+\Gamma
+endsnippet
+
+snippet \d "delta"
+\delta
+endsnippet
+
+snippet \d "partial"
+\partial
+endsnippet
+
+snippet \D "Delta"
+\Delta
+endsnippet
+
+snippet \D "Nabla"
+\nabla
+endsnippet
+
+snippet \e "epsilon"
+\varepsilon
+endsnippet
+
+snippet \e "epsilon 2"
+\epsilon
+endsnippet
+
+snippet \e "eta"
+\eta
+endsnippet
+
+snippet \E "Epsilon"
+E
+endsnippet
+
+snippet \E "Eta"
+H
+endsnippet
+
+snippet \z
+\zeta
+endsnippet
+
+snippet \Z
+Z
+endsnippet
+
+snippet \t "theta"
+\theta
+endsnippet
+
+snippet \t "theta 2"
+\vartheta
+endsnippet
+
+snippet \t "tau"
+\tau
+endsnippet
+
+snippet \T "Theta"
+\Theta
+endsnippet
+
+snippet \T "Tau"
+T
+endsnippet
+
+snippet \i
+\iota
+endsnippet
+
+snippet \I
+I
+endsnippet
+
+snippet \k
+\kappa
+endsnippet
+
+snippet \K
+K
+endsnippet
+
+snippet \l "lambda"
+\lambda
+endsnippet
+
+snippet \l "l"
+\ell
+endsnippet
+
+snippet \L
+\Lambda
+endsnippet
+
+snippet \m
+\mu
+endsnippet
+
+snippet \M
+M
+endsnippet
+
+snippet \n
+\nu
+endsnippet
+
+snippet \N
+N
+endsnippet
+
+snippet \x
+\xi
+endsnippet
+
+snippet \X
+\Xi
+endsnippet
+
+snippet \p "pi"
+\pi
+endsnippet
+
+snippet \p "pi 2"
+\varpi
+endsnippet
+
+snippet \p "phi"
+\varphi
+endsnippet
+
+snippet \p "phi 2"
+\phi
+endsnippet
+
+snippet \p "psi"
+\psi
+endsnippet
+
+snippet \P "Pi"
+\Pi
+endsnippet
+
+snippet \P "Phi"
+\Phi
+endsnippet
+
+snippet \P "Psi"
+\Psi
+endsnippet
+
+snippet \r "rho"
+\rho
+endsnippet
+
+snippet \r "rho 2"
+\varrho
+endsnippet
+
+snippet \R
+P
+endsnippet
+
+snippet \s "sigma"
+\sigma
+endsnippet
+
+snippet \s "sigma 2"
+\varsigma
+endsnippet
+
+snippet \S
+\Sigma
+endsnippet
+
+snippet \u
+\upsilon
+endsnippet
+
+snippet \U
+\Upsilon
+endsnippet
+
+snippet \c
+\chi
+endsnippet
+
+snippet \C
+X
+endsnippet
+
+snippet \o "omega"
+\omega
+endsnippet
+
+snippet \o "omicron"
+o
+endsnippet
+
+snippet \O "Omega"
+\Omega
+endsnippet
+
+snippet \O "Omicron"
+O
+endsnippet
+
+snippet \h
+\hbar
+endsnippet
+
+snippet lim
+\lim_{${1:x} \to ${2:\infty}} ${3:expression} = ${4:0}
+endsnippet
+
+snippet + "Sum"
+\sum_{${1:i}=${2:1}}^{${3:\infty}} ${4:expression} = ${5:0}
+endsnippet
+
+snippet + "Integral"
+\int_${1:0}^${2:\infty} ${3:expression} \thinspace ${4:dx} = ${5:0}
+endsnippet
+
+snippet * "Product"
+\prod_{${1:n}=${2:1}}^{${3:\infty}} ${4:expression} = ${5:0}
+endsnippet
+
+snippet * "times (x)"
+\times
+endsnippet
+
+snippet <=
+\leq
+endsnippet
+
+snippet >=
+\geq
+endsnippet
+
+snippet <>
+\neq
+endsnippet
+
+snippet ==
+\equiv
+endsnippet
+
+snippet =~
+\simeq
+endsnippet
+
+snippet <<
+\ll
+endsnippet
+
+snippet >>
+\gg
+endsnippet
+
+snippet ~~
+\approx
+endsnippet
+
+snippet euler "zeta(2)"
+\zeta \left(2\right) = \sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}
+endsnippet
+
+snippet greek
+\begin{bmatrix}
+A \alpha & B \beta & \Gamma \gamma & \Delta \delta & E \varepsilon \epsilon \\
+Z \zeta & H \eta & \Theta \theta \vartheta & I \iota & K \kappa \\
+\Lambda \lambda & M \mu & N \nu & \Xi \xi & O o \\
+\Pi \pi \varpi & P \rho \varrho & \Sigma \sigma \varsigma & T \tau & \Upsilon \upsilon \\
+\Phi \varphi \phi & X \chi & \Psi \psi & \Omega \omega & \cdots
+\end{bmatrix}
+endsnippet
+
+snippet pre "Long"
+\begin{verbatim}
+$1
+\end{verbatim}
+endsnippet
+
+snippet pre "Short"
+\verb#$1#
+endsnippet
+
+snippet fig
+\begin{figure}[${1:tbp}]
+\makebox[\textwidth]{\framebox[5cm]{\rule{0pt}{5cm}}}
+\caption{${2:Caption.}\label{${3:mark}}}
+\end{figure}
+endsnippet
+
+snippet @ "href text"
+\url{${1:http://www.google.com}}
+endsnippet
+
+snippet @ "Human text"
+\href{${1:http://www.google.com}}{${2:text}}
+endsnippet
+
+snippet @ "mail to"
+\href{mailto:${1:login}@${2:domain}}{$1@$2}
+endsnippet
+
+snippet 1 "Section"
+\section{$1}
+
+$2
+endsnippet
+
+snippet 1 "Chapter"
+\chapter{$1}
+
+$2
+endsnippet
+
+snippet 1 "Part (No section/chapter numbering)"
+\part{$1}
+
+$2
+endsnippet
+
+snippet 1 "Paragraph"
+\paragraph{$1}
+
+$2
+endsnippet
+
+snippet 2 "Sub section"
+\subsection{$1}
+
+$2
+endsnippet
+
+snippet 2 "Sub paragraph"
+\subparagraph{$1}
+
+$2
+endsnippet
+
+snippet 3 "Sub sub section"
+\subsubsection{$1}
+
+$2
+endsnippet
+
+snippet ref "Set a mark"
+\label{${1:mark}}
+endsnippet
+
+snippet ref "Go to a mark's section"
+~\ref{${1:mark}}
+endsnippet
+
+snippet ref "Go to a mark's section (for equations)"
+~\eqref{${1:mark}}
+endsnippet
+
+snippet ref "Go to a mark's section (via text link)"
+~\hyperref[${1:mark}]{${2:text}}
+endsnippet
+
+snippet ref "Go to a mark's page"
+~\pageref{${1:mark}}
+endsnippet
+
+snippet foot
+\footnote{$1}
+endsnippet
+
+snippet ... "Standard dots"
+\ldots
+endsnippet
+
+snippet ... "Middle height dots"
+\cdots
+endsnippet
+
+snippet ... "Diagonal dots"
+\ddots
+endsnippet
+
+snippet ... "Vertical dots"
+\vdots
+endsnippet
+
+snippet ~ "Middle"
+\begin{math}\sim\end{math}
+endsnippet
+
+snippet ~ "High"
+\~{}
+endsnippet
+
+snippet €
+$1\euro{}$2
+endsnippet
+
+snippet £
+\pounds{}
+endsnippet
+
+snippet .
+\@.
+endsnippet
+
+snippet em "Emphasised"
+\emph{$1}
+endsnippet
+
+snippet em "Monospace font"
+\texttt{$1}
+endsnippet
+
+snippet em "Bold"
+\textbf{$1}
+endsnippet
+
+snippet em "Medium weight"
+\textmd{$1}
+endsnippet
+
+snippet em "Italic"
+\textit{$1}
+endsnippet
+
+snippet em "Slanted"
+\textsl{$1}
+endsnippet
+
+snippet em "Uppercase"
+\uppercase{$1}
+endsnippet
+
+snippet em "Small Capitals"
+\textsc{$1}
+endsnippet
+
+snippet em "Roman (serif)"
+\textrm{$1}
+endsnippet
+
+snippet em "Sans serif"
+\textsf{$1}
+endsnippet
+
+# French
+snippet "
+\og $1 \fg{}
+endsnippet
+
+snippet Mr "Mr"
+M\up{r}
+endsnippet
+
+snippet Mr "Mme"
+M\up{me}
+endsnippet
+
+snippet Mr "Dr"
+D\up{r}
+endsnippet
+
+snippet 1er "1er"
+1\ier{}
+endsnippet
+
+snippet 1er "1ere"
+1\iere{}
+endsnippet
+
+snippet No
+\No
+endsnippet
+
+snippet author
+M\up{${1:r}}~${2:Dimitar}~\bsc{${3:Dimitrov}}
+endsnippet
+
+snippet nb
+\nombre{$1}
+endsnippet
+
+snippet latex
+LaTeX
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/txt.snippets
+snippet #
+*${1:plugin}.txt* For Vim version 7               Last change: `strftime('%d %B %Y')`
+
+
+                   ${2:Title}~
+
+
+                              By `g:snips_author`
+                                   kurkale6ka
+                              kurkale6ka@gmail.com
+
+                                Reference Manual~
+
+
+Latest version at:
+http://github.com/kurkale6ka/vimfiles/blob/master/doc/$1.txt
+
+
+
+1. ${3:Normal mode}                                               |$1-${4:normal}|
+2. ${5:Custom mappings}                                           |$1-${6:mappings}|
+
+The functionality mentioned here is a plugin, see |add-plugin|.
+You can avoid loading this plugin by setting the $1 global variable in
+your |vimrc| file:
+>
+    :let g:loaded_$1 = 1
+<
+================================================================================
+1. $3                                                           *$1-$4*
+
+
+================================================================================
+2. $5                                                           *$1-$6*
+
+You have the possibility to define your own custom mappings in your |vimrc|:
+
+${7:vmap <leader>i  <plug>$1Name}
+
+Note: You can replace ${8:mappings} with whatever you like.
+
+================================================================================
+ vim: textwidth=80 tabstop=8 filetype=help
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/vim.snippets
+snippet #
+" ${1:Short Description}
+"
+" Author: `g:snips_author` (kurkale6ka@gmail.com), kurkale6ka
+"
+" Latest version at:
+" http://github.com/kurkale6ka/vimfiles/blob/master/plugin/${2:name}.vim
+
+if exists('g:loaded_$2') || &compatible || v:version < 700
+
+	if &compatible && &verbose
+
+		echo "$2 is not designed to work in compatible mode."
+
+	elseif v:version < 700
+
+		echo "$2 needs Vim 7.0 or above to work correctly."
+	endif
+
+	finish
+endif
+
+let g:loaded_$2 = 1
+
+let s:savecpo = &cpoptions
+set cpoptions&vim
+
+function! s:${3:}() range
+
+	" ${4:@todo}
+endfunction
+
+vmap <silent> <plug>$2${5:}
+	\
+	\ :call <sid>$3()<cr>
+
+vmap $6 <plug>$2$5
+
+let &cpoptions = s:savecpo
+unlet s:savecpo
+endsnippet
+
+snippet save
+let save_${1:option} = &$1
+set ${2:no}$1
+let &$1 = save_$1
+endsnippet
+
+snippet fun
+function! ${1:s:}(${2:argument})${3: range}
+
+	${4:a:$2}
+endfunction
+
+$5
+endsnippet
+
+snippet if
+if ${1:condition}
+	$2
+endif
+endsnippet
+
+snippet ife
+if ${1:condition}
+	$2
+else
+	$3
+endif
+endsnippet
+
+snippet ifee
+if ${1:condition}
+	$2
+elseif ${3:condition}
+	$4
+else
+	$5
+endif
+endsnippet
+
+snippet while
+while ${1:condition}
+
+	$2
+endwhile
+
+$3
+endsnippet
+
+snippet for
+for ${1:var} in ${2:list_expression(range(3))}
+
+	$3
+endfor
+
+$4
+endsnippet
+
+snippet try
+try
+	$1
+catch${2: /E484:/}
+	$3
+endtry
+
+$4
+endsnippet
+
+snippet [ "List"
+let ${1:list} = [${2:'item1'}]
+endsnippet
+
+snippet [ "Dictionary"
+let ${1:dictionary} = {${2:'key1'}: ${3:'value1'}}
+endsnippet
+
+snippet ?
+${1:condition} ? ${2:true} : ${3:false}
+endsnippet
+
+snippet com
+command! ${1:-nargs=?} ${2:-complete=customlist} ${3:-range=%} ${4:Name} ${5::call s:Function(<q-args>)}
+endsnippet
+
+snippet au
+autocmd ${1:opt_group} ${2:event} ${3:file_pattern} ${4:opt_nested} ${5:command}
+endsnippet
+
+snippet ~ "Look behind"
+\%(${1:pattern1}\)\@<${2:=}${3:pattern2}
+endsnippet
+
+snippet ~ "Look ahead"
+${1:pattern1}\%(${2:pattern1}\)\@${3:=}
+endsnippet
+
+snippet \
+<leader>$1
+endsnippet
+
+snippet 1
+a:firstline$1
+endsnippet
+
+snippet 9
+a:lastline$1
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/xml.snippets
+snippet #
+<?xml version="1.0" encoding="utf-8"?>
+<${1:root}>
+	$2
+</$1>
+endsnippet
+----------------------- File -----------------------
+nvim/UltiSnips/xsd.snippets
+snippet #
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:element name="${1:root}">
+
+	$2
+</xs:element>
+
+</xs:schema>
+endsnippet
+----------------------- File -----------------------
+nvim/after/conflictingUltiSnips/zsh.snippets
+snippet #
+#! /usr/bin/env ${1:zsh}
+endsnippet
+
+snippet ##
+#! /usr/bin/env zsh
+
+# ${1:Short Description}
+#
+# Author: `g:snips_author` <kurkale6ka@gmail.com>
+# -------------------------------------------
+
+${2:setopt extended_glob}
+endsnippet
+
+snippet read
+read '${1:var}?${2:prompt}: '
+endsnippet
+
+snippet p
+print -P '%F{${1:yellow}}$2%f'
+endsnippet
+
+snippet doc
+cat << '${1:EOM}'
+$2
+$1
+endsnippet
+
+snippet doc-
+	cat <<- '${1:EOM}'
+`!v nr2char(9)`${2:Usage:}
+`!v nr2char(9)``!p snip.shift(); snip.rv = snip.mkline()`$3
+`!v nr2char(9)`$1
+endsnippet
+
+snippet fun
+${1:name}() {
+	${2:commands}
+}
+endsnippet
+
+snippet alias
+alias ${1:name}='$2'
+endsnippet
+
+snippet _
+/dev/null
+endsnippet
+
+snippet trap
+trap '${1:exit 0}' ${2:INT TERM}
+endsnippet
+
+snippet \\
+# same as xargs -P30
+# Run batches of up to 30 (read explanation below) jobs in parallel
+# When you reach a certain number of bg processes, bash starts disowning
+# the oldest processes, meaning you lose control over them
+cmd &
+((i++)); ((i % 30 == 0)) && wait
+endsnippet
+
+snippet join
+${(j.${1::}.)${2:array}}
+endsnippet
+
+## Loops
+snippet for "for variable in words" !
+for ${1:i} in ${2:"\$@"}
+do
+	${3:echo} \$$1
+done
+endsnippet
+
+snippet for "for variable in range"
+for ${1:i} in \{${2:start}..${3:end}}
+do
+	${4:echo} \$$1
+done
+endsnippet
+
+snippet for "C-like for"
+for ((${1:i} = ${2:0}; $1 < ${3:10}; $1++))
+do
+	${4:commands}
+done
+endsnippet
+
+snippet while
+while ${1:command}
+do
+	${2:commands}
+done
+endsnippet
+
+snippet until
+until ${1:command}
+do
+	${2:commands}
+done
+endsnippet
+
+## Switch / select
+snippet case "Case" !
+case \$${1:variable} in
+	(${2:glob1}) ${3:command};;
+	(${4:glob2}) ${5:command};;
+	(${6:glob3}) ${7:command};;
+	(*) ${8:default_command};;
+esac
+endsnippet
+
+snippet case "Select"
+opts[1]='$1'
+opts[2]='$2'
+opts[3]='$3'
+
+select choice in $opts
+do
+	case $choice in
+		(${opts[1]}) $4; break;;
+		(${opts[2]}) $5; break;;
+		(${opts[3]}) $6; break;;
+	esac
+	echo '*** Wrong choice ***'
+done
+endsnippet
+
+snippet opts
+OPTIND=1
+
+local opt
+while getopts :$1 opt
+do
+	case $opt in
+		 $2) $3 ;;
+		\?) echo "Invalid option: -$OPTARG" 1>&2
+			 return 1 ;;
+	esac
+done
+
+shift $((OPTIND-1))
+endsnippet
+
+## if
+snippet if "Commands" !
+if ${1:commands}
+then
+	${2:commands}
+fi
+endsnippet
+
+snippet if "String comparison"
+if [[ ${1:'test'} ${2:==} ${3:\$right_operand} ]]
+then
+	${4:commands}
+fi
+endsnippet
+
+snippet if "Digit comparison"
+if (( ${1:0} ${2:<} ${3:j} ))
+then
+	${4:commands}
+fi
+endsnippet
+
+## Arrays
+snippet [
+${1:array}=(${2:words})
+endsnippet
+
+## Help
+snippet h
+_help() {
+	local info='Usage: $1'
+	if ((\$1 == 0))
+	then echo $info
+	else echo $info >&2
+	fi
+}
+
+[[ \$1 == (-h|--help) ]] && _help 0
+endsnippet
+
+snippet help
+## Help
+_help() {
+local info
+read -r -d $'\0' info << 'HELP'
+Usage:
+	$1
+HELP
+if ((\$1 == 0))
+then echo $info
+else echo $info >&2
+fi
+}
+
+## Checks
+[[ \$1 == (-h|--help) ]] && _help 0
+
+# Arguments
+if (($# != 2))
+then
+	print -P '%F{red}Wrong number of arguments%f!' 1>&2
+	_help 1
+fi
+endsnippet
+
+## read a 'file'
+snippet <> "Read command's output"
+while IFS= read -r
+do
+	${1:\$REPLY}
+done < <($2)
+endsnippet
+
+snippet <> "Read find's output"
+while IFS= read -r -d \$'\0'
+do
+	${1:\$REPLY}
+done < <(find ${2:/} -xdev $3 -print0)
+endsnippet
+
+snippet <> "Read a heredoc"
+while IFS= read -r ${1:line}
+do
+	[[ $$1 = \#* ]] && continue
+	echo $$1
+done << EOF
+$2
+EOF
+endsnippet
+
+## $1 $2 $3 $4 $5 $6 $7 $8 $9
+snippet 0
+\$\{${1:0}\}
+endsnippet
+
+snippet 1
+\$\{${1:1}\}
+endsnippet
+
+snippet 2
+\$\{${1:2}\}
+endsnippet
+
+snippet 3
+\$\{${1:3}\}
+endsnippet
+
+snippet 4
+\$\{${1:4}\}
+endsnippet
+
+snippet 5
+\$\{${1:5}\}
+endsnippet
+
+snippet 6
+\$\{${1:6}\}
+endsnippet
+
+snippet 7
+\$\{${1:7}\}
+endsnippet
+
+snippet 8
+\$\{${1:8}\}
+endsnippet
+
+snippet 9
+\$\{${1:9}\}
+endsnippet
+
+## Parameter expansion
+snippet $ "# remove from start"
+\$\{${1:var}#$2}
+endsnippet
+
+snippet $ "% remove from end"
+\$\{${1:var}%$2}
+endsnippet
+
+snippet $ "/ replace"
+\$\{${1:var}/${2:old}/${3:new}}
+endsnippet
+
+snippet $ ": substring"
+\$\{${1:var}:${2:start}:${3:length}}
+endsnippet
+
+snippet $ "length"
+\$\{#${1:var}}
+endsnippet
+
+snippet $ "Parameter expansion on arrays"
+\$\{${1:array}[@]$2#%:/}
+endsnippet
+
+## Globs
+snippet **/*
+(${1:^.git}/)#$1
+endsnippet
+
+## Multiline variable
+snippet var
+read -r -d $'\0' ${1:var} << '${2:VALUE}'
+$3
+$2
+endsnippet
+
+## Error
+snippet e
+1>&2
+endsnippet
+
+snippet E
+cat 1>&2 << 'HELP'
+$1
+HELP
+endsnippet
+----------------------- File -----------------------
+nvim/after/ftplugin/NvimTree.lua
+vim.o.statusline = "%{&filetype}" -- TODO: bg color from 'onedark'
+----------------------- File -----------------------
+nvim/after/ftplugin/css.lua
+vim.opt_local.iskeyword:append('-')
+----------------------- File -----------------------
+nvim/after/ftplugin/gitcommit.lua
+vim.opt_local.comments:append { 'b:-', 'b:*' }
+vim.opt_local.formatoptions:append('ron')
+----------------------- File -----------------------
+nvim/after/ftplugin/hcl.lua
+vim.bo.shiftwidth = 2
+----------------------- File -----------------------
+nvim/after/ftplugin/help.lua
+-- TODO: add for fugitive, git, ... filetypes
+vim.keymap.set('n', 'q',
+    function()
+        vim.cmd('close')
+    end, {
+    buffer = true,
+    desc = 'Close help windows with "q"'
+})
+----------------------- File -----------------------
+nvim/after/ftplugin/ini.lua
+vim.wo.foldmethod = 'syntax'
+----------------------- File -----------------------
+nvim/after/ftplugin/json.lua
+-- Not really needed with LSP's code format
+vim.api.nvim_buf_create_user_command(0, 'Tidy',
+    '<line1>,<line2>! python -mjson.tool', {
+    range = '%',
+    nargs = '*',
+    desc = "Beautify json code using python's json module",
+})
+----------------------- File -----------------------
+nvim/after/ftplugin/named.lua
+vim.bo.includeexpr = "substitute(v:fname,'^','/var/named/','')"
+----------------------- File -----------------------
+nvim/after/ftplugin/nroff.lua
+vim.o.paragraphs = 'IPLPPPQPP TPHPLIPpLpItpplpipbp'
+----------------------- File -----------------------
+nvim/after/ftplugin/perl.lua
+-- TODO: improve
+vim.bo.makeprg = 'perl -c % $*'
+vim.bo.errorformat = '%m at %f line %l.'
+----------------------- File -----------------------
+nvim/after/ftplugin/php.lua
+vim.cmd([[
+let php_folding    = 3
+let php_large_file = 0
+
+let b:surround_{char2nr('E')} = "<?php echo \r ?>"
+let b:surround_{char2nr('+')} = "<?php echo '\r' ?>"
+let b:surround_{char2nr('-')} = "<?php \r ?>"
+let b:surround_{char2nr('v')} = "var_dump(\r)"
+let b:surround_{char2nr('t')} = "try { \r } catch (Exception $e) {$e->getMessage();}"
+
+set makeprg=php\ -l\ %\ $*
+set errorformat=%E%m\ in\ %f\ on\ line\ %l,%Z%m
+]])
+----------------------- File -----------------------
+nvim/after/ftplugin/puppet.lua
+vim.opt_local.iskeyword:remove(':')
+
+vim.bo.includeexpr = [[substitute(v:fname,'.\{-1,}/\(.\+\)','../templates/\1','')]]
+
+vim.cmd([[
+" g:puppet_modules_base_path must contain a / at the end
+augroup Puppet
+
+    autocmd!
+
+    " Use :preserve?
+    autocmd BufReadCmd puppet://*
+        \ execute 'keepalt edit'.(v:cmdbang?'!':'') v:cmdarg
+        \ fnameescape(g:puppet_modules_base_path.
+        \ expand('<afile>:gs?puppet:///\(modules.\{-1,}\)/\(.\+\)?\1/files/\2?')).
+        \ '| bdelete #'
+
+    autocmd BufWriteCmd puppet://*
+        \ execute 'write'.(v:cmdbang?'!':'') v:cmdarg
+        \ fnameescape(g:puppet_modules_base_path.
+        \ expand('<afile>:gs?puppet:///\(modules.\{-1,}\)/\(.\+\)?\1/files/\2?'))
+
+augroup end
+]])
+----------------------- File -----------------------
+nvim/after/ftplugin/python.lua
+vim.keymap.set('n', '<f5>', ':w <bar> vs term://python3 % <bar> startinsert<cr>', {
+    desc = 'Run code with F5'
+})
+----------------------- File -----------------------
+nvim/after/ftplugin/ruby.lua
+vim.cmd([[
+let b:surround_{char2nr('c')} = "=begin \r =end"
+]])
+----------------------- File -----------------------
+nvim/after/ftplugin/snippets.lua
+vim.cmd([[
+let b:surround_{char2nr('1')} = "${1:\r}"
+let b:surround_{char2nr('2')} = "${2:\r}"
+let b:surround_{char2nr('3')} = "${3:\r}"
+let b:surround_{char2nr('4')} = "${4:\r}"
+let b:surround_{char2nr('5')} = "${5:\r}"
+let b:surround_{char2nr('6')} = "${6:\r}"
+let b:surround_{char2nr('7')} = "${7:\r}"
+let b:surround_{char2nr('8')} = "${8:\r}"
+let b:surround_{char2nr('9')} = "${9:\r}"
+]])
+----------------------- File -----------------------
+nvim/after/ftplugin/terraform.lua
+vim.bo.shiftwidth = 2
+----------------------- File -----------------------
+nvim/after/ftplugin/tex.lua
+vim.cmd([[
+let b:surround_{char2nr('1')} = "\\section{\r}"
+let b:surround_{char2nr('2')} = "\\subsection{\r}"
+let b:surround_{char2nr('3')} = "\\subsubsection{\r}"
+let b:surround_{char2nr('b')} = "\\textbf{\r}"
+let b:surround_{char2nr('e')} = "\\emph{\r}"
+let b:surround_{char2nr('l')} = "\\\1command: \1{\r}"
+let b:surround_{char2nr('m')} = "\\begin{math} \r \\end{math}"
+let b:surround_{char2nr('M')} = "\\begin{math}\\displaystyle \r \\end{math}"
+let b:surround_{char2nr('E')} = "\\begin{equation} \r \\end{equation}"
+let b:surround_{char2nr('d')} = "\\begin{displaymath} \r \\end{displaymath}"
+let b:surround_{char2nr('p')} = "\\left( \r \\right)"
+
+iabbrev latex \latex{}
+]])
+----------------------- File -----------------------
+nvim/after/ftplugin/txt.lua
+-- Wrap automatically at 80 chars for plain text files
+vim.bo.autoindent = true
+vim.bo.smartindent = true
+vim.opt_local.formatoptions:append('t')
+----------------------- File -----------------------
+nvim/after/ftplugin/vim.lua
+vim.g.vim_indent_cont = vim.bo.shiftwidth
+----------------------- File -----------------------
+nvim/after/ftplugin/zsh.lua
+-- UltiSnips wrongly detects sh in addition to my zsh snippets.
+-- A *sh.snippets detection must be happening
+-- and that * also matches z, so zsh.snippets
+-- The problem is then that I am always proposed with:
+-- 1. expand from sh snippets
+-- 2. expand from zsh snippets
+-- This is why I moved zsh snippets to their own directory
+-- TODO: raise an issue
+vim.b.UltiSnipsSnippetDirectories = { 'conflictingUltiSnips' }
+----------------------- File -----------------------
+nvim/after/plugin/fzf-vim.lua
+-- Original definitions at:
+-- ~/.local/share/nvim/lazy/fzf.vim/plugin/fzf.vim
+
+-- Fuzzy files
+vim.keymap.set('n', '<leader>b', ':Buffers<cr>')
+vim.keymap.set('n', '<leader>h', ':History<cr>') -- recently edited files
+vim.keymap.set('n', '<leader>l', ':GFiles<cr>') -- ls git files
+vim.keymap.set('n', '<a-l>', ':GFiles?<cr>') -- git status
+vim.keymap.set('n', '<a-f>', ':silent! Glcd <bar> Files<cr>') -- search fzf files
+vim.keymap.set('n', '<a-t>', ':Filetypes<cr>')
+
+-- Fuzzy help
+vim.keymap.set('n', 'gh', ':Helptags<cr>') -- search help files
+vim.keymap.set('n', '<a-h>', function()
+    return ':Files ' .. vim.env.REPOS_BASE .. '/github/help<cr>'
+end, { expr = true }) -- own help files
+
+-- Fuzzy grep
+vim.keymap.set('n', '<leader>/', ':BLines<cr>') -- /fuzzy
+vim.keymap.set('n', '<leader>G', ':BLines <c-r><c-a>') -- :g/fuzzy
+vim.keymap.set('n', '<leader>g', ':silent! Glcd <bar> exe "Rg ".input("ripgrep> ")<cr>') -- ripgrep
+
+vim.keymap.set('n', '<a-c>', ':Commands<cr>')
+vim.keymap.set('n', '<a-d>', ':Diagnostics<cr>') -- search LSP diagnostics
+vim.keymap.set('n', '<a-m>', ':Maps<cr>')
+vim.keymap.set('n', '<a-s>', ':Snippets<cr>')
+vim.keymap.set('n', '<leader>t', ':BTags<cr>') -- search buffer tags
+
+-- Buffers
+vim.api.nvim_create_user_command('Buffers',
+    function(input)
+        vim.fn['fzf#vim#buffers'](
+            input.args, -- buffer
+            vim.fn['fzf#vim#with_preview'] {
+                options = { '--cycle' },
+                placeholder = '{1}',
+            },
+            input.bang -- fullscreen bool
+        )
+    end,
+    { bang = true, bar = true, complete = 'buffer', nargs = '?', desc = 'Show all buffers' }
+)
+
+-- History: recently edited files
+vim.api.nvim_create_user_command('History',
+    function(input)
+        vim.fn['fzf#vim#history'](
+            vim.fn['fzf#vim#with_preview'] {
+                options = { '--cycle' }
+            },
+            input.bang
+        )
+    end,
+    { bang = true, nargs = '*', desc = 'Fuzzy history (recently edited files)' }
+)
+
+-- GFiles: git ls-files
+vim.api.nvim_create_user_command('GFiles',
+    function(input)
+        if input.args ~= '?' then
+            vim.fn['fzf#vim#gitfiles'](
+                input.args, -- git options
+                vim.fn['fzf#vim#with_preview'] {
+                    options = { '--cycle' }
+                },
+                input.bang
+            )
+        else
+            -- GFiles?
+            vim.fn['fzf#vim#gitfiles'](
+                input.args, -- git options
+                vim.fn['fzf#vim#with_preview'] {
+                    options = { '--cycle' },
+                    placeholder = ""
+                },
+                input.bang
+            )
+        end
+    end,
+    { bang = true, nargs = '?', desc = 'git -h ls-files' }
+)
+
+-- Files: fzf files
+vim.api.nvim_create_user_command('Files',
+    function(input)
+        vim.fn['fzf#vim#files'](
+            input.args, -- directory
+            vim.fn['fzf#vim#with_preview'] {
+                options = { '--cycle' }
+            },
+            input.bang
+        )
+    end,
+    { bang = true, nargs = '?', complete = 'dir', desc = 'fzf files' }
+)
+
+-- Filetypes
+vim.api.nvim_create_user_command('Filetypes',
+    function(input)
+        vim.fn['fzf#vim#filetypes'](
+            { options = { '--cycle' } },
+            input.bang
+        )
+    end,
+    { bang = true, bar = true, desc = 'Fuzzy filetypes' }
+)
+
+-- Helptags
+vim.api.nvim_create_user_command('Helptags',
+    function(input)
+        vim.fn['fzf#vim#helptags'](
+            vim.fn['fzf#vim#with_preview'] {
+                options = { '--cycle' },
+                placeholder = '--tag {2}:{3}:{4}',
+            },
+            input.bang
+        )
+    end,
+    { bang = true, bar = true, desc = 'Fuzzy help files search' }
+)
+
+-- BLines: /fuzzy search
+vim.api.nvim_create_user_command('BLines',
+    function(input)
+        vim.fn['fzf#vim#buffer_lines'](
+            input.args, -- fzf query
+            -- TODO: same file, show current line
+            -- vim.fn['fzf#vim#with_preview'] {
+            --     options = { '--cycle' }
+            -- },
+            { options = { '--cycle' } },
+            input.bang
+        )
+    end,
+    { bang = true, nargs = '*', desc = '/fuzzy search' }
+)
+
+-- Commands
+vim.api.nvim_create_user_command('Commands',
+    function(input)
+        vim.fn['fzf#vim#commands'](
+            { options = { '--cycle' } },
+            input.bang
+        )
+    end,
+    { bang = true, bar = true, desc = 'Fuzzy commands' }
+)
+
+-- Rg: ripgrep
+vim.api.nvim_create_user_command('Rg',
+    function(input)
+        vim.fn['fzf#vim#grep'](
+            'rg --column --line-number --no-heading --color=always --smart-case --hidden -- ' .. vim.fn.shellescape(input.args),
+            vim.fn['fzf#vim#with_preview'] {
+                options = { '--cycle' }
+            },
+            input.bang
+        )
+    end,
+    { bang = true, nargs = '*', desc = 'ripgrep' }
+)
+
+-- Diagnostics
+vim.api.nvim_create_user_command('Diagnostics',
+    function(input)
+        vim.fn['fzf#run'](
+            vim.fn['fzf#wrap'] {
+                source = vim.tbl_map(
+                    -- TODO: improve - serialize/deserialize table?
+                    function(error)
+                        return error.lnum + 1 .. ':' .. error.col + 1 .. ':' .. error.message
+                    end,
+                    vim.diagnostic.get(0)
+                ),
+                sink = function(error)
+                    local position = vim.list_slice(vim.fn.split(error, ':'), 1, 2)
+                    vim.fn.cursor(position)
+                end,
+                options = '--cycle -1 +m -q "' .. input.args .. '" --prompt "Diagnostics> "'
+            }
+        )
+    end,
+    { nargs = '?', desc = 'Fuzzy diagnostics' }
+)
+
+-- Maps
+vim.api.nvim_create_user_command('Maps',
+    function(input)
+        vim.fn['fzf#vim#maps'](
+            input.args ~= '' and input.args or 'n', -- mode
+            { options = { '--cycle' } },
+            input.bang
+        )
+    end,
+    { bang = true, bar = true, nargs = '?', desc = 'Fuzzy mappings. :Maps mode ("n" default)' }
+)
+
+-- Snippets
+vim.api.nvim_create_user_command('Snippets',
+    function(input)
+        vim.fn['fzf#vim#snippets'](
+            { options = { '--cycle' } },
+            input.bang
+        )
+    end,
+    { bang = true, bar = true, desc = 'Fuzzy snippets' }
+)
+
+-- Tags
+vim.api.nvim_create_user_command('Tags',
+    function(input)
+        vim.fn['fzf#vim#tags'](
+            input.args, -- tag
+            vim.fn['fzf#vim#with_preview'] {
+                options = { '--cycle' },
+                placeholder = '--tag {2}:{-1}:{3..}',
+            },
+            input.bang
+        )
+    end,
+    { bang = true, nargs = '*', desc = 'Fuzzy project (ctags -R) tags' }
+)
+
+-- BTags
+vim.api.nvim_create_user_command('BTags',
+    function(input)
+        vim.fn['fzf#vim#buffer_tags'](
+            input.args, -- tag
+            vim.fn['fzf#vim#with_preview'] {
+                options = { '--cycle', '--nth', '..-2,-1' },
+                placeholder = '{2}:{3..}',
+            },
+            input.bang
+        )
+    end,
+    { bang = true, nargs = '*', desc = 'Fuzzy tags in the current buffer' }
+)
+
+-- Keymaps
+vim.api.nvim_create_user_command('Lang',
+    function(input)
+        vim.fn['fzf#run'](
+            vim.fn['fzf#wrap'] {
+                source = vim.fn.map(vim.fn.split(vim.fn.globpath(vim.o.rtp, 'keymap/*.vim')), 'fnamemodify(v:val, ":t:r")'),
+                sink = function(keymap)
+                    vim.bo.keymap = keymap
+                end,
+                options = '--cycle -1 +m -q "' .. input.args .. '" --prompt "Keymap> "'
+            }
+        )
+    end,
+    { nargs = '?', desc = 'Fuzzy keymap layouts' }
+)
+
+-- Scriptnames
+vim.api.nvim_create_user_command('Scriptnames',
+    function(input)
+        vim.fn['fzf#run'](
+            vim.fn['fzf#wrap'] {
+                source = vim.fn.split(vim.fn.execute('scriptnames'), '\n'),
+                sink = function(name) -- represents a line from source
+                    vim.fn.execute('script ' .. vim.trim(vim.split(name, ':', { plain = true })[1]))
+                end,
+                options = '--cycle --preview "bat {2}" -1 +m -q "' .. input.args .. '" --prompt "Scriptnames> "'
+            }
+        )
+    end,
+    { nargs = '?', desc = 'Fuzzy :scriptnames' }
+)
+----------------------- File -----------------------
+nvim/after/plugin/ultisnips.lua
+if vim.fn.exists("did_plugin_ultisnips")
+then
+    -- override this: :call UltiSnips#SaveLastVisualSelection()<CR>gvs
+    vim.keymap.set('x', '<tab>', '>')
+end
+----------------------- File -----------------------
+nvim/after/plugin/vim-fugitive.lua
+vim.keymap.set('n', '<a-b>', ':Git blame<cr>')
+----------------------- File -----------------------
+nvim/after/plugin/vim-unimpaired.lua
+if vim.fn.exists("g:loaded_unimpaired")
+then
+    -- TODO: move to config section in plugins/init.lua
+    --       is config in there sourced AFTER a plugin has finished loading?
+    pcall(vim.keymap.del, 'n', '[p')
+    pcall(vim.keymap.del, 'n', ']p')
+end
+----------------------- File -----------------------
+nvim/after/syntax/ansible.vim
+" Highlight an Ansible task's name:
+"
+"   - name: restart apache
+"           --------------
+"           ^
+
+" I couldn't use \zs so I used \@<=
+syntax match ansibleTaskName /\%(-\s\+name:\s\+\)\@<=.*/
+
+highlight link ansibleTaskName Comment
+" highlight ansibleTaskName guifg=#605958 guibg=NONE gui=NONE cterm=none
+----------------------- File -----------------------
+nvim/after/syntax/fugitiveblame.lua
+vim.cmd([[
+syn match FugitiveblameTime "\d\{2}/\a\{3}/\d\{4} \d\{2}:\d\{2}" contained containedin=FugitiveblameAnnotation
+]])
+----------------------- File -----------------------
+nvim/after/syntax/ini.vim
+syntax region dosiniFold start=/^[[:space:]]*\[/ end=/\n\ze[[:space:]]*\[/ transparent fold
+" syntax region dosiniFold start=/^[[:space:]]*\[.\{-}\][[:space:]]*\n\zs/ end=/\n\ze[[:space:]]*\[/ transparent fold
+----------------------- File -----------------------
+nvim/after/syntax/perl.vim
+" Added \~\? after << and \s* after end=+^
+syn region perlHereDocStart matchgroup=perlStringStartEnd start=+<<\~\?\z(\I\i*\)+ end=+$+ contains=@perlTop oneline
+syn region perlHereDocStart matchgroup=perlStringStartEnd start=+<<\~\?\s*"\z([^\\"]*\%(\\.[^\\"]*\)*\)"+ end=+$+ contains=@perlTop oneline
+syn region perlHereDocStart matchgroup=perlStringStartEnd start=+<<\~\?\s*'\z([^\\']*\%(\\.[^\\']*\)*\)'+ end=+$+ contains=@perlTop oneline
+syn region perlHereDocStart matchgroup=perlStringStartEnd start=+<<\~\?\s*""+ end=+$+ contains=@perlTop oneline
+syn region perlHereDocStart matchgroup=perlStringStartEnd start=+<<\~\?\s*''+ end=+$+ contains=@perlTop oneline
+if exists("perl_fold")
+    syn region perlHereDoc  start=+<<\~\?\z(\I\i*\)+ matchgroup=perlStringStartEnd end=+^\s*\z1$+ contains=perlHereDocStart,@perlInterpDQ fold extend
+    syn region perlHereDoc  start=+<<\~\?\s*"\z([^\\"]*\%(\\.[^\\"]*\)*\)"+ matchgroup=perlStringStartEnd end=+^\s*\z1$+ contains=perlHereDocStart,@perlInterpDQ fold extend
+    syn region perlHereDoc  start=+<<\~\?\s*'\z([^\\']*\%(\\.[^\\']*\)*\)'+ matchgroup=perlStringStartEnd end=+^\s*\z1$+ contains=perlHereDocStart,@perlInterpSQ fold extend
+    syn region perlHereDoc  start=+<<\~\?\s*""+ matchgroup=perlStringStartEnd end=+^\s*$+ contains=perlHereDocStart,@perlInterpDQ,perlNotEmptyLine fold extend
+    syn region perlHereDoc  start=+<<\~\?\s*''+ matchgroup=perlStringStartEnd end=+^\s*$+ contains=perlHereDocStart,@perlInterpSQ,perlNotEmptyLine fold extend
+    syn region perlAutoload matchgroup=perlStringStartEnd start=+<<\~\?\s*\(['"]\=\)\z(END_\%(SUB\|OF_FUNC\|OF_AUTOLOAD\)\)\1+ end=+^\s*\z1$+ contains=ALL fold extend
+else
+    syn region perlHereDoc  start=+<<\~\?\z(\I\i*\)+ matchgroup=perlStringStartEnd end=+^\s*\z1$+ contains=perlHereDocStart,@perlInterpDQ
+    syn region perlHereDoc  start=+<<\~\?\s*"\z([^\\"]*\%(\\.[^\\"]*\)*\)"+ matchgroup=perlStringStartEnd end=+^\s*\z1$+ contains=perlHereDocStart,@perlInterpDQ
+    syn region perlHereDoc  start=+<<\~\?\s*'\z([^\\']*\%(\\.[^\\']*\)*\)'+ matchgroup=perlStringStartEnd end=+^\s*\z1$+ contains=perlHereDocStart,@perlInterpSQ
+    syn region perlHereDoc  start=+<<\~\?\s*""+ matchgroup=perlStringStartEnd end=+^\s*$+ contains=perlHereDocStart,@perlInterpDQ,perlNotEmptyLine
+    syn region perlHereDoc  start=+<<\~\?\s*''+ matchgroup=perlStringStartEnd end=+^\s*$+ contains=perlHereDocStart,@perlInterpSQ,perlNotEmptyLine
+    syn region perlAutoload matchgroup=perlStringStartEnd start=+<<\~\?\s*\(['"]\=\)\z(END_\%(SUB\|OF_FUNC\|OF_AUTOLOAD\)\)\1+ end=+^\s*\z1$+ contains=ALL
+endif
+----------------------- File -----------------------
+nvim/after/syntax/php.lua
+vim.opt_local.iskeyword:remove('-')
+----------------------- File -----------------------
+nvim/after/syntax/syslog.vim
+" Vim syntax file
+" Language:     syslog-ng: syslog-ng main configuration file (1.5.5a)
+" Maintainer:   --
+" Last change:  2001 Apr 13
+" URL:          --
+" syslog-ng's home: http://www.balabit.hu
+
+" Remove any old syntax stuff hanging around
+syn clear
+syn case match
+set iskeyword=a-z,A-Z,48-57,_,-,.
+
+syn keyword sysngStatement source destination filter log options
+syn match sysngComment     "#.*$"
+syn match sysngString      +"[^"]*"+
+syn match sysngOctNumber   "\<0\o\+\>"
+syn match sysngDecNumber   "\<\d\+\>"
+syn match sysngHexNumber   "\<0x\x\+\>"
+syn keyword sysngBool      yes no on off
+syn match sysngIdentifier  "\<[sdf]_\+\>"
+
+syn keyword sysngDriver    internal remote_control
+syn keyword sysngDriver    file fifo pipe door
+syn keyword sysngDriver    udp tcp
+syn keyword sysngDriver    sun_stream sun_streams sun-stream sun-streams
+syn keyword sysngDriver    unix_dgram unix_stream unix-dgram unix-stream
+syn keyword sysngDriver    usertty program
+
+syn keyword sysngFilter    not and or .. level priority facility
+syn keyword sysngFilter    program host match DEFAULT
+
+if !exists("did_sysng_syntax_inits")
+    let did_sysng_syntax_inits = 1
+
+    hi link sysngStatement  Statement
+    hi link sysngComment    Comment
+    hi link sysngString     String
+    hi link sysngOctNumber  Number
+    hi link sysngDecNumber  Number
+    hi link sysngHexNumber  Number
+    hi link sysngBool       Constant
+    hi link sysngIdentifier Identifier
+
+    hi link sysngDriver Type
+    hi link sysngFilter Operator
+endif
+
+let b:current_syntax = "syslog-ng"
+----------------------- File -----------------------
+nvim/after/syntax/tex.vim
+syntax region texFold start=/\\section{.\{-}}/ end=/\\section{.\{-}}/ transparent fold
+----------------------- File -----------------------
+nvim/after/syntax/txt.vim
+" ACRONYMS {{{1
+syntax match txtAcronym /\%([^-_A-Za-z0-9]\|^\)\zs\%(\u\|\d\)\{2,}\ze\%([^-_A-Za-z0-9]\|$\)/
+highlight link txtAcronym Type
+
+" Lists and numbers {{{1
+syntax match txtNumber /\d\+/
+highlight link txtNumber Constant
+
+" * | - | 1. | IV) | a)
+" * | - | 2. | XI) | b)
+syntax case ignore
+syntax match txtList /^\s*\%(\%([-*]\|\d\+\.\?\)\s*)\?\|\%(\a\|[ivxlcdm]\+\)\s*[.)]\)\ze\s/
+syntax case match
+highlight link txtList Constant
+
+" Files {{{1
+" Basename
+syntax case match
+syntax match txtBaseFileName "\%(\f\+\.\a\+\)\>"
+syntax match txtBaseFileName "\%(\*\.\a\+\)\>"
+syntax match txtBaseFileName "\%(README\|INSTALL\)\%(\.txt\)\?"
+syntax case ignore
+highlight link txtBaseFileName Identifier
+" Unix absolute file path
+syntax match txtFile "\%(\s\|^\)\zs\~\?/\f\+"
+
+" Windows absolute file path
+syntax match txtFile "[[:alpha:]]:\\\%(\k\+\\\)\+\k\+\%(\.[[:alpha:]]\+\)\?\>"
+highlight link txtFile Identifier
+
+" Strings and parens {{{1
+" Note: skips don't or girl's between ''s
+syntax region txtString start=/\z("\|'\%([st]\s\)\@!\)/ skip=/\\\z1/ end=/\z1/
+" syntax region txtString start=/'\%(\%(ll\|[vr]e\|[stm]\)\%(\s\|$\)\)\@!/ skip=/\\'/ end=/'/
+highlight link txtString Constant
+syntax region txtStringCode start=/\z(`\)/ skip=/\\\z1/ end=/\z1/
+highlight link txtStringCode txtCode
+
+" Parens
+syntax region txtParens matchgroup=Constant start=/\[/ end=/\]/ transparent
+syntax region txtParens matchgroup=Constant start=/{/  end=/}/  transparent
+syntax region txtParens matchgroup=Constant start=/(/  end=/)/  transparent
+
+" Notes and TODOs {{{1
+syntax case ignore
+syntax match txtNote /\%(^\s*\n\|\%^\)\@<=\s*[^[:digit:]].*:\ze\%(\s*{{{\d\+\)\?\s*$/
+syntax match txtNote /\%(note\|ex\%(ample\)\?\):/
+syntax case match
+highlight link txtNote PreProc
+
+syntax match txtTodo /@\?todo\s*:\?/
+highlight link txtTodo Todo
+
+" Programming {{{1
+" syntax keyword txtPLanguage sh bash c c++ perl python ruby php lisp haskell
+
+syntax keyword txtEditor Vi[m] Emacs
+highlight link txtEditor Special
+
+syntax match txtOS "\%(Linux\|UNIX\|Mac OS \S\+\|Windows [78]\|OS/2\)"
+highlight link txtOS Special
+
+syntax match txtVariable /\$\w\+/
+highlight link txtVariable PreProc
+
+syntax match txtCode /\<\%(cd\|git\|c\?ssh\|wget\|dig\|su\s-\)\s\+\S\+/
+syntax match txtCode /\<\%(vim\|touch\|rm\)\s\+\f\+/
+syntax match txtCode /\<\%(cp\|scp\|yum\)\%(\s\+\S\+\)\{2}/
+syntax match txtCode /||\|&&/
+syntax match txtCode /curl.\{-}http\S\+/
+syntax match txtCode :/etc/init.d/\S\+\s\S\+:
+syntax match txtCode /puppet agent --test\%(\s--tags\s\S\+\)\?/
+syntax match txtCode /\s\zs--\?\a\S*/
+syntax match txtCode /\w\+\%(::\w\+\)\+/
+syntax match txtCode /mysql\%(dump\)\?\|clush\|chkconfig\|slappasswd\|tcpdump\|\<ldap\a*/
+syntax match txtCode /rake.\{-}migrate\|cap\s\+deploy/
+syntax match txtCode /ruby.\{-}\.rb\|perl.\{-}\.pl\|mysql.\{-}\.sql/
+highlight link txtCode Special
+
+syntax match txtComments /#.*$/
+highlight link txtComments Comment
+
+syntax match txtExtra /\%({{{\|}}}\)\d\+\|^#.*\%$/
+highlight txtExtra guifg=#605958 guibg=NONE
+
+" Titles and sections {{{1
+syntax match txtH1Title /\%(\%(^\s*\n\|\%^\).*\)\@<=\a[^[:punct:]]\{-}\ze\%({{{\d\+\)\?\n\%(^\s*$\)\@=/
+syntax match txtH1Title /\a.\{-}\ze\%({{{\d\+\)\?\n\%(^\s*=\{3,}\s*$\)\@=/
+syntax match txtH2Title /\a.\{-}\ze\%({{{\d\+\)\?\n\%(^\s*-\{3,}\s*$\)\@=/
+highlight link txtH1Title Statement
+highlight link txtH2Title Statement
+
+" Section delimiters ( --- or ,,, or ... )
+syntax match txtSectionDelimiter /^\s*[[:punct:]]\{3,}\s*$/
+highlight link txtSectionDelimiter PreProc
+
+" URLs and emails {{{1
+syntax match txtLink "["'`({[<]\?\zs\S\+\.\%(co\.uk\|bg\|es\|fr\|ru\|us\|com\|edu\|gov\|org\|net\|live\)"
+" Very generic match allowing URLs like ldaps://...
+syntax match txtLink "\<\a\+:///\?\S\+"
+
+" scheme://username:password@domain:port/path?query_string#fragment_id
+"                            protocol               user:pass          sub/domain .com, .co.uk         port       qs
+"                     ======================------------------------=============================----------------===
+syntax match txtLink "\<\%(https\?\|ftp\)://\%(\w\+\%(:\w\+\)\?@\)\?\a\%(-\|\w\)*\%(\.\w\{2,}\)\+\%(:\d\{1,5}\)\?\S*"
+highlight link txtLink Underlined
+
+"                                             user      @          domain
+"                                      =================-===========================
+syntax match txtEmail "\<\%(mailto:\)\?[-_.%[:alnum:]]\+@[-.[:alnum:]]\+\.\a\{2,4}\>"
+highlight link txtEmail Underlined
+
+" Date and Time {{{1
+" Year/01-12/01-31
+syntax match txtDate "[[:digit:]]\{1,4}\([-/.]\)\%(0\?[1-9]\|1[0-2]\)\1\%([12][[:digit:]]\|0\?[1-9]\|3[01]\)"
+" 01-31/01-12/Year
+syntax match txtDate "\%([12][[:digit:]]\|0\?[1-9]\|3[01]\)\([-/.]\)\%(0\?[1-9]\|1[0-2]\)\1[[:digit:]]\{1,4}"
+highlight link txtDate Constant
+
+" Time: (03:24:44 Pm)
+syntax match txtTime "\%(0\?[[:digit:]]\|1[[:digit:]]\|2[0-3]\)\%(:[0-5][[:digit:]]\)\{1,2}\%([[:space:]]*[ap]m\)\?"
+highlight link txtTime Constant
+
+" Special abbreviations: e.g., ie {{{1
+syntax match txtAbbrev "\s\zs\%(e\.\?g\.\?\|i\.\?e\.\?\)\ze\s"
+highlight link txtAbbrev Type
+----------------------- File -----------------------
+nvim/after/syntax/xsd.vim
+syntax region xmlComment start=/<\a\+:annotation>/ end=/<\/\a\+:annotation>/
+----------------------- File -----------------------
+nvim/autoload/abbreviations.vim
+" Delete the extra char added when using <space> to trigger an abbreviation
+function! abbreviations#eat_char(pat)
+    let c = nr2char(getchar(0))
+    return (c =~ a:pat) ? '' : c
+endfunc
+----------------------- File -----------------------
+nvim/autoload/ascii.vim
+" Print characters corresponding to a numeric range:
+" e.g. call ascii#codes(21,31)
+"
+" ASCII   control characters: character code 0-31
+" ASCII printable characters: character code 32-127
+" Extended ASCII codes:       character code 128-255
+function! ascii#codes (...)
+
+    if a:0 == 0
+        view $XDG_CONFIG_HOME/nvim/local/ascii
+        return
+    endif
+
+    let codes =
+        \{0:'^@', 9:'^I', 10:'^J (^@)', 13:'^M', 32:'<space>', 127:'<del>', 160:'&nbsp'}
+
+    if a:0 != 2
+        for code in a:000
+            echon '['. code .' '
+            echohl Comment
+            if has_key(codes, code)
+                echon codes[code]
+            else
+                echon nr2char(code)
+            endif
+            echohl Normal
+            echon '] '
+        endfor
+    else
+        for code in range(a:1, a:2)
+            echon '['. code .' '
+            echohl Comment
+            if has_key(codes, code)
+                echon codes[code]
+            else
+                echon nr2char(code)
+            endif
+            echohl Normal
+            echon '] '
+        endfor
+    endif
+
+endfunction
+----------------------- File -----------------------
+nvim/autoload/cmdline.vim
+" Ctrl + w
+" Make it wipeout more, like in readline
+function! cmdline#ctrl_w()
+    let cmd_r = strpart(getcmdline(), getcmdpos() - 1)
+    let cmd_l = split(strpart(getcmdline(), 0, getcmdpos() - 1))
+    if len(cmd_l) > 1
+        let cmd_l = remove(cmd_l, 0, -2)
+        let cmd_left = join(cmd_l)
+        call setcmdpos(len(cmd_left) + 2)
+        return cmd_left . ' ' . cmd_r
+    else
+        call setcmdpos(1)
+        return cmd_r
+    endif
+endfunction
+
+" Alt + d
+" Delete the word in front of the cursor
+function! cmdline#alt_d()
+    let cmd_l = strpart(getcmdline(), 0, getcmdpos() - 1)
+    let cmd_r = strpart(getcmdline(), getcmdpos() - 1)
+    let cmd_r = substitute(cmd_r, '^.\{-}\w\+', '', '')
+    call setcmdpos(len(cmd_l) + 1)
+    return cmd_l . cmd_r
+endfunction
+----------------------- File -----------------------
+nvim/autoload/highlight.vim
+function! highlight#column()
+    if empty(&colorcolumn)
+        setlocal colorcolumn=0
+        if empty(&textwidth)
+            match ColorColumn /\%81v[^\t]/
+            let @/ = '\%81v.*'
+        else
+            execute 'match ColorColumn /\%'.(&textwidth + 1).'v[^\t]/'
+            let @/ = '\%'.(&textwidth + 1).'v.*'
+        endif
+    else
+        setlocal colorcolumn=
+        match none
+        let @/ = ''
+    endif
+endfunction
+----------------------- File -----------------------
+nvim/autoload/move.vim
+" gm improved: moves to    ^...gm...$
+"              instead of g0...gm...g$
+function! move#gm()
+    execute 'normal! ^'
+    let first_col = virtcol('.')
+    execute 'normal! g_'
+    let last_col  = virtcol('.')
+    execute 'normal! ' . (first_col + last_col) / 2 . '|'
+endfunction
+----------------------- File -----------------------
+nvim/autoload/scratch.vim
+" Execute an ex command in a Scratch buffer
+function! scratch#buffer (command, ...)
+    redir => lines
+    let saveMore = &more
+    set nomore
+    let filter = 1
+    if a:0 > 0 && match (a:000[a:0 - 1], '?', -1) != -1
+        execute 'silent '.a:command.' '.join(a:000)
+        let filter = 0
+    else
+        execute 'silent '.a:command
+    endif
+    redir END
+    let &more = saveMore
+    new | match | setlocal buftype=nofile bufhidden=hide noswapfile
+    silent put=lines
+    " Example: Scratch ve autocmd - filter 'autocmd' matching lines only
+    if a:0 > 0 && filter == 1
+        execute 'silent vglobal/'.a:1.'/delete'
+    endif
+    if a:command == 'scriptnames'
+        silent %substitute#^[[:space:]]*[[:digit:]]\+:[[:space:]]*##e
+    endif
+    silent %substitute/\%^\_s*\n\|\_s*\%$
+    let height = line('$') + 3
+    execute 'normal! z'.height."\<cr>"
+    0
+endfunction
+----------------------- File -----------------------
+nvim/autoload/spaces.vim
+" Delete EOL white spaces
+function! spaces#remove()
+
+    let save_cursor = getpos('.')
+
+    silent! %substitute/\s\+$//e
+
+    call histdel('search', -1)
+    call setpos('.', save_cursor)
+
+endfunction
+
+" Delete EOF empty lines
+function! spaces#remove_eof()
+
+    let save_cursor = getpos('.')
+
+    silent! %substitute/\_s*\%$//e
+
+    call histdel('search', -1)
+    call setpos('.', save_cursor)
+
+endfunction
+----------------------- File -----------------------
+nvim/autoload/squeeze.vim
+" Squeeze empty lines
+function! squeeze#lines(mode)
+
+    let save_cursor = getpos('.')
+
+    if a:mode == 'v'
+
+        *vglobal/\S/delete
+
+        call histdel('search', -1)
+    else
+        " empty lines at BOF|EOF
+        silent %substitute/\%^\_s*\n\|\_s*\%$//
+
+        " clusters of empty lines
+        silent global/^\%(\s*$\n\)\{2,}/delete
+
+        call histdel('search', -1)
+        call histdel('search', -1)
+    endif
+
+    call setpos('.', save_cursor)
+
+endfunction
+----------------------- File -----------------------
+nvim/autoload/underline.vim
+" Underline:
+" --------- (or any combination of characters, ex: =-=-=-=-)
+function! underline#current(chars)
+
+    let chars = empty(a:chars) ? '-' : a:chars
+
+    let nb_columns = virtcol('$') - 1
+    let nb_chars = strlen(chars)
+
+    if has('float')
+        let nb_insertions = floor(nb_columns / str2float(nb_chars))
+        let remainder = nb_columns % nb_chars
+    else
+        let nb_insertions = nb_columns / nb_chars
+    endif
+
+    let saveFormatoptions = &formatoptions
+    set formatoptions-=o
+
+    execute "normal! o\<esc>"
+
+    let &formatoptions = saveFormatoptions
+
+    if has('float')
+        execute 'normal! ' . float2nr(nb_insertions) . 'i' . chars . "\<esc>"
+
+        if !empty(remainder)
+            execute 'normal! A' . strpart(chars, 0, remainder) . "\<esc>"
+        endif
+    else
+        execute 'normal! ' . nb_insertions . 'i' . chars . "\<esc>"
+    endif
+
+endfunction
+----------------------- File -----------------------
+nvim/filetype.lua
+vim.filetype.add {
+    extension = {
+        ftl = 'xml',
+        pgn = 'pgn', -- chess
+        tfvars = 'terraform',
+        tfbackend = 'terraform'
+    },
+    filename = {
+        ['.gitlab-ci.yml'] = 'yaml', -- needed because the yaml.ansible pattern could match
+        ['iptables'] = 'iptables',
+        ['known_hosts'] = 'known_hosts',
+        ['relayd.conf'] = 'pf',
+    },
+    pattern = {
+        ['authorized_keys.*'] = 'authorized_keys',
+        ['.*/postfix/aliases'] = 'mailaliases',
+        ['r?syslog.*%.conf'] = 'syslog',
+        ['.*/.*ansible.*/.+%.yml'] = 'yaml.ansible',
+        ['.*/zsh/autoload/.+'] = 'zsh',
+        ['.*/zsh/after/.+'] = 'zsh'
+    },
+}
+----------------------- File -----------------------
+nvim/init.lua
+vim.g.mapleader = ' '
+vim.g.maplocalleader = '\\'
+vim.g.python3_host_prog = '~/py-envs/neovim/bin/python'
+vim.o.termguicolors = true
+
+-- Backups
+vim.o.backup = true
+vim.o.writebackup = true
+vim.o.backupext = '~'
+vim.o.backupskip = nil
+vim.o.autowrite = false
+vim.o.autowriteall = false
+vim.o.autoread = true
+vim.o.undofile = true
+vim.o.history = 10000
+vim.opt.shada:prepend('!')
+
+vim.keymap.set('n', '<leader>e', ':e', { desc = 'avoid typing colon :-)' })
+vim.keymap.set('n', '<leader>w', ':w<cr>', { desc = 'save buffer' })
+vim.keymap.set('n', 'gr', ':later 9999<cr>', { desc = 'redo all changes' })
+vim.keymap.set('n', '<leader>-', '<c-^>', { desc = 'switch to the alternate file' })
+vim.keymap.set('n', '<leader>a', ':A<cr>', { desc = 'switch to projectionist-alternate' })
+
+-- Search and replace
+vim.o.incsearch  = true
+vim.o.hlsearch   = true
+vim.o.ignorecase = true
+vim.o.smartcase  = true
+vim.o.infercase  = true
+
+vim.o.inccommand = 'nosplit'
+vim.opt.path:append(vim.env.REPOS_BASE .. '/**')
+vim.o.grepprg = 'rg --column --line-number --no-heading --vimgrep --smart-case --hidden'
+
+vim.keymap.set('n', '<leader>G', ':g/<c-r><c-a>/', { desc = ':g/WORD/' })
+vim.keymap.set('n', '<leader>S', ':%s/<c-r><c-a>//g<left><left>', { desc = ':%s/WORD/|/g' })
+
+-- tilda is hard to type, :eh<space> -> :e~/
+vim.cmd([[cabbrev <expr> eh getcmdtype() == ':' ? 'e~/'.abbreviations#eat_char('\s') : 'eh']])
+vim.cmd([[cabbrev <expr> es getcmdtype() == ':' ? 'e%:p:s/'.abbreviations#eat_char('\s') : 'es']])
+
+-- Encoding and file formats
+vim.opt.fileencodings:append('cp1251')
+vim.opt.fileformats = { 'unix', 'mac', 'dos' }
+vim.opt.isfname:remove('=')
+
+-- Alerts and visual feedback
+vim.wo.number = true
+vim.wo.numberwidth = 1
+vim.o.showmatch = true
+vim.o.matchtime = 2
+vim.opt.matchpairs:append('<:>')
+vim.o.confirm = true
+vim.o.showcmd = true
+vim.o.report = 0
+vim.o.shortmess = 'flmnrxoOtT'
+vim.opt.display:append('truncate')
+vim.o.lazyredraw = true
+vim.o.scrolloff = 2
+vim.o.sidescroll = 1
+vim.o.sidescrolloff = 1
+vim.o.timeoutlen = 2000 -- 2s before timing out a mapping (twice the default, else I fail to complete some maps)
+vim.o.ttimeoutlen = 100 -- 100 ms before timing out on a keypress (..^)
+vim.o.visualbell = true -- visual bell instead of beeps, but...
+vim.o.linebreak = true -- wrap at characters in 'breakat
+vim.wo.breakindent = true -- respect indentation when wrapping
+vim.o.showbreak = '↪ '
+vim.opt.listchars = { precedes = '<', tab = '▷⋅', nbsp = '⋅', trail = '⋅', extends = '>' }
+vim.wo.list = true
+vim.o.synmaxcol = 301
+
+if not vim.wo.diff then
+    vim.wo.cursorline = true -- unless nvim -d was used, ref: https://github.com/neovim/neovim/issues/9800
+end
+
+vim.api.nvim_create_user_command('Ascii',
+    'call ascii#codes(<f-args>)', {
+    nargs = '*',
+    desc = 'Print a range of ascii characters. Ex: Ascii 30 50',
+})
+
+-- folding
+vim.wo.foldnestmax = 1 -- maximum nesting for indent and syntax
+vim.cmd([[cabbrev <expr> fold getcmdtype() == ':' ? "se fdm=expr fde=getline(v\\:lnum)=~'^\\\\s*##'?'>'.(len(matchstr(getline(v\\:lnum),'###*'))-1)\\:'='".abbreviations#eat_char('\s') : 'fold']])
+vim.cmd([[cabbrev foldx se fdm=expr fde=getline(v\:lnum)=~'<'?'>1'\:'='<left><left><left><left><left><left><left><left><left><left><left><c-r>=abbreviations#eat_char('\s')<cr>]])
+
+vim.keymap.set('n', '<c-g>', '2<c-g>', { desc = 'print working directory' })
+vim.keymap.set('n', '<leader>8', ':call highlight#column()<cr>', { silent = true, desc = 'highlight text beyond the 80th column' })
+
+-- Mouse support
+vim.o.mouse = 'a'
+vim.o.mousemodel = 'extend'
+vim.keymap.set('n', '<S-ScrollWheelDown>', '5zl', { desc = 'Scroll right' })
+vim.keymap.set('n', '<S-ScrollWheelUp>', '5zh', { desc = 'Scroll left' })
+
+-- Text formating
+vim.opt.formatoptions:append('ron')
+vim.o.comments = vim.o.comments:gsub('fb:%-', 'b:-') -- lists with dashes. Note: - is a magic character in lua patterns => it needs to be escaped with %
+vim.o.commentstring = '#%s'
+vim.o.autoindent = true
+vim.o.joinspaces = false
+
+vim.keymap.set('n', 'Q', 'gqap', { desc = 'Format a paragraph with gq' })
+vim.keymap.set('n', '<leader>z', ':call squeeze#lines("")<cr>', { silent = true, desc = 'squeeze lines' })
+vim.keymap.set('n', '=<leader>', '[<leader>]<leader>', { remap = true, desc = 'surround with empty lines' })
+
+-- TODO: Ctrl + Enter to open a line below in INSERT mode
+-- imap <c-cr> <esc>o
+-- imap <s-cr> <esc>O
+
+vim.api.nvim_create_user_command('Underline',
+    'call underline#current(<q-args>)', -- TODO: function() ... args?
+    { nargs = '?', desc = 'Underline with dashes by default' }
+)
+
+-- Tabs and shifting
+vim.o.tabstop = 8
+vim.o.softtabstop = 4
+vim.o.expandtab = true
+vim.o.smarttab = true
+vim.o.shiftwidth = 4
+vim.o.shiftround = true
+
+vim.keymap.set('x', '<tab>', '>', { desc = 'shift rightwards' })
+vim.keymap.set('x', '<s-tab>', '<', { desc = 'shift leftwards' })
+vim.keymap.set({ 'n', 'x' }, '<leader>0', ':left<cr>', { desc = 'align left' })
+
+-- Tags
+vim.opt.tags:append(vim.env.REPOS_BASE .. '/tags')
+vim.opt.complete:remove('i')
+vim.opt.completeopt:append('menuone')
+vim.o.showfulltag = true
+
+-- Windows and buffers
+vim.o.hidden = true
+vim.opt.diffopt:append { 'vertical', 'iblank', 'iwhiteall' }
+vim.o.equalalways = false
+vim.o.splitright = false
+vim.o.switchbuf = 'useopen,usetab'
+
+-- TODO: correctly restore window sizes.
+-- execute "Plug '".s:vim."/plugged/win_full_screen', { 'on': 'WinFullScreen' }"
+vim.keymap.set('n', 'Zi', '<c-w>|<c-w>_', { desc = 'Zoom In' })
+vim.keymap.set('n', 'Zo', '<c-w>=', { desc = 'Zoom Out' })
+vim.keymap.set('n', '<c-w><c-t>', ':vs term://zsh<cr>i', { desc = "Open terminal in current file's working directory" })
+
+-- Security
+vim.o.exrc = true
+vim.o.secure = true -- :autocmd, shell and write commands not allowed in CWD .exrc
+vim.o.modeline = true
+vim.o.modelines = 3
+
+-- Editing
+vim.opt.nrformats:remove('octal')
+vim.o.whichwrap = 'b,s,<,>,[,]'
+vim.o.virtualedit = 'block'
+vim.o.paragraphs = nil -- no wrongly defined paragraphs for non nroff,groff filetypes
+
+vim.o.startofline = false
+vim.keymap.set('x', '}', [[mode() == '<c-v>' ? line("'}")-1.'G' : '}']], { expr = true, desc = 'let } select the current column only when in visual-block mode' })
+vim.keymap.set('x', '{', [[mode() == '<c-v>' ? line("'{")+1.'G' : '{']], { expr = true, desc = 'let { select the current column only when in visual-block mode' })
+
+vim.keymap.set('n', '[P', ':pu!<cr>', { desc = 'force paste above' })
+vim.keymap.set('n', ']P', ':pu<cr>', { desc = 'force paste below' })
+vim.keymap.set('x', '<leader>x', "<esc>'<dd'>[pjdd`<P==", { desc = 'swap first and last line in a visual area' })
+vim.keymap.set('n', 'dl', ':call spaces#remove_eof()<cr>', { silent = true, desc = 'delete EOF empty lines' })
+
+-- backspace
+vim.o.backspace = 'indent,eol,start'
+vim.keymap.set('n', '<bs>', '"_X', { desc = 'use backspace for deleting' })
+vim.keymap.set('n', '<c-h>', '"_X', { desc = 'use backspace for deleting' })
+
+-- define a file text-object
+vim.keymap.set('x', 'af', 'ggVoG', { desc = 'whole file text-object' })
+vim.keymap.set('o', 'af', ':normal vaf<cr>', { desc = 'whole file text-object' })
+
+vim.api.nvim_create_user_command('RemoveEOLSpaces',
+    function()
+        vim.fn['spaces#remove']()
+    end,
+    { desc = 'remove EOL spaces' }
+)
+
+-- Let [[, ]] work even when { is not in the first column
+vim.keymap.set('n', '[[', [[:call search('^\S\@=.*{\s*$', 'besW')<cr>]], { silent = true, desc = 'let [[ work even when { is not in the first column' })
+vim.keymap.set('n', ']]', [[:call search('^\S\@=.*{\s*$',  'esW')<cr>]], { silent = true, desc = 'let ]] work even when { is not in the first column' })
+
+vim.keymap.set('o', '[[',
+    function()
+        if vim.fn.search([[^\S\@=.*{\s*$]], 'besW') ~= 0 and vim.fn.setpos("''", vim.fn.getpos('.')) == 0
+        then
+            return "''"
+        else
+            return [[\<esc>]]
+        end
+    end,
+    { expr = true, desc = 'let [[ work even when { is not in the first column' }
+)
+
+vim.keymap.set('o', ']]',
+    function()
+        if vim.fn.search([[^\S\@=.*{\s*$]], 'esW') ~= 0 and vim.fn.setpos("''", vim.fn.getpos('.')) == 0
+        then
+            return "''"
+        else
+            return [[\<esc>]]
+        end
+    end,
+    { expr = true, desc = 'let ]] work even when { is not in the first column' }
+)
+
+-- Spell check suggestions
+vim.keymap.set('n', '<leader>1', '1z=', { desc = 'Replace with 1st spell suggestion' })
+vim.keymap.set('n', '<leader>2', '2z=', { desc = 'Replace with 2nd spell suggestion' })
+
+-- Get ex command output in a buffer
+vim.api.nvim_create_user_command('Scratch',
+    function(input)
+        vim.fn['scratch#buffer'](input.args)
+    end,
+    { nargs = '+', desc = 'Get ex command output in a buffer' }
+)
+
+vim.api.nvim_create_user_command('Quotes',
+    function ()
+        local line = vim.fn.getline('.')
+        local str_bgn = ''
+        local idx = line:find('[=:]') or 0
+        if line:sub(idx, idx) == '=' then
+            str_bgn = line:sub(1, idx) -- from start to =
+        end
+        if idx == 0 or line:sub(idx, idx) == '=' then
+            str_end = line:sub(idx + 1):gsub('([^%s,]+)%s*,?%s*', '"%1", ') -- from = to end
+            str_end = str_end:gsub('"', '("', 1):sub(1, -3) .. ')' -- add "(", then remove final ", "
+        else
+            str_end = line:gsub('([^%s:]+)%s*(:?)%s*', '"%1"%2 ') -- "key": "value"
+            str_end = str_end:sub(1, -2) -- remove final ' '
+        end
+        vim.fn.setline('.', str_bgn .. str_end)
+    end,
+    { desc = 'Quote words: coordinates = x y => coordinates = ("x", "y"); key: value => "key": "value"' }
+)
+vim.keymap.set('n', 'goq', ':Quotes<cr>', { desc = "Quote words: coordinates = x y => coordinates = ('x', 'y')" })
+
+-- Includes
+require('noplugins')
+require('abbreviations')
+require('auto-commands')
+require('auto-commands/comments')
+require('auto-commands/html')
+require('clipboard')
+require('readline')
+require('statusline')
+require('plugins') -- last so if a plugin errors, my config will still mostly work
+
+-- TODO: move above so we can set vars for plugins?
+vim.opt.runtimepath:append(vim.fn.stdpath('config') .. '/lua/local')
+pcall(require, 'local') -- custom setup
+----------------------- File -----------------------
+nvim/keymap/bg.vim
+lmapclear <buffer>
+
+setlocal spelllang=bg
+let b:keymap_name = "бг"
+
+inoreabbrev абв Аа  Бб  Вв  Гг  Дд  Ее  Жж  Зз  Ии  Йй<cr>Кк  Лл  Мм  Нн  Оо  Пп  Рр  Сс  Тт  Уу<cr>Фф  Хх  Цц  Чч  Шш  Щщ  Ъъ  Ьь  Юю  Яя
+
+loadkeymap
+a   а   U+0430 CYRILLIC SMALL   LETTER A
+A   А   U+0410 CYRILLIC CAPITAL LETTER A
+b   б   U+0431 CYRILLIC SMALL   LETTER BE
+B   Б   U+0411 CYRILLIC CAPITAL LETTER BE
+v   в   U+0432 CYRILLIC SMALL   LETTER VE
+V   В   U+0412 CYRILLIC CAPITAL LETTER VE
+g   г   U+0433 CYRILLIC SMALL   LETTER GHE
+G   Г   U+0413 CYRILLIC CAPITAL LETTER GHE
+d   д   U+0434 CYRILLIC SMALL   LETTER DE
+D   Д   U+0414 CYRILLIC CAPITAL LETTER DE
+e   е   U+0435 CYRILLIC SMALL   LETTER IE
+E   Е   U+0415 CYRILLIC CAPITAL LETTER IE
+j   ж   U+0436 CYRILLIC SMALL   LETTER ZHE
+J   Ж   U+0416 CYRILLIC CAPITAL LETTER ZHE
+w   ж   U+0436 CYRILLIC SMALL   LETTER ZHE        similar in shape
+W   Ж   U+0416 CYRILLIC CAPITAL LETTER ZHE
+z   з   U+0437 CYRILLIC SMALL   LETTER ZE
+Z   З   U+0417 CYRILLIC CAPITAL LETTER ZE
+i   и   U+0438 CYRILLIC SMALL   LETTER I
+I   И   U+0418 CYRILLIC CAPITAL LETTER I
+y   й   U+0439 CYRILLIC SMALL   LETTER SHORT I
+Y   Й   U+0419 CYRILLIC CAPITAL LETTER SHORT I
+k   к   U+043A CYRILLIC SMALL   LETTER KA
+K   К   U+041A CYRILLIC CAPITAL LETTER KA
+l   л   U+043B CYRILLIC SMALL   LETTER EL
+L   Л   U+041B CYRILLIC CAPITAL LETTER EL
+m   м   U+043C CYRILLIC SMALL   LETTER EM
+M   М   U+041C CYRILLIC CAPITAL LETTER EM
+n   н   U+043D CYRILLIC SMALL   LETTER EN
+N   Н   U+041D CYRILLIC CAPITAL LETTER EN
+o   о   U+043E CYRILLIC SMALL   LETTER O
+O   О   U+041E CYRILLIC CAPITAL LETTER O
+p   п   U+043F CYRILLIC SMALL   LETTER PE
+P   П   U+041F CYRILLIC CAPITAL LETTER PE
+r   р   U+0440 CYRILLIC SMALL   LETTER ER
+R   Р   U+0420 CYRILLIC CAPITAL LETTER ER
+s   с   U+0441 CYRILLIC SMALL   LETTER ES
+S   С   U+0421 CYRILLIC CAPITAL LETTER ES
+t   т   U+0442 CYRILLIC SMALL   LETTER TE
+T   Т   U+0422 CYRILLIC CAPITAL LETTER TE
+u   у   U+0443 CYRILLIC SMALL   LETTER U
+U   У   U+0423 CYRILLIC CAPITAL LETTER U
+f   ф   U+0444 CYRILLIC SMALL   LETTER EF
+F   Ф   U+0424 CYRILLIC CAPITAL LETTER EF
+h   х   U+0445 CYRILLIC SMALL   LETTER HA
+H   Х   U+0425 CYRILLIC CAPITAL LETTER HA
+x   х   U+0445 CYRILLIC SMALL   LETTER HA         similar in shape
+X   Х   U+0425 CYRILLIC CAPITAL LETTER HA
+c   ц   U+0446 CYRILLIC SMALL   LETTER TSE
+C   Ц   U+0426 CYRILLIC CAPITAL LETTER TSE
+4   ч   U+0447 CYRILLIC SMALL   LETTER CHE        ч is the first letter in the writting of 4 (четири)
+~4  Ч   U+0427 CYRILLIC CAPITAL LETTER CHE        ~ is used to switch case
+6   ш   U+0448 CYRILLIC SMALL   LETTER SHA        ш is the first letter in the writting of 6 (шест)
+~6  Ш   U+0428 CYRILLIC CAPITAL LETTER SHA
+6t  щ   U+0449 CYRILLIC SMALL   LETTER SHCHA      щ sounds like шt (see above)
+6T  Щ   U+0429 CYRILLIC CAPITAL LETTER SHCHA
+]   ъ   U+044A CYRILLIC SMALL   LETTER HARD SIGN  similar in shape (upper part)
+~]  Ъ   U+042A CYRILLIC CAPITAL LETTER HARD SIGN
+[   ь   U+044C CYRILLIC SMALL   LETTER SOFT SIGN  because I used ] for ъ
+~[  Ь   U+042C CYRILLIC CAPITAL LETTER SOFT SIGN
+|   ю   U+044E CYRILLIC SMALL   LETTER YU         similar in shape
+~|  Ю   U+042E CYRILLIC CAPITAL LETTER YU
+q   я   U+044F CYRILLIC SMALL   LETTER YA         similar in shape
+Q   Я   U+042F CYRILLIC CAPITAL LETTER YA
+----------------------- File -----------------------
+nvim/keymap/en.vim
+lmapclear <buffer>
+
+setlocal keymap& iminsert& imsearch& spelllang&
+----------------------- File -----------------------
+nvim/keymap/es.vim
+lmapclear <buffer>
+
+source $VIMRUNTIME/keymap/accents.vim
+
+setlocal spelllang=es
+let b:keymap_name = "es"
+
+lnoremap <buffer> '? ¿
+lnoremap <buffer> '! ¡
+----------------------- File -----------------------
+nvim/keymap/fr.vim
+lmapclear <buffer>
+
+source $VIMRUNTIME/keymap/accents.vim
+
+setlocal spelllang=fr
+let b:keymap_name = "fr"
+
+lnoremap <buffer> :e ë
+lnoremap <buffer> :E Ë
+lnoremap <buffer> :i ï
+lnoremap <buffer> :I Ï
+lnoremap <buffer> :y ÿ
+lnoremap <buffer> :Y Ÿ
+----------------------- File -----------------------
+nvim/keymap/ru.vim
+lmapclear <buffer>
+
+source $HOME/.vim/keymap/bg.vim
+
+setlocal spelllang=ru
+let b:keymap_name = "ру"
+
+inoreabbrev абв Аа  Бб  Вв  Гг  Дд  Ее  Ёё  Жж  Зз  Ии  Йй<cr>Кк  Лл  Мм  Нн  Оо  Пп  Рр  Сс  Тт  Уу  Фф<cr>Хх  Цц  Чч  Шш  Щщ  Ъъ  Ыы  Ьь  Ээ  Юю  Яя
+
+" Note: I used [ for ь in the bulgarian keymap so [] feels appropriate
+" ~ is used to switch case
+lnoremap <buffer> []  ы
+lnoremap <buffer> ~[] Ы
+lnoremap <buffer> :e  ё
+lnoremap <buffer> :E  Ё
+lnoremap <buffer> )e  э
+lnoremap <buffer> )E  Э
+----------------------- File -----------------------
+nvim/local/ascii
+ASCII control characters (character code 0-31) {{{1
+
+DEC     OCT     HEX       BIN              Symbol     Html Number       Description
+
+0       000     00      00000000               NUL     &#000;          Null char
+1       001     01      00000001              SOH     &#001;          Start of Heading
+2       002     02      00000010              STX     &#002;          Start of Text
+3       003     03      00000011              ETX     &#003;          End of Text
+4       004     04      00000100              EOT     &#004;          End of Transmission
+5       005     05      00000101              ENQ     &#005;          Enquiry
+6       006     06      00000110              ACK     &#006;          Acknowledgment
+7       007     07      00000111              BEL     &#007;          Bell
+8       010     08      00001000              BS      &#008;          Back Space
+9       011     09      00001001        ^I      HT      &#009;          Horizontal Tab
+10      012     0A      00001010        ^J ( ) LF      &#010;          Line Feed
+11      013     0B      00001011              VT      &#011;          Vertical Tab
+12      014     0C      00001100              FF      &#012;          Form Feed
+13      015     0D      00001101        
+      CR      &#013;          Carriage Return
+14      016     0E      00001110              SO      &#014;          Shift Out / X-On
+15      017     0F      00001111              SI      &#015;          Shift In / X-Off
+16      020     10      00010000              DLE     &#016;          Data Line Escape
+17      021     11      00010001              DC1     &#017;          Device Control 1 (oft. XON)
+18      022     12      00010010              DC2     &#018;          Device Control 2
+19      023     13      00010011              DC3     &#019;          Device Control 3 (oft. XOFF)
+20      024     14      00010100              DC4     &#020;          Device Control 4
+21      025     15      00010101              NAK     &#021;          Negative Acknowledgement
+22      026     16      00010110              SYN     &#022;          Synchronous Idle
+23      027     17      00010111              ETB     &#023;          End of Transmit Block
+24      030     18      00011000              CAN     &#024;          Cancel
+25      031     19      00011001              EM      &#025;          End of Medium
+26      032     1A      00011010              SUB     &#026;          Substitute
+27      033     1B      00011011              ESC     &#027;          Escape
+28      034     1C      00011100              FS      &#028;          File Separator
+29      035     1D      00011101              GS      &#029;          Group Separator
+30      036     1E      00011110              RS      &#030;          Record Separator
+31      037     1F      00011111              US      &#031;          Unit Separator
+
+ASCII printable characters (character code 32-127) {{{1
+
+                                                    Html
+DEC     OCT     HEX       BIN         Symbol   Number   Name    Description
+
+32      040     20      00100000                &#32;           Space
+33      041     21      00100001        !       &#33;           Exclamation mark
+34      042     22      00100010        "       &#34;   &quot;  Double quotes (or speech marks)
+35      043     23      00100011        #       &#35;           Number
+36      044     24      00100100        $       &#36;           Dollar
+37      045     25      00100101        %       &#37;           Procenttecken
+38      046     26      00100110        &       &#38;   &amp;   Ampersand
+39      047     27      00100111        '       &#39;           Single quote
+40      050     28      00101000        (       &#40;           Open parenthesis (or open bracket)
+41      051     29      00101001        )       &#41;           Close parenthesis (or close bracket)
+42      052     2A      00101010        *       &#42;           Asterisk
+43      053     2B      00101011        +       &#43;           Plus
+44      054     2C      00101100        ,       &#44;           Comma
+45      055     2D      00101101        -       &#45;           Hyphen
+46      056     2E      00101110        .       &#46;           Period, dot or full stop
+47      057     2F      00101111        /       &#47;           Slash or divide
+48      060     30      00110000        0       &#48;           Zero
+49      061     31      00110001        1       &#49;           One
+50      062     32      00110010        2       &#50;           Two
+51      063     33      00110011        3       &#51;           Three
+52      064     34      00110100        4       &#52;           Four
+53      065     35      00110101        5       &#53;           Five
+54      066     36      00110110        6       &#54;           Six
+55      067     37      00110111        7       &#55;           Seven
+56      070     38      00111000        8       &#56;           Eight
+57      071     39      00111001        9       &#57;           Nine
+58      072     3A      00111010        :       &#58;           Colon
+59      073     3B      00111011        ;       &#59;           Semicolon
+60      074     3C      00111100        <       &#60;   &lt;    Less than (or open angled bracket)
+61      075     3D      00111101        =       &#61;           Equals
+62      076     3E      00111110        >       &#62;   &gt;    Greater than (or close angled bracket)
+63      077     3F      00111111        ?       &#63;           Question mark
+64      100     40      01000000        @       &#64;           At symbol
+65      101     41      01000001        A       &#65;           Uppercase A
+66      102     42      01000010        B       &#66;           Uppercase B
+67      103     43      01000011        C       &#67;           Uppercase C
+68      104     44      01000100        D       &#68;           Uppercase D
+69      105     45      01000101        E       &#69;           Uppercase E
+70      106     46      01000110        F       &#70;           Uppercase F
+71      107     47      01000111        G       &#71;           Uppercase G
+72      110     48      01001000        H       &#72;           Uppercase H
+73      111     49      01001001        I       &#73;           Uppercase I
+74      112     4A      01001010        J       &#74;           Uppercase J
+75      113     4B      01001011        K       &#75;           Uppercase K
+76      114     4C      01001100        L       &#76;           Uppercase L
+77      115     4D      01001101        M       &#77;           Uppercase M
+78      116     4E      01001110        N       &#78;           Uppercase N
+79      117     4F      01001111        O       &#79;           Uppercase O
+80      120     50      01010000        P       &#80;           Uppercase P
+81      121     51      01010001        Q       &#81;           Uppercase Q
+82      122     52      01010010        R       &#82;           Uppercase R
+83      123     53      01010011        S       &#83;           Uppercase S
+84      124     54      01010100        T       &#84;           Uppercase T
+85      125     55      01010101        U       &#85;           Uppercase U
+86      126     56      01010110        V       &#86;           Uppercase V
+87      127     57      01010111        W       &#87;           Uppercase W
+88      130     58      01011000        X       &#88;           Uppercase X
+89      131     59      01011001        Y       &#89;           Uppercase Y
+90      132     5A      01011010        Z       &#90;           Uppercase Z
+91      133     5B      01011011        [       &#91;           Opening bracket
+92      134     5C      01011100        \       &#92;           Backslash
+93      135     5D      01011101        ]       &#93;           Closing bracket
+94      136     5E      01011110        ^       &#94;           Caret - circumflex
+95      137     5F      01011111        _       &#95;           Underscore
+96      140     60      01100000        `       &#96;           Grave accent
+97      141     61      01100001        a       &#97;           Lowercase a
+98      142     62      01100010        b       &#98;           Lowercase b
+99      143     63      01100011        c       &#99;           Lowercase c
+100     144     64      01100100        d       &#100;          Lowercase d
+101     145     65      01100101        e       &#101;          Lowercase e
+102     146     66      01100110        f       &#102;          Lowercase f
+103     147     67      01100111        g       &#103;          Lowercase g
+104     150     68      01101000        h       &#104;          Lowercase h
+105     151     69      01101001        i       &#105;          Lowercase i
+106     152     6A      01101010        j       &#106;          Lowercase j
+107     153     6B      01101011        k       &#107;          Lowercase k
+108     154     6C      01101100        l       &#108;          Lowercase l
+109     155     6D      01101101        m       &#109;          Lowercase m
+110     156     6E      01101110        n       &#110;          Lowercase n
+111     157     6F      01101111        o       &#111;          Lowercase o
+112     160     70      01110000        p       &#112;          Lowercase p
+113     161     71      01110001        q       &#113;          Lowercase q
+114     162     72      01110010        r       &#114;          Lowercase r
+115     163     73      01110011        s       &#115;          Lowercase s
+116     164     74      01110100        t       &#116;          Lowercase t
+117     165     75      01110101        u       &#117;          Lowercase u
+118     166     76      01110110        v       &#118;          Lowercase v
+119     167     77      01110111        w       &#119;          Lowercase w
+120     170     78      01111000        x       &#120;          Lowercase x
+121     171     79      01111001        y       &#121;          Lowercase y
+122     172     7A      01111010        z       &#122;          Lowercase z
+123     173     7B      01111011        {       &#123;          Opening brace
+124     174     7C      01111100        |       &#124;          Vertical bar
+125     175     7D      01111101        }       &#125;          Closing brace
+126     176     7E      01111110        ~       &#126;          Equivalency sign - tilde
+127     177     7F      01111111                &#127;          Delete
+
+The extended ASCII codes (character code 128-255) {{{1
+
+There are several different variations of the 8-bit ASCII table. The table below
+is according to ISO 8859-1, also called ISO Latin-1. Codes 129-159 contain the
+Microsoft® Windows Latin-1 extended characters.
+
+                                                     Html
+DEC     OCT     HEX       BIN         Symbol    Number   Name       Description
+
+128     200     80      10000000        €       &#128;  &euro;      Euro sign
+129     201     81      10000001                                                                          {{{2
+130     202     82      10000010        ‚       &#130;  &sbquo;     Single low-9 quotation mark
+131     203     83      10000011        ƒ       &#131;  &fnof;      Latin small letter f with hook
+132     204     84      10000100        „       &#132;  &bdquo;     Double low-9 quotation mark
+133     205     85      10000101        …       &#133;  &hellip;    Horizontal ellipsis
+134     206     86      10000110        †       &#134;  &dagger;    Dagger
+135     207     87      10000111        ‡       &#135;  &Dagger;    Double dagger
+136     210     88      10001000        ˆ       &#136;  &circ;      Modifier letter circumflex accent
+137     211     89      10001001        ‰       &#137;  &permil;    Per mille sign
+138     212     8A      10001010        Š       &#138;  &Scaron;    Latin capital letter S with caron
+139     213     8B      10001011        ‹       &#139;  &lsaquo;    Single left-pointing angle quotation
+140     214     8C      10001100        Œ       &#140;  &OElig;     Latin capital ligature OE
+141     215     8D      10001101
+142     216     8E      10001110        Ž       &#142;              Latin captial letter Z with caron
+143     217     8F      10001111
+144     220     90      10010000
+145     221     91      10010001        ‘       &#145;  &lsquo;     Left single quotation mark
+146     222     92      10010010        ’       &#146;  &rsquo;     Right single quotation mark
+147     223     93      10010011        “       &#147;  &ldquo;     Left double quotation mark
+148     224     94      10010100        ”       &#148;  &rdquo;     Right double quotation mark
+149     225     95      10010101        •       &#149;  &bull;      Bullet
+150     226     96      10010110        –       &#150;  &ndash;     En dash
+151     227     97      10010111        —       &#151;  &mdash;     Em dash
+152     230     98      10011000        ˜       &#152;  &tilde;     Small tilde
+153     231     99      10011001        ™       &#153;  &trade;     Trade mark sign
+154     232     9A      10011010        š       &#154;  &scaron;    Latin small letter S with caron
+155     233     9B      10011011        ›       &#155;  &rsaquo;    Single right-pointing angle quotation mark
+156     234     9C      10011100        œ       &#156;  &oelig;     Latin small ligature oe
+157     235     9D      10011101
+158     236     9E      10011110        ž       &#158;              Latin small letter z with caron
+159     237     9F      10011111        Ÿ       &#159;  &yuml;      Latin capital letter Y with diaeresis }}}2
+160     240     A0      10100000                &#160;  &nbsp;      Non-breaking space
+161     241     A1      10100001        ¡       &#161;  &iexcl;     Inverted exclamation mark
+162     242     A2      10100010        ¢       &#162;  &cent;      Cent sign
+163     243     A3      10100011        £       &#163;  &pound;     Pound sign
+164     244     A4      10100100        ¤       &#164;  &curren;    Currency sign
+165     245     A5      10100101        ¥       &#165;  &yen;       Yen sign
+166     246     A6      10100110        ¦       &#166;  &brvbar;    Pipe, Broken vertical bar
+167     247     A7      10100111        §       &#167;  &sect;      Section sign
+168     250     A8      10101000        ¨       &#168;  &uml;       Spacing diaeresis - umlaut
+169     251     A9      10101001        ©       &#169;  &copy;      Copyright sign
+170     252     AA      10101010        ª       &#170;  &ordf;      Feminine ordinal indicator
+171     253     AB      10101011        «       &#171;  &laquo;     Left double angle quotes
+172     254     AC      10101100        ¬       &#172;  &not;       Not sign
+173     255     AD      10101101        ­       &#173;  &shy;       Soft hyphen
+174     256     AE      10101110        ®       &#174;  &reg;       Registered trade mark sign
+175     257     AF      10101111        ¯       &#175;  &macr;      Spacing macron - overline
+176     260     B0      10110000        °       &#176;  &deg;       Degree sign
+177     261     B1      10110001        ±       &#177;  &plusmn;    Plus-or-minus sign
+178     262     B2      10110010        ²       &#178;  &sup2;      Superscript two - squared
+179     263     B3      10110011        ³       &#179;  &sup3;      Superscript three - cubed
+180     264     B4      10110100        ´       &#180;  &acute;     Acute accent - spacing acute
+181     265     B5      10110101        µ       &#181;  &micro;     Micro sign
+182     266     B6      10110110        ¶       &#182;  &para;      Pilcrow sign - paragraph sign
+183     267     B7      10110111        ·       &#183;  &middot;    Middle dot - Georgian comma
+184     270     B8      10111000        ¸       &#184;  &cedil;     Spacing cedilla
+185     271     B9      10111001        ¹       &#185;  &sup1;      Superscript one
+186     272     BA      10111010        º       &#186;  &ordm;      Masculine ordinal indicator
+187     273     BB      10111011        »       &#187;  &raquo;     Right double angle quotes
+188     274     BC      10111100        ¼       &#188;  &frac14;    Fraction one quarter
+189     275     BD      10111101        ½       &#189;  &frac12;    Fraction one half
+190     276     BE      10111110        ¾       &#190;  &frac34;    Fraction three quarters
+191     277     BF      10111111        ¿       &#191;  &iquest;    Inverted question mark
+192     300     C0      11000000        À       &#192;  &Agrave;    Latin capital letter A with grave
+193     301     C1      11000001        Á       &#193;  &Aacute;    Latin capital letter A with acute
+194     302     C2      11000010        Â       &#194;  &Acirc;     Latin capital letter A with circumflex
+195     303     C3      11000011        Ã       &#195;  &Atilde;    Latin capital letter A with tilde
+196     304     C4      11000100        Ä       &#196;  &Auml;      Latin capital letter A with diaeresis
+197     305     C5      11000101        Å       &#197;  &Aring;     Latin capital letter A with ring above
+198     306     C6      11000110        Æ       &#198;  &AElig;     Latin capital letter AE
+199     307     C7      11000111        Ç       &#199;  &Ccedil;    Latin capital letter C with cedilla
+200     310     C8      11001000        È       &#200;  &Egrave;    Latin capital letter E with grave
+201     311     C9      11001001        É       &#201;  &Eacute;    Latin capital letter E with acute
+202     312     CA      11001010        Ê       &#202;  &Ecirc;     Latin capital letter E with circumflex
+203     313     CB      11001011        Ë       &#203;  &Euml;      Latin capital letter E with diaeresis
+204     314     CC      11001100        Ì       &#204;  &Igrave;    Latin capital letter I with grave
+205     315     CD      11001101        Í       &#205;  &Iacute;    Latin capital letter I with acute
+206     316     CE      11001110        Î       &#206;  &Icirc;     Latin capital letter I with circumflex
+207     317     CF      11001111        Ï       &#207;  &Iuml;      Latin capital letter I with diaeresis
+208     320     D0      11010000        Ð       &#208;  &ETH;       Latin capital letter ETH
+209     321     D1      11010001        Ñ       &#209;  &Ntilde;    Latin capital letter N with tilde
+210     322     D2      11010010        Ò       &#210;  &Ograve;    Latin capital letter O with grave
+211     323     D3      11010011        Ó       &#211;  &Oacute;    Latin capital letter O with acute
+212     324     D4      11010100        Ô       &#212;  &Ocirc;     Latin capital letter O with circumflex
+213     325     D5      11010101        Õ       &#213;  &Otilde;    Latin capital letter O with tilde
+214     326     D6      11010110        Ö       &#214;  &Ouml;      Latin capital letter O with diaeresis
+215     327     D7      11010111        ×       &#215;  &times;     Multiplication sign
+216     330     D8      11011000        Ø       &#216;  &Oslash;    Latin capital letter O with slash
+217     331     D9      11011001        Ù       &#217;  &Ugrave;    Latin capital letter U with grave
+218     332     DA      11011010        Ú       &#218;  &Uacute;    Latin capital letter U with acute
+219     333     DB      11011011        Û       &#219;  &Ucirc;     Latin capital letter U with circumflex
+220     334     DC      11011100        Ü       &#220;  &Uuml;      Latin capital letter U with diaeresis
+221     335     DD      11011101        Ý       &#221;  &Yacute;    Latin capital letter Y with acute
+222     336     DE      11011110        Þ       &#222;  &THORN;     Latin capital letter THORN
+223     337     DF      11011111        ß       &#223;  &szlig;     Latin small letter sharp s - ess-zed
+224     340     E0      11100000        à       &#224;  &agrave;    Latin small letter a with grave
+225     341     E1      11100001        á       &#225;  &aacute;    Latin small letter a with acute
+226     342     E2      11100010        â       &#226;  &acirc;     Latin small letter a with circumflex
+227     343     E3      11100011        ã       &#227;  &atilde;    Latin small letter a with tilde
+228     344     E4      11100100        ä       &#228;  &auml;      Latin small letter a with diaeresis
+229     345     E5      11100101        å       &#229;  &aring;     Latin small letter a with ring above
+230     346     E6      11100110        æ       &#230;  &aelig;     Latin small letter ae
+231     347     E7      11100111        ç       &#231;  &ccedil;    Latin small letter c with cedilla
+232     350     E8      11101000        è       &#232;  &egrave;    Latin small letter e with grave
+233     351     E9      11101001        é       &#233;  &eacute;    Latin small letter e with acute
+234     352     EA      11101010        ê       &#234;  &ecirc;     Latin small letter e with circumflex
+235     353     EB      11101011        ë       &#235;  &euml;      Latin small letter e with diaeresis
+236     354     EC      11101100        ì       &#236;  &igrave;    Latin small letter i with grave
+237     355     ED      11101101        í       &#237;  &iacute;    Latin small letter i with acute
+238     356     EE      11101110        î       &#238;  &icirc;     Latin small letter i with circumflex
+239     357     EF      11101111        ï       &#239;  &iuml;      Latin small letter i with diaeresis
+240     360     F0      11110000        ð       &#240;  &eth;       Latin small letter eth
+241     361     F1      11110001        ñ       &#241;  &ntilde;    Latin small letter n with tilde
+242     362     F2      11110010        ò       &#242;  &ograve;    Latin small letter o with grave
+243     363     F3      11110011        ó       &#243;  &oacute;    Latin small letter o with acute
+244     364     F4      11110100        ô       &#244;  &ocirc;     Latin small letter o with circumflex
+245     365     F5      11110101        õ       &#245;  &otilde;    Latin small letter o with tilde
+246     366     F6      11110110        ö       &#246;  &ouml;      Latin small letter o with diaeresis
+247     367     F7      11110111        ÷       &#247;  &divide;    Division sign
+248     370     F8      11111000        ø       &#248;  &oslash;    Latin small letter o with slash
+249     371     F9      11111001        ù       &#249;  &ugrave;    Latin small letter u with grave
+250     372     FA      11111010        ú       &#250;  &uacute;    Latin small letter u with acute
+251     373     FB      11111011        û       &#251;  &ucirc;     Latin small letter u with circumflex
+252     374     FC      11111100        ü       &#252;  &uuml;      Latin small letter u with diaeresis
+253     375     FD      11111101        ý       &#253;  &yacute;    Latin small letter y with acute
+254     376     FE      11111110        þ       &#254;  &thorn;     Latin small letter thorn
+255     377     FF      11111111        ÿ       &#255;  &yuml;      Latin small letter y with diaeresis
+
+# ex: set nonumber foldmethod=marker foldmarker&:
+----------------------- File -----------------------
+nvim/lua/abbreviations.lua
+vim.cmd([[
+iabbrev _dn Dimitar Dimitrov<c-r>=abbreviations#eat_char('\s')<cr>
+iabbrev _de kurkale6ka@gmail.com<c-r>=abbreviations#eat_char('\s')<cr>
+iabbrev _dd Dimitar Dimitrov<cr>kurkale6ka@gmail.com<c-r>=abbreviations#eat_char('\s')<cr>
+iabbrev _date <c-r>=strftime('%a, %d %b %Y')<cr><c-r>=abbreviations#eat_char('\s')<cr>
+iabbrev todo TODO
+
+" 3 words
+iabbrev adn and
+iabbrev amn man
+iabbrev hte the
+iabbrev nad and
+iabbrev nwe new
+iabbrev teh the
+" 4 words
+iabbrev alnd land
+iabbrev amny many
+iabbrev hutn hunt
+iabbrev iwth with
+iabbrev kpet kept
+iabbrev olny only
+iabbrev onyl only
+iabbrev tihs this
+" 5 words
+iabbrev ascci ascii
+iabbrev spcae space
+iabbrev whcih which
+" 6 words
+iabbrev awlays always
+iabbrev beneat beneath
+iabbrev desier desire
+" 7 words
+iabbrev holyday holiday
+" 8 words
+iabbrev analysys analysis
+iabbrev helpfull helpful
+iabbrev redifine redefine
+" 9 words
+iabbrev pationate passionate
+iabbrev profesion profession
+" 10 words
+iabbrev aditionaly additionally
+iabbrev developper developer
+" 11 words
+iabbrev convinience convenience
+iabbrev profesional professional
+" 12 words
+iabbrev colaboration collaboration
+
+" command line abbreviations
+cabbrev waq wqa
+]])
+----------------------- File -----------------------
+nvim/lua/auto-commands/comments.lua
+local comments = vim.api.nvim_create_augroup("Comments", { clear = true })
+
+-- Comment strings
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { 'c', 'cpp', 'cs', 'dot', 'arduino' },
+    callback = function()
+        vim.bo.commentstring = '//%s'
+    end,
+    group = comments,
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { 'sql' },
+    callback = function()
+        vim.bo.commentstring = '--%s'
+    end,
+    group = comments,
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { 'bindzone' },
+    callback = function()
+        vim.bo.commentstring = ';%s'
+    end,
+    group = comments,
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { 'xdefaults' },
+    callback = function()
+        vim.bo.commentstring = '!%s'
+    end,
+    group = comments,
+})
+
+-- Start writing comments with \\...
+-- TODO: \cs for java|php: /** ... (documentation comments)
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { 'c', 'cpp', 'cs', 'css', 'php', 'dot', 'java', 'javascript', 'arduino' },
+    command = [[
+        imap <silent> <buffer> <bslash><bslash>s /*  */<left><left><left>
+        imap <silent> <buffer> <bslash><bslash>m /*<cr><cr>/<left><up><space>
+    ]],
+    group = comments,
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { 'html', 'xml', 'xsd', 'phtml', 'xhtml' },
+    command = [[
+        imap <silent> <buffer> <bslash><bslash>s <!--  --><left><left><left><left>
+        imap <silent> <buffer> <bslash><bslash>m <!--<cr><cr>--><left><up>
+    ]],
+    group = comments,
+})
+----------------------- File -----------------------
+nvim/lua/auto-commands/html.lua
+local html = vim.api.nvim_create_augroup("HTML-family", { clear = true })
+
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { 'html', 'phtml', 'xhtml' },
+    callback = function()
+        -- Server side includes
+        vim.bo.include = [[--\s*#\s*include\s*virtual=\|href=]]
+        vim.bo.includeexpr = "substitute(v:fname,'^/','','')"
+
+        vim.cmd([[
+        let b:surround_{char2nr('1')} = "<h1>\r</h1>"
+        let b:surround_{char2nr('2')} = "<h2>\r</h2>"
+        let b:surround_{char2nr('3')} = "<h3>\r</h3>"
+        let b:surround_{char2nr('4')} = "<h4>\r</h4>"
+        let b:surround_{char2nr('5')} = "<h5>\r</h5>"
+        let b:surround_{char2nr('6')} = "<h6>\r</h6>"
+        let b:surround_{char2nr('a')} = "<a href=\"\" title=\"\">\r</a>"
+        let b:surround_{char2nr('A')} = "<a href=\"\" title=\"\" class=\"\1Class: \1\">\r</a>"
+        let b:surround_{char2nr('e')} = "<em>\r</em>"
+        let b:surround_{char2nr('b')} = "<strong>\r</strong>"
+        let b:surround_{char2nr('s')} = "<span>\r</span>"
+        let b:surround_{char2nr('S')} = "<span class=\"\1Class: \1\">\r</span>"
+        let b:surround_{char2nr('l')} = "<li>\r</li>"
+        let b:surround_{char2nr('L')} = "<li class=\"\1Class: \1\">\r</li>"
+        let b:surround_{char2nr('d')} = "<div>\r</div>"
+        let b:surround_{char2nr('D')} = "<div class=\"\1Class: \1\">\r</div>"
+        let b:surround_{char2nr('p')} = "<p>\r</p>"
+        let b:surround_{char2nr('P')} = "<p class=\"\1Class: \1\">\r</p>"
+        let b:surround_{char2nr('t')} = "<td>\r</td>"
+        let b:surround_{char2nr('T')} = "<td class=\"\1Class: \1\">\r</td>"
+        let b:surround_{char2nr('h')} = "<th>\r</th>"
+        let b:surround_{char2nr('H')} = "<th class=\"\1Class: \1\">\r</th>"
+        ]])
+    end,
+    group = html,
+})
+
+-- Tidy
+vim.api.nvim_create_autocmd('Filetype', {
+    pattern = { 'html', 'phtml', 'xhtml', 'xml', 'xsd' },
+    -- TODO: fix the issue with ]]. Maybe I don't need this. There are better alternatives!
+    -- command! -buffer DeleteTags %substitute:<[?%![:space:]]\@!/\=\_.\{-1,}[-?%]\@<!>::gc
+    command = [[
+        command! -buffer -range=% -nargs=* Tidy <line1>,<line2>! xmllint --format --recover - 2>/dev/null
+    ]],
+    group = html,
+})
+
+-- -- TODO: replace Tidy above
+-- vim.api.nvim_create_user_command('Tidy',
+--     function(args)
+--         -- args.line1,args.line2! xmllint --format --recover - 2>/dev/null
+--     end, {
+--     -- [[ <line1>,<line2>! xmllint --format --recover - 2>/dev/null ]], {
+--     buffer = true,
+--     range = '%',
+--     nargs = '*',
+--     desc = 'Format "html" documents'
+-- })
+----------------------- File -----------------------
+nvim/lua/auto-commands/init.lua
+local generic = vim.api.nvim_create_augroup("Generic", { clear = true })
+local commit = vim.api.nvim_create_augroup("Commit", { clear = true })
+local terminal = vim.api.nvim_create_augroup("Terminal", { clear = true })
+local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
+-- local windows = vim.api.nvim_create_augroup("Windows", { clear = true })
+
+-- Jump to the last spot the cursor was at in a file when reading it
+vim.api.nvim_create_autocmd("BufReadPost", {
+    command = [[
+        if line("'\"") > 0 && line("'\"") <= line('$') && &filetype != 'gitcommit'
+            execute 'normal! g`"'
+        endif
+    ]],
+    group = generic
+})
+
+-- When reading a file, :cd to its parent directory.
+-- this replaces 'autochdir which doesn't work properly.
+vim.api.nvim_create_autocmd("BufEnter", {
+    callback = function(args)
+        if vim.bo.filetype ~= 'help' and vim.bo.filetype ~= 'man' then
+            pcall(vim.fn.chdir, vim.fs.dirname(args.file))
+        else
+            vim.cmd('wincmd H | vert resize ' .. vim.env.MANWIDTH) -- TODO: fix error with gO then :q
+        end
+    end,
+    group = generic
+})
+
+-- Delete EOL white spaces
+vim.api.nvim_create_autocmd("BufWritePre", {
+    callback = function()
+        if vim.bo.filetype ~= 'markdown' then
+            vim.fn['spaces#remove']()
+        end
+    end,
+    group = generic
+})
+
+-- VCS (git/svn/...) commit messages
+vim.api.nvim_create_autocmd('Filetype', {
+    pattern = { 'gitcommit', 'svn' },
+    command = [[
+        goto
+        setlocal spell foldmethod&
+        startinsert
+    ]],
+    group = commit,
+})
+
+-- Highlight on yank
+vim.api.nvim_create_autocmd('TextYankPost', {
+    callback = function()
+        vim.highlight.on_yank()
+    end,
+    group = highlight_group,
+})
+
+-- Terminal: no numbers
+vim.api.nvim_create_autocmd("TermOpen", {
+    callback = function()
+        vim.wo.number = false
+        vim.wo.relativenumber = false
+    end,
+    group = terminal
+})
+
+-- -- Syntax based omni completion
+-- vim.api.nvim_create_autocmd("Filetype", {
+--     command = [[
+--         if empty(&omnifunc)
+--             setlocal omnifunc=syntaxcomplete#Complete
+--         endif
+--     ]],
+--     group = generic
+-- })
+----------------------- File -----------------------
+nvim/lua/clipboard.lua
+-- This option slows copy/paste down. Instead, use "*/"+ to copy to the terminal
+-- vim.o.clipboard = 'unnamed,unnamedplus'
+
+if vim.fn.executable('clip.exe') then
+    vim.g.clipboard = {
+        name = 'WslClipboard',
+        copy = {
+            ['+'] = 'clip.exe',
+            ['*'] = 'clip.exe',
+        },
+        paste = {
+            ['+'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+            ['*'] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+        },
+        cache_enabled = 0,
+    }
+end
+----------------------- File -----------------------
+nvim/lua/noplugins.lua
+-- Disable these plugins
+vim.g.did_install_default_menus = true
+vim.g.loaded_2html_plugin       = true
+vim.g.loaded_netrwPlugin        = true
+vim.g.loaded_zipPlugin          = true
+vim.g.loaded_tarPlugin          = true
+vim.g.loaded_getscriptPlugin    = true
+vim.g.loaded_rrhelper           = true
+vim.g.loaded_spellfile_plugin   = true
+----------------------- File -----------------------
+nvim/lua/plugins/NvimTree.lua
+local function on_attach(bufnr)
+  local api = require('nvim-tree.api')
+
+  local function opts(desc)
+    return { desc = 'nvim-tree: ' .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+  end
+
+  -- Default mappings
+  vim.keymap.set('n', '<C-]>', api.tree.change_root_to_node,          opts('CD'))
+  vim.keymap.set('n', '<C-e>', api.node.open.replace_tree_buffer,     opts('Open: In Place'))
+  vim.keymap.set('n', '<C-k>', api.node.show_info_popup,              opts('Info'))
+  vim.keymap.set('n', '<C-r>', api.fs.rename_sub,                     opts('Rename: Omit Filename'))
+  vim.keymap.set('n', '<C-t>', api.node.open.tab,                     opts('Open: New Tab'))
+  vim.keymap.set('n', '<C-v>', api.node.open.vertical,                opts('Open: Vertical Split'))
+  vim.keymap.set('n', '<C-x>', api.node.open.horizontal,              opts('Open: Horizontal Split'))
+  vim.keymap.set('n', '<BS>',  api.node.navigate.parent_close,        opts('Close Directory'))
+  vim.keymap.set('n', '<CR>',  api.node.open.edit,                    opts('Open'))
+  vim.keymap.set('n', '<Tab>', api.node.open.preview,                 opts('Open Preview'))
+  vim.keymap.set('n', '>',     api.node.navigate.sibling.next,        opts('Next Sibling'))
+  vim.keymap.set('n', '<',     api.node.navigate.sibling.prev,        opts('Previous Sibling'))
+  vim.keymap.set('n', '.',     api.node.run.cmd,                      opts('Run Command'))
+  vim.keymap.set('n', '-',     api.tree.change_root_to_parent,        opts('Up'))
+  vim.keymap.set('n', 'a',     api.fs.create,                         opts('Create'))
+  vim.keymap.set('n', 'bmv',   api.marks.bulk.move,                   opts('Move Bookmarked'))
+  vim.keymap.set('n', 'B',     api.tree.toggle_no_buffer_filter,      opts('Toggle No Buffer'))
+  vim.keymap.set('n', 'c',     api.fs.copy.node,                      opts('Copy'))
+  vim.keymap.set('n', 'C',     api.tree.toggle_git_clean_filter,      opts('Toggle Git Clean'))
+  vim.keymap.set('n', '[c',    api.node.navigate.git.prev,            opts('Prev Git'))
+  vim.keymap.set('n', ']c',    api.node.navigate.git.next,            opts('Next Git'))
+  vim.keymap.set('n', 'd',     api.fs.remove,                         opts('Delete'))
+  vim.keymap.set('n', 'D',     api.fs.trash,                          opts('Trash'))
+  vim.keymap.set('n', 'E',     api.tree.expand_all,                   opts('Expand All'))
+  vim.keymap.set('n', 'e',     api.fs.rename_basename,                opts('Rename: Basename'))
+  vim.keymap.set('n', ']e',    api.node.navigate.diagnostics.next,    opts('Next Diagnostic'))
+  vim.keymap.set('n', '[e',    api.node.navigate.diagnostics.prev,    opts('Prev Diagnostic'))
+  vim.keymap.set('n', 'F',     api.live_filter.clear,                 opts('Clean Filter'))
+  vim.keymap.set('n', 'f',     api.live_filter.start,                 opts('Filter'))
+  vim.keymap.set('n', 'g?',    api.tree.toggle_help,                  opts('Help'))
+  vim.keymap.set('n', 'gy',    api.fs.copy.absolute_path,             opts('Copy Absolute Path'))
+  vim.keymap.set('n', 'H',     api.tree.toggle_hidden_filter,         opts('Toggle Dotfiles'))
+  vim.keymap.set('n', 'I',     api.tree.toggle_gitignore_filter,      opts('Toggle Git Ignore'))
+  vim.keymap.set('n', 'J',     api.node.navigate.sibling.last,        opts('Last Sibling'))
+  vim.keymap.set('n', 'K',     api.node.navigate.sibling.first,       opts('First Sibling'))
+  vim.keymap.set('n', 'm',     api.marks.toggle,                      opts('Toggle Bookmark'))
+  vim.keymap.set('n', 'o',     api.node.open.edit,                    opts('Open'))
+  vim.keymap.set('n', 'O',     api.node.open.no_window_picker,        opts('Open: No Window Picker'))
+  vim.keymap.set('n', 'p',     api.fs.paste,                          opts('Paste'))
+  vim.keymap.set('n', 'P',     api.node.navigate.parent,              opts('Parent Directory'))
+  vim.keymap.set('n', 'q',     api.tree.close,                        opts('Close'))
+  vim.keymap.set('n', 'r',     api.fs.rename,                         opts('Rename'))
+  vim.keymap.set('n', 'R',     api.tree.reload,                       opts('Refresh'))
+  vim.keymap.set('n', 's',     api.node.run.system,                   opts('Run System'))
+  vim.keymap.set('n', 'S',     api.tree.search_node,                  opts('Search'))
+  vim.keymap.set('n', 'U',     api.tree.toggle_custom_filter,         opts('Toggle Hidden'))
+  vim.keymap.set('n', 'W',     api.tree.collapse_all,                 opts('Collapse'))
+  vim.keymap.set('n', 'x',     api.fs.cut,                            opts('Cut'))
+  vim.keymap.set('n', 'y',     api.fs.copy.filename,                  opts('Copy Name'))
+  vim.keymap.set('n', 'Y',     api.fs.copy.relative_path,             opts('Copy Relative Path'))
+  vim.keymap.set('n', '<2-LeftMouse>',  api.node.open.edit,           opts('Open'))
+  vim.keymap.set('n', '<2-RightMouse>', api.tree.change_root_to_node, opts('CD'))
+
+  -- Remove mappings
+  vim.keymap.del('n', '-', { buffer = bufnr })
+
+  -- Custom mappings
+  vim.keymap.set('n', 'u', api.tree.change_root_to_parent, opts('Up'))             -- - by default
+  vim.keymap.set('n', '!', api.tree.toggle_hidden_filter, opts('Toggle Dotfiles')) -- U by default
+end
+
+require("nvim-tree").setup {
+    on_attach = on_attach,
+    renderer = {
+        root_folder_label = ':~',
+        icons = {
+            git_placement = "signcolumn",
+            glyphs = {
+                git = {
+                    unstaged = "",
+                    staged = "+",
+                    unmerged = "",
+                    renamed = "➜",
+                    untracked = "?",
+                    deleted = "",
+                    ignored = "◌",
+                },
+            },
+        },
+    },
+    filters = {
+        custom = { [[^\.git$]] } -- TODO: why is this needed? .git/ is .gitignored!
+    },
+    update_focused_file = {
+        enable = true
+    }
+}
+
+-- View NvimTree, :Vexplore
+vim.keymap.set('n', '<leader>v', ':silent! Glcd <bar> NvimTreeFindFileToggle!<cr>',
+    { silent = true }
+)
+
+-- Highlights
+vim.cmd([[
+highlight NvimTreeSymlink guifg=cyan
+highlight NvimTreeGitDirty guifg=#e55561 "  unstaged
+highlight NvimTreeGitNew guifg=#e55561 " ? untracked
+" highlight link NvimTreeGitDirty GitSignsDelete " TODO: not working
+highlight NvimTreeNormal guibg=#1f2329 " onedark/palette/darker/bg0
+highlight NvimTreeEndOfBuffer guifg=#1f2329 guibg=#1f2329 " change eob bg + hide final tildes by using the same color
+" highlight link NvimTreeEndOfBuffer NvimTreeNormal " TODO: not working
+]])
+----------------------- File -----------------------
+nvim/lua/plugins/firenvim.lua
+-- firenvim: force manual triggering
+if vim.fn.exists('g:started_by_firenvim') then
+    vim.g.firenvim_config = [[
+    {
+        'localSettings': {
+            '.*': {
+                'selector': '',
+                'priority': 0,
+            }
+        }
+    }
+    ]]
+end
+----------------------- File -----------------------
+nvim/lua/plugins/gitsigns.lua
+require('gitsigns').setup {
+    signs = {
+        add          = { text = '+' },
+        change       = { text = '~' },
+        delete       = { text = '_' }, -- deleted lines under marked line, the sign is where the missing line(s) should be! (same for topdelete)
+        topdelete    = { text = '‾' }, -- deleted BOF lines
+        changedelete = { text = '⋍' }, -- deleted some lines above/below then changed line
+        untracked    = { text = '?' },
+    },
+    trouble = false, -- TODO: as it doesn't work
+    on_attach = function(bufnr)
+        local gs = package.loaded.gitsigns
+
+        local function map(mode, l, r, opts)
+            opts = opts or {}
+            opts.buffer = bufnr
+            vim.keymap.set(mode, l, r, opts)
+        end
+
+        -- Navigation
+        map('n', ']c', function()
+            if vim.wo.diff then return ']c' end
+            vim.schedule(function() gs.next_hunk() end)
+            return '<Ignore>'
+        end, { expr = true })
+
+        map('n', '[c', function()
+            if vim.wo.diff then return '[c' end
+            vim.schedule(function() gs.prev_hunk() end)
+            return '<Ignore>'
+        end, { expr = true })
+
+        -- Actions
+        -- map({'n', 'v'}, '<leader>hs', ':Gitsigns stage_hunk<CR>')
+        -- map({'n', 'v'}, '<leader>hr', ':Gitsigns reset_hunk<CR>')
+        -- map('n', '<leader>hS', gs.stage_buffer)
+        -- map('n', '<leader>hu', gs.undo_stage_hunk)
+        -- map('n', '<leader>hR', gs.reset_buffer)
+        map('n', '<leader>p', gs.preview_hunk)
+        -- map('n', '<leader>hb', function() gs.blame_line{full=true} end)
+        -- map('n', '<leader>tb', gs.toggle_current_line_blame)
+        -- map('n', '<leader>hd', gs.diffthis)
+        -- map('n', '<leader>hD', function() gs.diffthis('~') end)
+        -- map('n', '<leader>td', gs.toggle_deleted)
+
+        -- Text object
+        map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+
+        -- Highlights
+        vim.cmd([[
+        highlight link GitSignsChangedelete GitSignsDelete
+        highlight link GitSignsUntracked GitSignsDelete
+        ]])
+    end
+}
+----------------------- File -----------------------
+nvim/lua/plugins/hop.lua
+local hop = require('hop')
+hop.setup()
+
+vim.keymap.set('n', 'gs', ':HopWord<cr>', { desc = 'Go Search: go to a random word' })
+
+-- TODO: re-enable when these mappings respect ; , and count
+
+-- local directions = require('hop.hint').HintDirection
+
+-- vim.keymap.set('n', 'f', function()
+--     hop.hint_char1({ direction = directions.AFTER_CURSOR, current_line_only = true })
+-- end, { remap = true })
+
+-- vim.keymap.set('n', 'F', function()
+--     hop.hint_char1({ direction = directions.BEFORE_CURSOR, current_line_only = true })
+-- end, { remap = true })
+
+-- vim.keymap.set('n', 't', function()
+--     hop.hint_char1({ direction = directions.AFTER_CURSOR, current_line_only = true, hint_offset = -1 })
+-- end, { remap = true })
+
+-- vim.keymap.set('n', 'T', function()
+--     hop.hint_char1({ direction = directions.BEFORE_CURSOR, current_line_only = true, hint_offset = 1 })
+-- end, { remap = true })
+----------------------- File -----------------------
+nvim/lua/plugins/init.lua
+-- TODO: add more verylazy
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+    vim.fn.system {
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git",
+        "--branch=stable",
+        lazypath,
+    }
+end
+vim.opt.rtp:prepend(lazypath)
+
+require('lazy').setup {
+
+    defaults = { lazy = true },
+
+    -- Plugins
+    { 'dstein64/vim-startuptime',
+        cmd = 'StartupTime'
+    },
+
+    -- Tpope
+    { 'tpope/vim-abolish',
+        cmd = { 'Abolish', 'Subvert' },
+        keys = 'cr'
+    },
+
+    { 'tpope/vim-characterize',
+        keys = 'ga'
+    },
+
+    { 'tpope/vim-commentary',
+        cmd = 'Commentary',
+        keys = {
+            { 'gc', mode = { 'o', 'n', 'x' } },
+            { '\\', mode = { 'o', 'n', 'x' } },
+        },
+        config = function()
+            require('plugins/vim-commentary')
+        end
+    },
+
+    'tpope/vim-endwise',
+
+    { 'tpope/vim-eunuch',
+        cmd = {
+            'Cfind', 'Chmod', 'Clocate', 'Copy', 'Delete', 'Duplicate', 'Lfind',
+            'Llocate', 'Mkdir', 'Move', 'Remove', 'Rename', 'SudoEdit', 'SudoWrite', 'Unlink', 'Wall'
+        }
+    },
+
+    { 'tpope/vim-fugitive',
+        event = "VeryLazy"
+    },
+
+    { 'tpope/vim-markdown',
+        ft = 'markdown'
+    },
+
+    { 'tpope/vim-obsession',
+        cmd = 'Obsession',
+        config = function()
+            require('plugins/session')
+        end
+    },
+
+    'tpope/vim-repeat',
+
+    { 'tpope/vim-sleuth', cmd = 'Sleuth',
+        config = function()
+            require('plugins/sleuth')
+        end
+    },
+
+    { 'tpope/vim-surround',
+        config = function()
+            require('plugins/vim-surround')
+        end
+    },
+
+    { 'tpope/vim-unimpaired',
+        event = "VeryLazy",
+        config = function()
+            require('plugins/vim-unimpaired')
+        end
+    },
+
+    'tpope/vim-projectionist',
+
+    -- Nvim Tree
+    { 'nvim-tree/nvim-tree.lua',
+        event = "VeryLazy",
+        config = function()
+            require('plugins/NvimTree')
+        end
+    },
+
+    { 'mbbill/undotree',
+        cmd = { 'UndotreeHide', 'UndotreeShow', 'UndotreeFocus', 'UndotreeToggle' },
+        keys = 'gou',
+        config = function()
+            require('plugins/undotree')
+        end
+    },
+
+    { 'liuchengxu/vista.vim',
+        cmd = 'Vista',
+        config = function()
+            vim.g.vista_sidebar_position = 'vertical topleft'
+        end
+    },
+
+    -- Junegunn
+    { 'junegunn/vim-easy-align',
+        cmd = 'EasyAlign',
+        config = function()
+            require('plugins/vim-easy-align')
+        end
+    },
+
+    { 'junegunn/fzf.vim',
+        event = "VeryLazy",
+        dependencies = {
+            { 'junegunn/fzf',
+                build = function()
+                    vim.fn['fzf#install']()
+                end
+            },
+        },
+    },
+
+    -- LSP
+    { 'neovim/nvim-lspconfig',
+        dependencies = {
+            { 'williamboman/mason.nvim', -- automatically install LSPs to stdpath for neovim
+                config = function()
+                    require('plugins/mason')
+                end
+            },
+            'williamboman/mason-lspconfig.nvim',
+            { 'j-hui/fidget.nvim', -- useful LSP status updates
+                opts = {},
+            },
+            { 'folke/neodev.nvim', -- additional lua configuration, makes nvim stuff amazing
+                config = function()
+                    require('neodev').setup()
+                end
+            },
+        },
+        config = function()
+            require('plugins/nvim-lspconfig')
+        end
+    },
+
+    { 'jose-elias-alvarez/null-ls.nvim',
+        dependencies = {
+            'nvim-lua/plenary.nvim'
+        },
+        config = function()
+            require('plugins/null-ls')
+        end
+    },
+
+    { 'folke/trouble.nvim',
+        dependencies = {
+            'kyazdani42/nvim-web-devicons' -- TODO: plugin shouldn't complain as I've manually installed Nerd Fonts, issue?
+        },
+        cmd = { 'Trouble', 'TroubleClose', 'TroubleToggle', 'TroubleRefresh' },
+        config = function()
+            require('plugins/trouble')
+        end
+    },
+
+    -- Tree-sitter
+    { 'nvim-treesitter/nvim-treesitter',
+        build = function()
+            pcall(require('nvim-treesitter.install').update { with_sync = true })
+        end,
+        dependencies = {
+            'nvim-treesitter/nvim-treesitter-textobjects',
+            { 'nvim-treesitter/playground',
+                build = ':TSInstall query',
+                cmd = 'TSPlaygroundToggle'
+            }
+        },
+        config = function()
+            require('plugins/nvim-treesitter')
+        end
+    },
+
+    -- Autocompletion
+    { 'hrsh7th/nvim-cmp',
+        dependencies = {
+            'hrsh7th/cmp-buffer',
+            'hrsh7th/cmp-cmdline',
+            'hrsh7th/cmp-nvim-lsp',
+            'hrsh7th/cmp-nvim-lsp-signature-help',
+            'hrsh7th/cmp-path',
+        },
+        config = function()
+            require('plugins/nvim-cmp')
+        end
+    },
+
+    -- Snippets
+    { 'SirVer/ultisnips',
+        dependencies = {
+            'quangnguyen30192/cmp-nvim-ultisnips',
+            'honza/vim-snippets',
+        },
+        config = function()
+            require('plugins/ultisnips')
+        end
+    },
+
+    -- Colorschemes
+    { 'navarasu/onedark.nvim',
+        lazy = false,    -- necessary for the main colorscheme
+        priority = 1000, -- necessary for the main colorscheme
+        config = function()
+            require('plugins/onedark')
+        end,
+    },
+
+    { 'Everblush/everblush.nvim', name = 'everblush', lazy = true },
+    { 'ellisonleao/gruvbox.nvim', lazy = true },
+    { 'savq/melange',             lazy = true },
+    { 'Shatur/neovim-ayu',        lazy = true },
+    { 'EdenEast/nightfox.nvim',   lazy = true },
+
+    -- colors
+    { 'norcalli/nvim-colorizer.lua',
+        lazy = true,
+        config = function()
+            require('colorizer').setup()
+        end
+    },
+
+    -- Misc
+    { 'lewis6991/gitsigns.nvim',
+        config = function()
+            require('plugins/gitsigns')
+        end
+    },
+
+    { 'lukas-reineke/indent-blankline.nvim',
+        main = "ibl",
+        opts = {},
+    },
+
+    { 'phaazon/hop.nvim',
+        branch = 'v2', -- optional but strongly recommended
+        cmd = 'HopWord',
+        keys = 'gs',
+        config = function()
+            require('plugins/hop')
+        end,
+    },
+
+    { 'nvim-lualine/lualine.nvim',
+        config = function()
+            require('plugins/lualine')
+        end
+    },
+
+    { 'glacambre/firenvim',
+        build = function()
+            vim.fn['firenvim#install'](0)
+        end,
+        lazy = true,
+        config = function()
+            require('plugins/firenvim')
+        end,
+    },
+
+    -- TODO: 'bfredl/nvim-miniyank', {}
+    { 'pearofducks/ansible-vim', lazy = true }, -- let g:ansible_attribute_highlight = "ab"
+    { 'rodjek/vim-puppet',       lazy = true },
+    { 'terceiro/vim-foswiki',    lazy = true },
+    { 'vim-scripts/iptables',    lazy = true },
+    { 'vim-scripts/nginx.vim',   lazy = true },
+    { 'StanAngeloff/php.vim',    lazy = true },
+    { 'tmux-plugins/vim-tmux',   lazy = true },
+
+    -- Own and local
+    'kurkale6ka/vim-pairs',
+    { 'kurkale6ka/vim-desertEX', lazy = true },
+    { 'kurkale6ka/vim-chess',    lazy = true },
+
+}
+----------------------- File -----------------------
+nvim/lua/plugins/lualine.lua
+local red = '#ff7575'
+
+require('lualine').setup {
+    options = {
+        icons_enabled = true,
+        theme = 'auto',
+        component_separators = { left = '❭', right = '❬' },
+        section_separators = { left = '', right = '' },
+        disabled_filetypes = {
+            statusline = { 'NvimTree' },
+            winbar = {},
+        },
+        ignore_focus = {},
+        always_divide_middle = true,
+        globalstatus = false,
+        refresh = {
+            statusline = 1000,
+            tabline = 1000,
+            winbar = 1000,
+        }
+    },
+    sections = {
+        lualine_a = { -- paste mode
+            function()
+                return vim.o.paste and '-- paste --' or ''
+            end
+        },
+        lualine_b = {
+            { 'filename',
+                fmt = function(str)
+                    if vim.b.keymap_name then
+                        return str .. ' (' .. vim.b.keymap_name .. ')'
+                    else
+                        return str
+                    end
+                end,
+                color = function()
+                    return { fg = vim.bo.modified and red or '#86bcff' } -- TODO: apply color on [+] only, also for [RO] and keymap
+                end,
+                symbols = {
+                    readonly = '[RO]',
+                }
+            },
+            { 'branch', icon = '', color = { fg = '#18a558' } },
+        },
+        lualine_c = {
+            'diagnostics',
+            { 'searchcount', color = { fg = '#e8c88c' } }, -- :hi Search
+            { '%v', fmt = function(str) return 'col:' .. str end } -- current column
+        },
+        lualine_x = {
+            { -- LSP server name
+                function()
+                    local msg = 'no LSP'
+                    local buf_ft = vim.api.nvim_buf_get_option(0, 'filetype')
+                    local clients = vim.lsp.get_active_clients()
+                    if next(clients) == nil then
+                        return msg
+                    end
+                    for _, client in ipairs(clients) do
+                        local filetypes = client.config.filetypes
+                        if filetypes and vim.fn.index(filetypes, buf_ft) ~= -1 then
+                            return 'LSP: ' .. client.name
+                        end
+                    end
+                    return msg
+                end,
+                icon = ''
+            },
+            { -- encoding
+                function()
+                    local enc, _ = (vim.bo.fenc or vim.go.enc):gsub("^utf%-8$", "")
+                    return enc
+                end,
+                color = { fg = red }
+            },
+            { -- fileformat
+                function()
+                    local ff, _ = vim.bo.fileformat:gsub("^unix$", "")
+                    return ff
+                end,
+                color = { fg = red },
+                icon = '␤'
+            },
+            'diff',
+        },
+        lualine_y = {
+            { 'filetype', color = { fg = '#ffab60' } },
+            'progress'
+        },
+        lualine_z = {}
+    },
+    inactive_sections = {
+        lualine_a = {},
+        lualine_b = {},
+        lualine_c = { 'filename' },
+        lualine_x = { 'location' },
+        lualine_y = {},
+        lualine_z = {}
+    },
+    tabline = {},
+    winbar = {},
+    inactive_winbar = {},
+    extensions = {}
+}
+----------------------- File -----------------------
+nvim/lua/plugins/mason.lua
+-- TODO: use the API to auto install linters/formatters vs
+-- MasonInstall ansible-lint
+-- MasonInstall shfmt
+-- ...
+-- https://github.com/williamboman/mason.nvim/blob/main/doc/reference.md
+require('mason').setup {
+    pip = {
+        upgrade_pip = true,
+    },
+}
+----------------------- File -----------------------
+nvim/lua/plugins/null-ls.lua
+vim.keymap.set('n', '<leader>f',
+    vim.lsp.buf.format,
+    { desc = 'Format function provided by null-ls' }
+)
+
+vim.keymap.set('n', '<leader>ca',
+    vim.lsp.buf.code_action,
+    { desc = 'Code actions provided by null-ls' }
+)
+
+local null_ls = require("null-ls")
+
+null_ls.setup {
+    sources = {
+        null_ls.builtins.formatting.isort, -- python
+        null_ls.builtins.formatting.packer,
+        -- null_ls.builtins.code_actions.gitsigns,
+        null_ls.builtins.formatting.shfmt.with {
+            args = { "-i", "4" },
+        },
+    },
+}
+----------------------- File -----------------------
+nvim/lua/plugins/nvim-cmp.lua
+local cmp = require('cmp')
+
+local kind_icons = {
+    Text          = "",
+    Method        = "",
+    Function      = "",
+    Constructor   = "",
+    Field         = "",
+    Variable      = "",
+    Class         = "ﴯ",
+    Interface     = "",
+    Module        = "",
+    Property      = "ﰠ",
+    Unit          = "",
+    Value         = "",
+    Enum          = "",
+    Keyword       = "",
+    Snippet       = "",
+    Color         = "",
+    File          = "",
+    Reference     = "",
+    Folder        = "",
+    EnumMember    = "",
+    Constant      = "",
+    Struct        = "",
+    Event         = "",
+    Operator      = "",
+    TypeParameter = "",
+}
+
+-- Filter backup files (*~) out
+local function filter_backups_out(entry)
+    return not entry:get_word():match('~$')
+end
+
+-- cmdline setup
+cmp.setup.cmdline(':', {
+    mapping = cmp.mapping.preset.cmdline {
+        -- ['<c-a>'] = cmp.mapping.abort(), -- TODO: c-a is already taken
+        -- ['<cr>'] = cmp.mapping.confirm({ select = true }), TODO: confirm cmdline selection with enter. Fix, not working
+        ['<c-e>'] = cmp.config.disable,
+        ['<c-y>'] = cmp.config.disable,
+    },
+    sources = cmp.config.sources(
+        {
+            { name = 'path',
+                max_item_count = 20,
+                entry_filter = filter_backups_out,
+                -- option = { trailing_slash = true }, -- adds a slash but then there is no list of following next items. solved by <tab> in cmp.mapping.confirm but creates other issues
+            }
+        },
+        {
+            { name = 'cmdline',
+                max_item_count = 20,
+                entry_filter = filter_backups_out,
+                option = { ignore_cmds = { 'Man', '!' } },
+            }
+        }
+    )
+})
+
+-- TODO: do I need it?
+-- cmp.setup.filetype('gitcommit', {
+--     sources = cmp.config.sources(
+--         {
+--             { name = 'cmp_git' },
+--         },
+--         {
+--             { name = 'buffer' },
+--         }
+--     )
+-- })
+
+cmp.setup {
+    snippet = {
+        expand = function(args)
+            vim.fn["UltiSnips#Anon"](args.body)
+        end,
+    },
+    mapping = cmp.mapping.preset.insert {
+        ['<c-b>']     = cmp.mapping.scroll_docs(-4),
+        ['<c-f>']     = cmp.mapping.scroll_docs(4),
+        ['<c-space>'] = cmp.mapping.complete(),
+        ['<c-a>']     = cmp.mapping.abort(),
+        ['<cr>']      = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+        ['<c-e>']     = cmp.config.disable,
+        ['<c-y>']     = cmp.config.disable,
+    },
+    sources = cmp.config.sources(
+        -- { name = 'nvim_lua' }, -- TODO: replace with neodev
+        {
+            { name = 'nvim_lsp',
+                max_item_count = 10,
+            },
+            { name = 'ultisnips',
+                max_item_count = 10,
+            }
+        },
+        {
+            { name = 'nvim_lsp_signature_help',
+                -- option = { ignore_functions = { 'print' } }, -- TODO, pull request?
+            }
+        },
+        {
+            { name = 'buffer',
+                max_item_count = 10,
+                option = {
+                    get_bufnrs = function()
+                        return vim.api.nvim_list_bufs()
+                    end
+                },
+            }
+        },
+        {
+            { name = 'path',
+                max_item_count = 10,
+                entry_filter = filter_backups_out,
+            }
+        }
+    ),
+    formatting = {
+        format = function(entry, vim_item)
+            -- Kind icons
+            -- This concatenates the icons with the name of the item kind
+            vim_item.kind = string.format("%s %s", kind_icons[vim_item.kind], vim_item.kind)
+            -- Source
+            vim_item.menu = ({
+                -- nvim_lua  = "[Lua]", -- TODO: [Neodev]
+                buffer    = "[Buffer]",
+                cmdline   = "[Cmdline]",
+                nvim_lsp  = "[LSP]",
+                path      = "[Path]",
+                ultisnips = "[UltiSnips]",
+            })[entry.source.name]
+            return vim_item
+        end,
+    },
+}
+----------------------- File -----------------------
+nvim/lua/plugins/nvim-lspconfig.lua
+local signs = {
+    Error = "",
+    Warn  = "",
+    Hint  = "",
+    Info  = "",
+}
+
+-- Diagnostic icons
+for type, icon in pairs(signs) do
+    local hl = "DiagnosticSign" .. type
+    vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
+end
+
+-- Diagnostic maps
+local opts = { silent = true }
+
+vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, opts)
+vim.keymap.set('n', '<leader>q', ':TroubleToggle document_diagnostics<cr>', opts)
+
+-- Use an on_attach function to only map the following keys
+-- after the language server attaches to the current buffer
+local on_attach = function(client, bufnr)
+    vim.api.nvim_set_option_value('omnifunc', 'v:lua.vim.lsp.omnifunc', { buf = bufnr })
+
+    local bufopts = { silent = true, buffer = bufnr }
+
+    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
+    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+    vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
+    vim.keymap.set('n', '<leader>i', vim.lsp.buf.implementation, bufopts)
+    vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
+
+    vim.keymap.set('n', '<localleader>wa', vim.lsp.buf.add_workspace_folder, bufopts)
+    vim.keymap.set('n', '<localleader>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
+    vim.keymap.set('n', '<localleader>wl',
+        function()
+            print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+        end,
+        bufopts
+    )
+
+    vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, bufopts)
+    vim.keymap.set('n', '<leader>m', vim.lsp.buf.rename, bufopts)
+    vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, bufopts)
+    vim.keymap.set('n', '<leader>r', vim.lsp.buf.references, bufopts)
+
+    -- TODO: merge?
+    vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format { async = true } end, bufopts)
+    vim.api.nvim_buf_create_user_command(bufnr, 'Format',
+        function(args)
+            vim.lsp.buf.format {
+                async = true,
+                range = {
+                    ['start'] = { args.line1, 0 }, -- TODO: not sure why start without the wraps doesn't work
+                    ['end'] = { args.line2, 0 }
+                }
+            }
+        end,
+        { range = '%', desc = 'Format current buffer with LSP' }
+    )
+
+    -- Word highlight on hover, TODO: move to init.lua?
+    vim.o.updatetime = 250
+
+    if client.server_capabilities.documentHighlightProvider
+    then
+        local cursor = vim.api.nvim_create_augroup("Word highlight on hover", { clear = true })
+
+        vim.cmd([[
+            highlight link LspReferenceRead Visual
+            highlight link LspReferenceText Visual
+            highlight link LspReferenceWrite Visual
+        ]])
+
+        vim.api.nvim_create_autocmd("CursorHold", {
+            callback = function()
+                vim.lsp.buf.document_highlight()
+            end,
+            buffer = bufnr,
+            group = cursor
+        })
+
+        vim.api.nvim_create_autocmd("CursorMoved", {
+            callback = function()
+                vim.lsp.buf.clear_references()
+            end,
+            buffer = bufnr,
+            group = cursor
+        })
+    end
+end
+
+-- Mason lspconfig
+local mason_lspconfig = require('mason-lspconfig')
+
+-- nvim-cmp supports additional completion capabilities, so broadcast that to servers
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+local cmp_capabilities = {
+    capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities),
+    on_attach = on_attach
+}
+
+local handlers = {
+    function(server_name)
+        require('lspconfig')[server_name].setup {}
+    end,
+    ["pyright"] = function()
+        require('lspconfig')['pyright'].setup {
+            vim.tbl_extend("error", -- TODO: can we simplify this, and not DRY?
+                cmp_capabilities,
+                {
+                    settings = {
+                        pyright = {
+                            disableOrganizeImports = true, -- use isort
+                        },
+                        python = {
+                            analysis = {
+                                ignore = { '*' }, -- use ruff for linting
+                            },
+                        },
+                    }
+                }
+            )
+        }
+    end,
+    ["lua_ls"] = function()
+        require('lspconfig')['lua_ls'].setup {
+            vim.tbl_extend("error",
+                cmp_capabilities,
+                {
+                    settings = {
+                        Lua = {
+                            workspace = { checkThirdParty = false },
+                            telemetry = { enable = false },
+                        },
+                    }
+                }
+            )
+        }
+    end,
+}
+
+vim.g.lazyvim_rust_diagnostics = "bacon-ls"
+
+mason_lspconfig.setup {
+    ensure_installed = {
+        -- 'ansiblels',
+        'bashls',
+        -- 'dockerls',
+        'jsonls',
+        'marksman',
+        'pyright',
+        -- 'bacon', -- error: entry not listed in https://github.com/williamboman/mason-lspconfig.nvim#available-lsp-servers
+        -- 'bacon-ls',
+        'rust_analyzer',
+        'ruff',
+        'lua_ls',
+        -- 'terraformls', -- add extra .setup section above? with: filetypes = { "terraform", "terraform-vars", "hcl" }
+        -- 'tflint',
+        'vimls',
+        'yamlls',
+    },
+    automatic_installation = false,
+}
+
+mason_lspconfig.setup_handlers(handlers)
+----------------------- File -----------------------
+nvim/lua/plugins/nvim-treesitter.lua
+require('nvim-treesitter.configs').setup {
+
+    -- A list of parser names, or "all"
+    ensure_installed = {
+        "bash",
+        "dot",
+        "dockerfile",
+        "git_rebase",
+        "json",
+        "jsonc",
+        "hcl",
+        "vimdoc",
+        "lua",
+        "markdown",
+        "python",
+        "rust", "ron", -- rust object notation
+        "terraform",
+        "vim",
+        "yaml",
+    },
+
+    -- Install parsers synchronously (only applied to `ensure_installed`)
+    sync_install = false,
+
+    -- Automatically install missing parsers when entering buffer
+    -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
+    auto_install = false,
+
+    -- List of parsers to ignore installing (for "all")
+    -- ignore_install = { "javascript" },
+
+    ---- If you need to change the installation directory of the parsers (see -> Advanced Setup)
+    -- parser_install_dir = "/some/path/to/store/parsers", -- Remember to run vim.opt.runtimepath:append("/some/path/to/store/parsers")!
+
+    highlight = {
+        -- `false` will disable the whole extension
+        enable = true,
+
+        -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
+        -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
+        -- the name of the parser)
+        -- list of language that will be disabled
+        -- disable = { "c", "rust" },
+
+        -- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
+        -- disable = function(lang, buf)
+        --     local max_filesize = 100 * 1024 -- 100 KB
+        --     local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+        --     if ok and stats and stats.size > max_filesize then
+        --         return true
+        --     end
+        -- end,
+
+        -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
+        -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
+        -- Using this option may slow down your editor, and you may see some duplicate highlights.
+        -- Instead of true it can also be a list of languages
+        additional_vim_regex_highlighting = false,
+    },
+    incremental_selection = {
+        enable = true,
+        keymaps = {
+            init_selection    = "<c-leader>", -- set to `false` to disable one of the mappings, TODO: map not working
+            node_incremental  = "grn",
+            scope_incremental = "grc",
+            node_decremental  = "grm",
+        },
+    },
+    indent = {
+        enable = true,
+        -- disable = { "python" }
+    },
+    query_linter = {
+        enable = true,
+        use_virtual_text = true,
+        lint_events = { "BufWrite", "CursorHold" },
+    },
+    textobjects = {
+        select = {
+            enable = true,
+            lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
+            keymaps = {
+                -- You can use the capture groups defined in textobjects.scm
+                -- ['ia'] = '@attribute.inner',
+                -- ['aa'] = '@attribute.outer',
+                -- ['ib'] = '@block.inner', -- taken: alias for a(
+                -- ['ab'] = '@block.outer',
+                -- ['ic'] = '@call.inner',
+                -- ['ac'] = '@call.outer',
+                ['ic'] = '@class.inner',
+                ['ac'] = '@class.outer',
+                -- ['ac'] = '@comment.outer',
+                ['ii'] = '@conditional.inner', -- inner if
+                ['ai'] = '@conditional.outer',
+                -- ['if'] = '@frame.inner', -- taken: I use 'if' for 'inner file'
+                -- ['af'] = '@frame.outer',
+                ['im'] = '@function.inner', -- method
+                ['am'] = '@function.outer',
+                ['il'] = '@loop.inner',
+                ['al'] = '@loop.outer',
+                ['in'] = '@number.inner',
+                ['ia'] = '@parameter.inner', -- argument
+                ['aa'] = '@parameter.outer',
+                -- ['is'] = '@scope.inner',
+                -- ['as'] = '@statement.outer', -- taken: sentence
+            },
+        },
+        move = {
+            enable = true,
+            set_jumps = true, -- whether to set jumps in the jumplist
+            goto_next_start = {
+                [']m'] = '@function.outer',
+                -- [']c'] = '@class.outer', -- used to jump to diffs with unimpaired, might still work for bothe. TODO: test
+            },
+            goto_next_end = {
+                [']M'] = '@function.outer',
+                -- [']C'] = '@class.outer',
+            },
+            goto_previous_start = {
+                ['[m'] = '@function.outer',
+                -- ['[c'] = '@class.outer',
+            },
+            goto_previous_end = {
+                ['[M'] = '@function.outer',
+                -- ['[C'] = '@class.outer',
+            },
+        },
+        swap = {
+            enable = true,
+            swap_next = {
+                ['<leader>x'] = '@parameter.inner',
+            },
+            swap_previous = {
+                ['<leader>X'] = '@parameter.inner',
+            },
+        },
+    },
+}
+
+-- TODO: move to init.lua?
+vim.wo.foldmethod = 'expr'
+vim.wo.foldexpr = 'nvim_treesitter#foldexpr()'
+vim.wo.foldenable = false
+----------------------- File -----------------------
+nvim/lua/plugins/onedark.lua
+require('onedark').setup {
+    -- Main options --
+    style = 'darker', -- Default theme style. Choose between 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
+    transparent = false, -- Show/hide background
+    term_colors = true, -- Change terminal color as per the selected theme style
+    ending_tildes = true, -- Show the end-of-buffer tildes. By default they are hidden
+    cmp_itemkind_reverse = false, -- reverse item kind highlights in cmp menu
+
+    -- Change code style ---
+    -- Options are italic, bold, underline, none
+    -- You can configure multiple style with comma seperated, For e.g., keywords = 'italic,bold'
+    code_style = {
+        comments = 'italic',
+        keywords = 'none',
+        functions = 'none',
+        strings = 'none',
+        variables = 'none'
+    },
+
+    -- Lualine options --
+    lualine = {
+        transparent = false, -- lualine center bar transparency
+    },
+
+    -- Custom Highlights --
+    colors = {
+        -- myComment = '#517A66',
+    },
+    highlights = {
+        -- ["@comment"] = { fg = '$myComment' },
+    },
+
+    -- Plugins Config --
+    diagnostics = {
+        darker = true, -- darker colors for diagnostic
+        undercurl = true, -- use undercurl instead of underline for diagnostics
+        background = true, -- use background color for virtual text
+    },
+}
+
+require('onedark').load()
+----------------------- File -----------------------
+nvim/lua/plugins/session.lua
+vim.api.nvim_create_user_command('Session',
+    'silent! Glcd | Obsession', {
+    desc = 'Create Session.vim in the git root folder',
+})
+----------------------- File -----------------------
+nvim/lua/plugins/sleuth.lua
+vim.g.sleuth_automatic = 0
+----------------------- File -----------------------
+nvim/lua/plugins/trouble.lua
+require("trouble").setup {
+    position = 'right',
+    width = vim.fn.winwidth(0) / 2,
+}
+----------------------- File -----------------------
+nvim/lua/plugins/ultisnips.lua
+vim.g.UltiSnipsEnableSnipMate      = false
+vim.g.UltiSnipsListSnippets        = '<c-r><tab>'
+vim.g.UltiSnipsExpandTrigger       = '<tab>'
+vim.g.UltiSnipsJumpForwardTrigger  = '<tab>'
+vim.g.UltiSnipsJumpBackwardTrigger = '<s-tab>'
+----------------------- File -----------------------
+nvim/lua/plugins/undotree.lua
+vim.g.undotree_DiffCommand = 'diff -u'
+vim.g.undotree_WindowLayout = 2
+vim.g.undotree_DiffpanelHeight = 14
+
+vim.keymap.set('n', 'gou', ':UndotreeToggle<cr>', {
+    desc = 'Visualise the Undo Tree'
+})
+----------------------- File -----------------------
+nvim/lua/plugins/vim-commentary.lua
+-- \\ to toggle comments
+vim.keymap.set('n', '<bslash><bslash>', 'gcc', { remap = true })
+vim.keymap.set('x', '<bslash><bslash>', 'gc',  { remap = true })
+----------------------- File -----------------------
+nvim/lua/plugins/vim-easy-align.lua
+-- "EasyAlign a" to align arrows
+--     pattern is: one or more 'dashes' followed by >
+--     'a' stands for arrows (I used '>' previously but it conflicts with 'stick_to_left')
+vim.g.easy_align_delimiters = {
+    a = { pattern = [[[-=]\+>]] }
+}
+----------------------- File -----------------------
+nvim/lua/plugins/vim-surround.lua
+vim.keymap.set('x', 's', '<Plug>VSurround')
+----------------------- File -----------------------
+nvim/lua/plugins/vim-unimpaired.lua
+-- Custom virtualedit toggle
+vim.keymap.set('n', 'yov', ":se <C-R>=(&ve != 'all') ? 've=all' : 've=block'<CR><CR>")
+
+-- Mouse toggle
+vim.keymap.set('n', 'yom',
+    function()
+        if vim.o.mouse == 'a' then
+            vim.o.mouse = ''
+            print('Mouse off')
+        else
+            vim.o.mouse = 'a'
+            print('Mouse on')
+        end
+    end,
+    { desc = 'Toggle mouse option' }
+)
+
+-- "Kill to eol" toggle
+-- allows me to enter digraphs with c-k
+vim.keymap.set('n', 'yok',
+    function()
+        local ok, _ = pcall(vim.keymap.del, 'i', '<c-k>')
+        if ok then
+            print('"Kill to eol" off')
+        else
+            vim.keymap.set('i', '<c-k>', '<c-o>D', { desc = 'Kill text (cut) to eol' })
+            print('"Kill to eol" on')
+        end
+    end,
+    { desc = '"Kill to eol" toggle' }
+)
+----------------------- File -----------------------
+nvim/lua/readline.lua
+---- Editing
+
+-- alt + backspace
+vim.keymap.set({ 'c', 'i' }, '<a-bs>', '<c-w>')
+
+-- alt + d
+vim.keymap.set('c', '<a-d>', [[<c-\>ecmdline#alt_d()<cr>]])
+vim.keymap.set('i', '<a-d>', '<c-o>de')
+
+-- ctrl + k
+vim.keymap.set('c', '<c-k>', [[<c-\>estrpart(getcmdline(), 0, getcmdpos() - 1)<cr>]])
+vim.keymap.set('i', '<c-k>', '<c-o>D', { desc = 'Kill text (cut) to eol' })
+
+-- ctrl + u
+vim.keymap.set('i', '<c-u>', '<c-g>u<c-u>')
+
+-- ctrl + w (TODO: <c-w> <c-g>u<c-w>?)
+vim.keymap.set('c', '<c-w>', [[<c-\>ecmdline#ctrl_w()<cr>]])
+vim.keymap.set('i', '<c-w>', [[<c-\><c-o>dB]])
+
+---- Moving
+
+-- enhanced gm
+vim.keymap.set({ 'n', 'o', 'x' }, 'gm',
+    function()
+        vim.fn['move#gm']()
+    end,
+    { silent = true }
+)
+
+-- alt + b,f to go left or right
+vim.keymap.set('c', '<a-b>', '<s-left>')
+vim.keymap.set('i', '<a-b>', '<c-o>B')
+vim.keymap.set('c', '<a-f>', '<s-right>')
+vim.keymap.set('i', '<a-f>', '<c-o>W')
+
+-- alt + h,j,k,l to navigate windows
+vim.keymap.set({ 't', 'i' }, '<a-h>', [[<c-\><c-n><c-w>h]])
+vim.keymap.set({ 't', 'i' }, '<a-j>', [[<c-\><c-n><c-w>j]])
+vim.keymap.set({ 't', 'i' }, '<a-k>', [[<c-\><c-n><c-w>k]])
+vim.keymap.set({ 't', 'i' }, '<a-l>', [[<c-\><c-n><c-w>l]])
+vim.keymap.set('n', '<a-h>', '<c-w>h')
+vim.keymap.set('n', '<a-j>', '<c-w>j')
+vim.keymap.set('n', '<a-k>', '<c-w>k')
+vim.keymap.set('n', '<a-l>', '<c-w>l')
+
+-- ctrl + a to go to '^'
+vim.keymap.set('c', '<c-a>', '<c-b>')
+
+-- ctrl + w N to create a new window to the left
+vim.keymap.set('n', '<c-w>N', ':leftabove vnew<cr>', { silent = true })
+
+-- ctrl + w twice to go to the last accessed window
+vim.keymap.set('n', '<c-w><c-w>', ':wincmd p<cr>', { silent = true })
+
+-- ctrl + / to goto '^' and '$'
+vim.keymap.set('n', '<c-left>',  '^')
+vim.keymap.set('n', '<c-right>', '$')
+vim.keymap.set('c', '<c-left>',  '<c-b>')
+vim.keymap.set('c', '<c-right>', '<c-e>')
+vim.keymap.set('i', '<c-left>',  '<c-o>^')
+vim.keymap.set('i', '<c-right>', '<c-o>$')
+
+-- ctrl +  to go up by a paragraph
+vim.keymap.set('i', '<c-up>', '<c-o>{')
+vim.keymap.set({ 'n', 'v', 'o' }, '<c-up>', '{')
+
+-- ctrl +  to go down by a paragraph
+vim.keymap.set('i', '<c-down>', '<c-o>}')
+vim.keymap.set({ 'n', 'v', 'o' }, '<c-down>', '}')
+----------------------- File -----------------------
+nvim/lua/statusline.lua
+vim.o.ruler = true
+
+-- Wild menu & status line
+vim.o.wildmenu = true
+vim.o.wildmode = 'full'
+vim.o.wildignorecase = true
+vim.opt.wildignore:append { '*~', '*.swp', 'tags' }
+-- cmdline: <c-z> in a mapping acts like <tab>
+vim.o.wildcharm = 26 -- :lua print((""):byte())
+
+-- Status line
+vim.o.laststatus = 2
+----------------------- File -----------------------
+nvim/plugin/vsearch.vim
+" vsearch.vim
+" Visual mode search
+function! s:VSetSearch()
+    " Save default register (")
+    let temp = @@
+    normal! gvy
+    " Very nomagic mode: \$, \., \* ... are special so by escaping \,
+    " everything is literal. Also, replace newlines with \n
+    let @/ = '\V' . substitute(escape(@@, '\'), '\n', '\\n', 'g')
+    " Use this line instead of the above to match matches spanning across lines
+    "let @/ = '\V' . substitute(escape(@@, '\'), '\_s\+', '\\_s\\+', 'g')
+    call histadd('/', substitute(@/, '[?/]', '\="\\%d".char2nr(submatch(0))', 'g'))
+    let @@ = temp
+endfunction
+
+function! Del_word_delims()
+    let reg = getreg('/')
+    " After *, i^r/ will give me pattern instead of \<pattern\>
+    let res = substitute(reg, '^\\<\(.*\)\\>$', '\1', '' )
+    if res != reg
+        return res
+    endif
+    " After * on a selection, i^r/ will give me pattern instead of \Vpattern
+    let res = substitute(reg, '^\\V', '',   '' )
+    let res = substitute(res, '\\\\', '\\', 'g')
+    let res = substitute(res, '\\n',  '\n', 'g')
+    return res
+endfunction
+
+inoremap <silent> <c-r>/ <c-r>=Del_word_delims()<cr>
+cnoremap          <c-r>/ <c-r>=Del_word_delims()<cr>
+
+xnoremap <kmultiply> :<c-u>call <SID>VSetSearch()<cr>/<cr>
+xnoremap *           :<c-u>call <SID>VSetSearch()<cr>/<cr>
+xnoremap #           :<c-u>call <SID>VSetSearch()<cr>?<cr>
+----------------------- File -----------------------
+nvim/syntax/authorized_keys.vim
+" Highlighting for ssh authorized_keys
+
+" Options
+" any WORD at the beginning followed by a key type
+syntax match authorizedKeysOptions /^\s*\S\+\%(\s\+\%(ssh-\%(dss\|rsa\)\|ecdsa-sha2-nistp\%(256\|384\|521\)\)\)\@=/
+highlight link authorizedKeysOptions PreProc
+
+" Key type
+setlocal iskeyword+=-
+syntax keyword authorizedKeysType
+    \ ssh-dss
+    \ ssh-rsa
+    \ ecdsa-sha2-nistp256
+    \ ecdsa-sha2-nistp384
+    \ ecdsa-sha2-nistp521
+highlight link authorizedKeysType Type
+
+" Comments (usually emails)
+setlocal synmaxcol&
+syntax match authorizedKeysComment /\S\+\s*$/
+highlight link authorizedKeysComment Comment
+----------------------- File -----------------------
+nvim/syntax/known_hosts.vim
+" Highlighting for ~/.ssh/known_hosts
+
+" Markers
+setlocal iskeyword+=-
+setlocal iskeyword+=@-@
+syntax keyword knownHostsMarker @cert-authority @revoked
+highlight link knownHostsMarker Identifier
+
+" Hosts
+" any WORD followed by a key type
+syntax match knownHostsDNS /\S\+\%(\s\+\%(ssh-\%(dss\|rsa\)\|ecdsa-sha2-nistp\%(256\|384\|521\)\)\)\@=/
+highlight link knownHostsDNS PreProc
+
+" Key type
+syntax keyword knownHostsType
+    \ ssh-dss
+    \ ssh-rsa
+    \ ecdsa-sha2-nistp256
+    \ ecdsa-sha2-nistp384
+    \ ecdsa-sha2-nistp521
+highlight link knownHostsType Type
+
+" Comments
+" setlocal synmaxcol&
+" syntax match knownHostsComment /\S\+\s*$/
+" highlight link knownHostsComment Comment
