@@ -1,13 +1,5 @@
 # Install
-
-```bash
-mkdir fuzzy_cd
-cd fuzzy_cd
-python3 -mvenv .venv
-source ./.venv/bin/activate
-pip install -e .
-deactivate
-```
+`uv tool install -e .`
 
 # Bash setup
 

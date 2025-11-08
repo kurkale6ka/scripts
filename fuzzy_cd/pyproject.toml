@@ -1,21 +1,19 @@
-[tool.poetry]
-name = "fcd"
-version = "1.0.0"
+[project]
+name = "c"
+version = "1.1.0"
 description = "Fuzzy cd, using shell's history"
-authors = ["Dimitar Dimitrov <kurkale6ka@gmail.com>"]
 readme = "README.md"
+authors = [
+    { name = "Dimitar Dimitrov", email = "kurkale6ka@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "tabulate>=0.9.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-tabulate = "*"
-
-[tool.poetry.scripts]
-fcd = "fcd:main"
-
-[tool.pyright]
-venv = ".venv"
-venvPath = "."
+[project.scripts]
+c = "c:main"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
