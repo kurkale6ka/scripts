@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 """Dotfiles setup
 --------------
 
@@ -176,7 +174,7 @@ class Repo:
         except GitCommandError as err:
             fg.info(
                 f'{self._name}{fg.res}:',
-                f'{fg.red}{err.stderr.lstrip().replace("\n", "\n\t")}{fg.res}',
+                fg.red + err.stderr.lstrip().replace('\n', '\n\t') + fg.res,
             )
 
 
@@ -217,6 +215,7 @@ repos = (
         ),
         links=(
             Link('.zshenv', env['HOME'], '-r'),
+            Link('.zshenv', f'{env["XDG_CONFIG_HOME"]}/zsh'),
             Link('.zprofile', f'{env["XDG_CONFIG_HOME"]}/zsh'),
             Link('.zshrc', f'{env["XDG_CONFIG_HOME"]}/zsh'),
             Link('autoload', f'{env["XDG_CONFIG_HOME"]}/zsh'),
@@ -248,6 +247,7 @@ repos = (
             f'{env["HOME"]}/bin',
             f'{env["XDG_CONFIG_HOME"]}/git',
             f'{env["XDG_CONFIG_HOME"]}/bat',
+            f'{env["XDG_CONFIG_HOME"]}/ruff',
         ),
         links=(
             Link('tmux/lay.pl', f'{env["HOME"]}/bin/lay'),
