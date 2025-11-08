@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 """Dotfiles setup
 --------------
 
@@ -216,6 +214,7 @@ repos = (
             f'{env["XDG_DATA_HOME"]}/zsh',  # for zsh history file
         ),
         links=(
+            Link('.zshenv', env['HOME'], '-r'),
             Link('.zshenv', f'{env["XDG_CONFIG_HOME"]}/zsh'),
             Link('.zprofile', f'{env["XDG_CONFIG_HOME"]}/zsh'),
             Link('.zshrc', f'{env["XDG_CONFIG_HOME"]}/zsh'),

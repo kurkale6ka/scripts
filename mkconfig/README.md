@@ -1,4 +1,2 @@
 # INSTALL
-```bash
-uv tool install -e .
-```
+`uv tool install -e .`
