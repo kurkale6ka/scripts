@@ -209,16 +209,9 @@ repos = (
     ),
     RepoData(
         'zsh',
-        dirs=(
-            f'{env["XDG_CONFIG_HOME"]}/zsh',
-            f'{env["XDG_DATA_HOME"]}/zsh',  # for zsh history file
-        ),
         links=(
             Link('.zshenv', env['HOME'], '-r'),
-            Link('.zshenv', f'{env["XDG_CONFIG_HOME"]}/zsh'),
-            Link('.zprofile', f'{env["XDG_CONFIG_HOME"]}/zsh'),
-            Link('.zshrc', f'{env["XDG_CONFIG_HOME"]}/zsh'),
-            Link('autoload', f'{env["XDG_CONFIG_HOME"]}/zsh'),
+            Link('', env['XDG_CONFIG_HOME']),
         ),
     ),
     RepoData(
