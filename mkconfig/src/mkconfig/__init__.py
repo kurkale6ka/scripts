@@ -209,9 +209,6 @@ repos = (
     ),
     RepoData(
         'zsh',
-        dirs=(
-            f'{env["XDG_DATA_HOME"]}/zsh',  # for zsh history file
-        ),
         links=(
             Link('.zshenv', env['HOME'], '-r'),
             Link('', env['XDG_CONFIG_HOME']),
